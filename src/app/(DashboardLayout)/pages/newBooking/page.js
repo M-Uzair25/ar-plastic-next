@@ -1,15 +1,5 @@
 'use client'
-import {
-  Navbar,
-  Row,
-  Col,
-  NavbarBrand,
-  Button,
-  Form,
-  FormGroup,
-  Label,
-  Input
-} from 'reactstrap';
+import { Navbar, Row, Col, NavbarBrand, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import Select from 'react-select'
 
 const Suppliers = [
@@ -129,7 +119,7 @@ const newBooking = () => {
               <Input id="subtotal" name="subtotal" type="number" min="0" defaultValue="0" />
             </FormGroup>
           </Col>
-          
+
           <Col md={2}>
             <FormGroup>
               <Button className="mt-4" color="primary">

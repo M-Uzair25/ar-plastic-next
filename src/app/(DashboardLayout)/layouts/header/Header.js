@@ -1,19 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Navbar,
-  Collapse,
-  Nav,
-  NavItem,
-  NavbarBrand,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-  Dropdown,
-  Button,
-} from "reactstrap";
+import { Navbar, Collapse, Nav, NavItem, NavbarBrand, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Button, } from "reactstrap";
 import LogoWhite from "public/images/logos/xtremelogowhite.svg";
 import user1 from "public/images/users/user1.jpg";
 

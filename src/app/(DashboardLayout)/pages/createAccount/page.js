@@ -1,16 +1,5 @@
 'use client'
-import {
-    Card,
-    Row,
-    Col,
-    CardTitle,
-    CardBody,
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input
-} from 'reactstrap';
+import { Card, Row, Col, CardTitle, CardBody, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 
 const createAccount = () => {
     return (

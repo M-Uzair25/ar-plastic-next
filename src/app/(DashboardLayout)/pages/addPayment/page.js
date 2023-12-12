@@ -1,15 +1,5 @@
 'use client'
-import {
-    Navbar,
-    Row,
-    Col,
-    NavbarBrand,
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Input
-} from 'reactstrap';
+import { Navbar, Row, Col, NavbarBrand, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import Select from 'react-select'
 
 const Suppliers = [

@@ -1,18 +1,13 @@
 'use client'
-import {
-  Navbar, Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input, NavbarBrand, NavLink
-} from 'reactstrap';
+import { Navbar, Row, Col, Table, Card, CardBody, Button, NavbarBrand, NavLink } from 'reactstrap';
 const Bookings = () => {
   return (
     <>
       <Navbar className="mb-4" color="secondary" dark>
         <NavbarBrand>Bookings</NavbarBrand>
-        <NavLink
-          href="/pages/newBooking"
-        >
+        <NavLink href="/pages/newBooking" >
           <Button color="primary">Create New Booking</Button>
         </NavLink>
-
       </Navbar>
 
       <Row>

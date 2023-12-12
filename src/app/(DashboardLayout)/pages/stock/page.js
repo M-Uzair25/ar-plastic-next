@@ -1,5 +1,5 @@
 'use client'
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Label, Input } from "reactstrap";
+import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
 
 const Stock = () => {
   return (

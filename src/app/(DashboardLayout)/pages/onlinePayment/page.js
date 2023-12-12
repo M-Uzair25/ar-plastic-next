@@ -1,5 +1,5 @@
 'use client'
-import { Row, Col, Button, Form, FormGroup, Label, Input, InputGroup } from 'reactstrap';
+import { Row, Col, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import Select from 'react-select'
 
 const customerName = [

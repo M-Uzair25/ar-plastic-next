@@ -58,12 +58,12 @@ const Suppliers = () => {
         <CardSubtitle className="mb-3 text-muted" tag="h6">
           Dated: 8/12/2023
         </CardSubtitle>
-          <Input
-            id="exampleSearch"
-            name="search"
-            placeholder="Search"
-            type="search"
-          />
+        <Input
+          id="exampleSearch"
+          name="search"
+          placeholder="Search"
+          type="search"
+        />
         <div className="table-responsive">
           <Table className="text-nowrap mt-3 align-middle" borderless hover>
             <thead>
