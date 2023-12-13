@@ -1,8 +1,8 @@
 'use client'
 import Head from "next/head";
 import { Col, Row, Card, CardBody, CardTitle, CardSubtitle } from "reactstrap";
-import SalesChart from "@/app/(DashboardLayout)/components/dashboard/SalesChart";
-import TopCards from "@/app/(DashboardLayout)/components/dashboard/TopCards";
+import SalesChart from "@/app/(DashboardLayout)/components/SalesChart";
+import TopCards from "@/app/(DashboardLayout)/components/TopCards";
 
 export default function Home() {
   return (
