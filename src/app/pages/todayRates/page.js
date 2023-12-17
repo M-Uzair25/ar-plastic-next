@@ -1,7 +1,7 @@
 'use client'
 import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
 
-const todayRates = () => {
+const TodayRates = () => {
     return (
         <Row>
             <Col lg="12">
@@ -73,4 +73,4 @@ const todayRates = () => {
     );
 };
 
-export default todayRates;
+export default TodayRates;

@@ -1,7 +1,7 @@
 'use client'
 import { Card, Row, Col, CardTitle, CardBody, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 
-const createAccount = () => {
+const CreateAccount = () => {
     return (
         <Row>
             <Col>
@@ -72,4 +72,4 @@ const createAccount = () => {
     );
 };
 
-export default createAccount;
+export default CreateAccount;

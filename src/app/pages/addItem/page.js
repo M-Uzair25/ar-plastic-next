@@ -1,7 +1,7 @@
 'use client'
 import { Navbar, Row, Col, NavbarBrand, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 
-const addItem = () => {
+const AddItem = () => {
   return (
     <>
       <Navbar className="mb-4" color="secondary" dark>
@@ -90,4 +90,4 @@ const addItem = () => {
   );
 };
 
-export default addItem;
+export default AddItem;

@@ -18,7 +18,7 @@ const number = [
   { value: '2', label: '2' }
 ]
 
-const newBooking = () => {
+const NewBooking = () => {
   return (
     <>
       <Navbar className="mb-4" color="secondary" dark>
@@ -146,4 +146,4 @@ const newBooking = () => {
   );
 };
 
-export default newBooking;
+export default NewBooking;

@@ -29,7 +29,7 @@ const number = [
   { value: '1000', label: '1000' }
 ]
 
-const saleItem = () => {
+const SaleItem = () => {
   return (
     <>
       <Navbar className="mb-3" color="secondary" dark>
@@ -205,4 +205,4 @@ const saleItem = () => {
   );
 };
 
-export default saleItem;
+export default SaleItem;

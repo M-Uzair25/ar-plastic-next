@@ -9,7 +9,7 @@ const customerName = [
     { value: 'Adil & Co', label: 'Adil & Co' }
 ]
 
-const onlinePayment = () => {
+const OnlinePayment = () => {
     return (
         <Form>
             <Row>
@@ -101,4 +101,4 @@ const onlinePayment = () => {
     );
 };
 
-export default onlinePayment;
+export default OnlinePayment;

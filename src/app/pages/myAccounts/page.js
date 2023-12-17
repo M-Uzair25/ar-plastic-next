@@ -50,7 +50,7 @@ const tableData = [
   },
 ];
 
-const myAccounts = () => {
+const MyAccounts = () => {
   return (
     <Card>
       <CardBody>
@@ -103,4 +103,4 @@ const myAccounts = () => {
   );
 };
 
-export default myAccounts;
+export default MyAccounts;

@@ -9,7 +9,7 @@ const Suppliers = [
     { value: 'Adil & Co', label: 'Adil & Co' }
 ]
 
-const addPayment = () => {
+const AddPayment = () => {
     return (
         <>
             <Navbar className="mb-4" color="secondary" dark>
@@ -73,4 +73,4 @@ const addPayment = () => {
     );
 };
 
-export default addPayment;
+export default AddPayment;
