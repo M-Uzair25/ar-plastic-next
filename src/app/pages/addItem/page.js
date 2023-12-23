@@ -1,34 +1,66 @@
 'use client'
+import React, { useState, useEffect  } from 'react';
 import { Navbar, Row, Col, NavbarBrand, Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import axios from 'axios';
+import { useRouter } from 'next/navigation'
 
 const AddItem = () => {
+  const router = useRouter()
+  const [itemData, setItemData] = useState({
+    itemCategory: '',
+    itemSubcategory: '',
+    color: 'Natural',
+    number: 1,
+    bagQuantity: 0,
+    kgQuantity: 0,
+  });
+  const [buttonDisabled, setButtonDisabled] = React.useState(false);
+  useEffect(() => {
+    if(itemData.itemCategory.length > 0 && itemData.itemSubcategory.length > 0 ) {
+        setButtonDisabled(false);
+    } else {
+        setButtonDisabled(true);
+    }
+}, [itemData]);
+
+  const handleChange = (event) => {
+    setItemData({ ...itemData, [event.target.name]: event.target.value });
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await axios.post('/api/items', itemData);
+      console.log('Item created successfully:', response.data);
+      router.push('/');
+      // Display success message to the user
+    } catch (error) {
+      console.error('Error creating item:', error);
+      // Display error message to the user
+    }
+  };
   return (
     <>
       <Navbar className="mb-4" color="secondary" dark>
         <NavbarBrand>Add New Item</NavbarBrand>
       </Navbar>
 
-      <Form>
+      <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={3}>
             <FormGroup>
-              <Label for="itemCategory">
-                Item Category
-              </Label>
-              <Input
-                id="itemCategory"
-                name="itemCategory"
-              />
+              <Label for="itemCategory">Item Category</Label>
+              <Input id="itemCategory" name="itemCategory" value={itemData.itemCategory} onChange={handleChange} />
             </FormGroup>
           </Col>
           <Col md={3}>
             <FormGroup>
-              <Label for="itemSubcategory">
-                Item Sub-Category
-              </Label>
+              <Label for="itemSubcategory">Item Sub-Category</Label>
               <Input
                 id="itemSubcategory"
                 name="itemSubcategory"
+                value={itemData.itemSubcategory} onChange={handleChange}
               />
             </FormGroup>
           </Col>
@@ -40,7 +72,7 @@ const AddItem = () => {
               <Input
                 id="color"
                 name="color"
-                defaultValue="Natural"
+                value={itemData.color} onChange={handleChange}
               />
             </FormGroup>
           </Col>
@@ -49,7 +81,7 @@ const AddItem = () => {
               <Label for="Number">
                 Number
               </Label>
-              <Input id="number" name="number" type="number" min="0" defaultValue='1' />
+              <Input id="number" name="number" type="number" min="1" value={itemData.number} onChange={handleChange} />
             </FormGroup>
           </Col>
           <Col md={1}>
@@ -62,7 +94,7 @@ const AddItem = () => {
                 name="bagQuantity"
                 type="number"
                 min="0"
-                defaultValue="0"
+                value={itemData.bagQuantity} onChange={handleChange}
               />
             </FormGroup>
           </Col>
@@ -76,15 +108,12 @@ const AddItem = () => {
                 name="kgQuantity"
                 type="number"
                 min="0"
-                defaultValue="0"
+                value={itemData.kgQuantity} onChange={handleChange}
               />
             </FormGroup>
           </Col>
         </Row>
-
-        <Button>
-          Add Item
-        </Button>
+        <Button type="submit" disabled={buttonDisabled}>Add Item</Button>
       </Form>
     </>
   );
