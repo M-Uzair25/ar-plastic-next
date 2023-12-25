@@ -9,6 +9,22 @@ function TodayRates() {
   const [error, setError] = useState(null);
   const currentDate = new Date();
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const handleSearch = (event) => {
+    setSearchQuery(event.target.value);
+  };
+  const filteredRates = rates.filter((rate) => {
+    const searchTerm = searchQuery.toLowerCase();
+    return (
+      rate.itemCategory.toLowerCase().includes(searchTerm) ||
+      rate.itemSubcategory.toLowerCase().includes(searchTerm) ||
+      rate.color.toLowerCase().includes(searchTerm) ||
+      rate.number.toString().includes(searchTerm) ||
+      rate.sellRate.toString().includes(searchTerm) ||
+      rate.bagQuantity.toString().includes(searchTerm) ||
+      rate.kgQuantity.toString().includes(searchTerm)
+    );
+  });
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -43,12 +59,14 @@ function TodayRates() {
                 <Input
                   id="search"
                   name="search"
+                  value={searchQuery}
                   placeholder="Search"
                   type="search"
+                  onChange={handleSearch}
                 />
               </FormGroup>
             </Col>
-            {rates.length > 0 && (
+            {filteredRates.length > 0 && (
               <Table bordered>
                 <thead>
                   <tr>
@@ -62,7 +80,7 @@ function TodayRates() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rates.map((rate) => (
+                  {filteredRates.map((rate) => (
                     <tr key={rate._id}>
                       <td scope="row">{rate.itemCategory}</td>
                       <td>{rate.itemSubcategory}</td>
