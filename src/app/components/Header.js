@@ -15,7 +15,7 @@ const Header = ({ showMobmenu }) => {
   };
 
   return (
-    <Navbar color="primary" dark expand="md">
+    <Navbar color="primary" dark expand="md" style={{ marginBottom: '-17px' }}>
       <div className="d-flex align-items-center">
         <NavbarBrand href="/" className="d-lg-none">
           <Image src={LogoWhite} alt="logo" />
@@ -57,8 +57,8 @@ const Header = ({ showMobmenu }) => {
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/pages/addItem" className="nav-link">
-              Add Item
+            <Link href="/pages/createItem" className="nav-link">
+              Create Item
             </Link>
           </NavItem>
           <NavItem>

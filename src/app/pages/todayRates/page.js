@@ -1,76 +1,88 @@
 'use client'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
 
-const TodayRates = () => {
-    return (
-        <Row>
-            <Col lg="12">
-                <Card>
-                    <CardTitle tag="h6" className="border-bottom p-3 mb-0">
-                        <i className="bi bi-card-text me-2"> </i>
-                        Today Rates 11 Nov 2023
-                    </CardTitle>
-                    <CardBody>
-                        <Col md={3}>
-                            <FormGroup>
-                                <Input
-                                    id="exampleSearch"
-                                    name="search"
-                                    placeholder="Search"
-                                    type="search"
-                                />
-                            </FormGroup>
-                        </Col>
-                        <Table bordered>
-                            <thead>
-                                <tr>
-                                    <th>Item Category</th>
-                                    <th>Item Sub-Category</th>
-                                    <th>Color</th>
-                                    <th>Rate</th>
-                                    <th>Stock</th>
-                                    <th>Edit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td scope="row">PP</td>
-                                    <td>Advance 1100</td>
-                                    <td>Natural</td>
-                                    <td>9900</td>
-                                    <td>10 Bags 1 Kg</td>
-                                    <td>
-                                        <Button color="primary" size="sm">Edit</Button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td scope="row">Blow</td>
-                                    <td>Tasnee 1258</td>
-                                    <td>Natural</td>
-                                    <td>11000</td>
-                                    <td>0 Bags 15 KG</td>
-                                    <td>
-                                        <Button color="primary" size="sm">Edit</Button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td scope="row">Marlex</td>
-                                    <td>Sabic 200056</td>
-                                    <td>Natural</td>
-                                    <td>12000</td>
-                                    <td>20 Bags 20 KG</td>
-                                    <td>
-                                        <Button color="primary" size="sm">Edit</Button>
-                                    </td>
+function TodayRates() {
+  const [rates, setRates] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const currentDate = new Date();
 
-                                </tr>
-                            </tbody>
-                        </Table>
-                    </CardBody>
-                </Card>
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await axios.get('/api/items');
+        setRates(response.data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  return (
+    <Row>
+      <Col lg="12">
+        <Card>
+          <CardTitle tag="h6" className="border-bottom p-3 mb-0">
+            <i className="bi bi-card-text me-2"> </i>
+            Today Rates {currentDate.getDate()} {currentDate.toLocaleDateString('en-US', { month: 'long' })}, {currentDate.getFullYear()}
+          </CardTitle>
+          <CardBody>
+            {isLoading && <p className="text-center">Loading rates...</p>}
+            {error && <p className="text-center text-danger">Error fetching rates: {error.message}</p>}
+            <Col md={3}>
+              <FormGroup>
+                <Input
+                  id="search"
+                  name="search"
+                  placeholder="Search"
+                  type="search"
+                />
+              </FormGroup>
             </Col>
-        </Row>
-    );
-};
+            {rates.length > 0 && (
+              <Table bordered>
+                <thead>
+                  <tr>
+                    <th>Item Category</th>
+                    <th>Item Sub-Category</th>
+                    <th>Color</th>
+                    <th>Number</th>
+                    <th>Rate</th>
+                    <th>Stock</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rates.map((rate) => (
+                    <tr key={rate._id}>
+                      <td scope="row">{rate.itemCategory}</td>
+                      <td>{rate.itemSubcategory}</td>
+                      <td>{rate.color}</td>
+                      <td>{rate.number}</td>
+                      <td>{rate.sellRate}</td>
+                      <td>{rate.bagQuantity}Bags {rate.kgQuantity}Kg</td>
+                      <td>
+                        <Button color="primary" size="sm">Edit</Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            )}
+          </CardBody>
+        </Card>
+      </Col>
+    </Row>
+  );
+}
 
 export default TodayRates;

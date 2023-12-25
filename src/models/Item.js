@@ -25,7 +25,16 @@ const itemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  // Add any other fields you need for your product data
-});
+  purchasedRate: {
+    type: Number,
+    default: 0,
+  },
+  sellRate: {
+    type: Number,
+    default: 0,
+  },
+},
+  { timestamps: true }
+);
 
 export default mongoose.models.Item || mongoose.model('Item', itemSchema);

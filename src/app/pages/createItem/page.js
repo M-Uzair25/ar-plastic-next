@@ -1,10 +1,10 @@
 'use client'
-import React, { useState, useEffect  } from 'react';
-import { Navbar, Row, Col, NavbarBrand, Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import React, { useState, useEffect } from 'react';
+import { Row, Col, Button, Form, FormGroup, Label, Input } from 'reactstrap';
 import axios from 'axios';
 import { useRouter } from 'next/navigation'
 
-const AddItem = () => {
+const CreateItem = () => {
   const router = useRouter()
   const [itemData, setItemData] = useState({
     itemCategory: '',
@@ -16,12 +16,12 @@ const AddItem = () => {
   });
   const [buttonDisabled, setButtonDisabled] = React.useState(false);
   useEffect(() => {
-    if(itemData.itemCategory.length > 0 && itemData.itemSubcategory.length > 0 ) {
-        setButtonDisabled(false);
+    if (itemData.itemCategory.length > 0 && itemData.itemSubcategory.length > 0) {
+      setButtonDisabled(false);
     } else {
-        setButtonDisabled(true);
+      setButtonDisabled(true);
     }
-}, [itemData]);
+  }, [itemData]);
 
   const handleChange = (event) => {
     setItemData({ ...itemData, [event.target.name]: event.target.value });
@@ -42,9 +42,10 @@ const AddItem = () => {
   };
   return (
     <>
-      <Navbar className="mb-4" color="secondary" dark>
-        <NavbarBrand>Add New Item</NavbarBrand>
-      </Navbar>
+      <h2 className="mb-5"
+        style={{ backgroundColor: '#343a40', color: 'white', padding: '1px', textAlign: 'center', }}>
+        Create New Item
+      </h2>
 
       <Form onSubmit={handleSubmit}>
         <Row>
@@ -113,10 +114,10 @@ const AddItem = () => {
             </FormGroup>
           </Col>
         </Row>
-        <Button type="submit" disabled={buttonDisabled}>Add Item</Button>
+        <Button type="submit" disabled={buttonDisabled}>Create Item</Button>
       </Form>
     </>
   );
 };
 
-export default AddItem;
+export default CreateItem;
