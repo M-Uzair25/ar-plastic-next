@@ -1,7 +1,12 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
+import {
+  Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input, Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "reactstrap";
 
 function TodayRates() {
   const [rates, setRates] = useState([]);
@@ -25,6 +30,47 @@ function TodayRates() {
       rate.kgQuantity.toString().includes(searchTerm)
     );
   });
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [newRate, setNewRate] = useState(0); // State to store the new rate
+  const [currentItemId, setCurrentItemId] = useState(null); // State to store the ID of the item being edited
+  const handleEdit = (itemId, currentSellRate) => {
+    // Open the edit modal
+    setIsEditModalOpen(true);
+    setNewRate(currentSellRate); // Set the initial value to the current sell rate
+    setCurrentItemId(itemId);
+  };
+
+  const handleCancelEdit = () => {
+    // Close the edit modal
+    setIsEditModalOpen(false);
+  };
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  const handleUpdateRate = async () => {
+    try {
+      // Make a PUT request to update the sellRate
+      const response = await axios.put('/api/items', { itemId: currentItemId, sellRate: newRate });
+      console.log('Item updated successfully:', response.data);
+      // Close the edit modal
+      setIsEditModalOpen(false);
+
+      // Refetch the updated rates after editing
+      setIsLoading(true);
+      setError(null);
+      await delay(1000); // Delay 1 second to show data after update
+      try {
+        const response = await axios.get('/api/items');
+        setRates(response.data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+      // Handle error, e.g., show a notification to the user
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -89,13 +135,36 @@ function TodayRates() {
                       <td>{rate.sellRate}</td>
                       <td>{rate.bagQuantity}Bags {rate.kgQuantity}Kg</td>
                       <td>
-                        <Button color="primary" size="sm">Edit</Button>
+                        <Button color="primary" size="sm" onClick={() => handleEdit(rate._id, rate.sellRate)}>
+                          Edit
+                        </Button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </Table>
             )}
+            <Modal isOpen={isEditModalOpen} toggle={handleCancelEdit}>
+              <ModalHeader>Edit Rate</ModalHeader>
+              <ModalBody>
+                <FormGroup>
+                  <Input
+                    type="number"
+                    placeholder="New Rate"
+                    value={newRate}
+                    onChange={(e) => setNewRate(parseFloat(e.target.value))}
+                  />
+                </FormGroup>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="secondary" onClick={handleCancelEdit}>
+                  Cancel
+                </Button>
+                <Button color="primary" onClick={handleUpdateRate}>
+                  Update Rate
+                </Button>
+              </ModalFooter>
+            </Modal>
           </CardBody>
         </Card>
       </Col>

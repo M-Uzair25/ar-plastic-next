@@ -38,3 +38,31 @@ export async function GET(req = NextRequest) {
     return NextResponse.json({ error: 'Error fetching rates' }, { status: 500 });
   }
 }
+// PUT request to update an item's rate
+export async function PUT(req = NextRequest) {
+  await connectToDB();
+
+  try {
+    const { itemId, sellRate } = await req.json();
+
+    // Validate input data (optional, but recommended)
+
+    // Find the item by ID
+    const existingItem = await Item.findById(itemId);
+
+    if (!existingItem) {
+      return NextResponse.json({ message: 'Item not found' }, { status: 404 });
+    }
+
+    // Update the sellRate
+    existingItem.sellRate = sellRate;
+
+    // Save the updated item
+    await existingItem.save();
+
+    return NextResponse.json({ message: 'Item updated successfully', item: existingItem });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Error updating item' }, { status: 500 });
+  }
+}
