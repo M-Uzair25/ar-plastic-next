@@ -93,7 +93,8 @@ function TodayRates() {
     <Row>
       <Col lg="12">
         <Card>
-          <CardTitle tag="h6" className="border-bottom p-3 mb-0">
+          <CardTitle tag="h6" className="border-bottom p-3 mb-0"
+          style={{ backgroundColor: '#343a40', color: 'white' }}>
             <i className="bi bi-card-text me-2"> </i>
             Today Rates {currentDate.getDate()} {currentDate.toLocaleDateString('en-US', { month: 'long' })}, {currentDate.getFullYear()}
           </CardTitle>
@@ -151,6 +152,7 @@ function TodayRates() {
                   <Input
                     type="number"
                     placeholder="New Rate"
+                    min="0"
                     value={newRate}
                     onChange={(e) => setNewRate(parseFloat(e.target.value))}
                   />
