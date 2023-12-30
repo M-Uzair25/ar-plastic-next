@@ -2,13 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, Row, Col, CardTitle, CardBody, Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import { useRouter } from 'next/navigation'
 
 const CreateAccount = () => {
+  const router = useRouter()
   const [accountData, setAccountData] = useState({
     accountName: '',
     accountNo: '',
     address: '',
-    balance: 0,
+    openingBalance: 0,
     acctype: 'customer',
   });
 
@@ -32,12 +34,15 @@ const CreateAccount = () => {
       console.log(response.data); // Handle successful creation
 
       // Example: Redirect to a success page or display a success message
-      window.location.href = '/pages/createAccount';
+      router.push('/pages/saleItem');
     } catch (error) {
-      console.error(error);
-
-      // Example: Display an error message to the user
-      alert('Error creating account: ' + error.message);
+      if (error.response.status === 400) {
+        // Account already exists
+        alert('Sorry: An Account with this name already exists');
+      } else {
+        // Other errors
+        alert('Error creating account: ' + error.message);
+      }
     }
   };
 
@@ -83,13 +88,13 @@ const CreateAccount = () => {
           <Row>
             <Col md={2}>
               <FormGroup>
-                <Label for="balance">Opening Balance</Label>
+                <Label for="openingBalance">Opening Balance</Label>
                 <Input
-                  id="balance"
-                  name="balance"
+                  id="openingBalance"
+                  name="openingBalance"
                   type="number"
                   min="0"
-                  value={accountData.balance}
+                  value={accountData.openingBalance}
                   onChange={handleChange}
                 />
               </FormGroup>

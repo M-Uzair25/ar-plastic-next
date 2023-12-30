@@ -1,15 +1,20 @@
 import { connectToDB } from "@/dbConfig/dbConfig";
-import Account from '@/models/Account'; // Assuming a Mongoose model for accounts
+import Account from '@/models/Account';
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req = NextRequest, res = NextResponse) {
-
+export async function POST(req = NextRequest) {
     await connectToDB();
-    try {
 
-        // Validate input data (crucial for security and data integrity)
+    try {
         const { accountName, accountNo, address, openingBalance, acctype } = await req.json();
         // Add validation rules based on your requirements
+
+        // Check if the accountName already exists
+        const existingAccount = await Account.findOne({ accountName });
+
+        if (existingAccount) {
+            return NextResponse.json({ message: 'Account already exists' }, { status: 400 });
+        }
 
         const newAccount = new Account({
             accountName,
@@ -25,5 +30,17 @@ export async function POST(req = NextRequest, res = NextResponse) {
     } catch (error) {
         console.error(error);
         return NextResponse.json({ message: 'Error creating account' }, { status: 500 });
+    }
+}
+export async function GET() {
+    await connectToDB();
+
+    try {
+        const accounts = await Account.find().select('accountName');
+
+        return NextResponse.json(accounts);
+    } catch (error) {
+        console.error(error);
+        return NextResponse.json({ message: 'Error fetching accounts' }, { status: 500 });
     }
 }
