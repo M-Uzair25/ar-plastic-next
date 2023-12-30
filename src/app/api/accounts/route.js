@@ -33,14 +33,14 @@ export async function POST(req = NextRequest) {
     }
 }
 export async function GET() {
-    await connectToDB();
-
     try {
+        await connectToDB();
+
         const accounts = await Account.find().select('accountName');
 
         return NextResponse.json(accounts);
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching accounts:', error.message);
         return NextResponse.json({ message: 'Error fetching accounts' }, { status: 500 });
     }
 }
