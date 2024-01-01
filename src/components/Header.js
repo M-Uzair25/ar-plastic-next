@@ -4,10 +4,12 @@ import Image from "next/image";
 import { Navbar, Collapse, Nav, NavItem, NavbarBrand, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Button, UncontrolledDropdown } from "reactstrap";
 import LogoWhite from "public/images/logos/xtremelogowhite.svg";
 import user1 from "public/images/users/user1.jpg";
+import { usePathname } from "next/navigation";
 
 const Header = ({ showMobmenu }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const pathName = usePathname();
 
   const toggle = () => setDropdownOpen((prevState) => !prevState);
   const Handletoggle = () => {
@@ -42,48 +44,49 @@ const Header = ({ showMobmenu }) => {
       <Collapse navbar isOpen={isOpen}>
         <Nav className="me-auto" navbar>
           <NavItem>
-            <Link href="/pages/todayRates" className="nav-link">
+
+            <Link href="/todayRates" className={`nav-link ${pathName === "/todayRates" && "active"}`}>
               Today Rates
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/pages/saleItem" className="nav-link">
+            <Link href="/saleItem" className={`nav-link ${pathName === "/saleItem" && "active"}`}>
               Sale Item
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/pages/onlinePayment" className="nav-link">
+            <Link href="/onlinePayment" className={`nav-link ${pathName === "/onlinePayment" && "active"}`}>
               Online Payment
             </Link>
           </NavItem>
 
           <NavItem>
-            <Link href="/pages/addPayment" className="nav-link">
+            <Link href="/addPayment" className={`nav-link ${pathName === "/addPayment" && "active"}`}>
               Add Payment
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/pages/todos" className="nav-link">
+            <Link href="/todos" className={`nav-link ${pathName === "/todos" && "active"}`}>
               Todos
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/pages/bookings" className="nav-link">
+            <Link href="/bookings" className={`nav-link ${pathName === "/bookings" && "active"}`}>
               Bookings
             </Link>
           </NavItem>
           <UncontrolledDropdown>
-            <DropdownToggle nav caret >
+            <DropdownToggle nav caret className={`${(pathName === "/createItem" || pathName === "/createAccount") && "active"}`}>
               Create
             </DropdownToggle>
-            <DropdownMenu style={{ backgroundColor: '#0d6efd' }}>
+            <DropdownMenu className="btn btn-outline-light border border-dark border-4">
               <NavItem>
-                <Link href="/pages/createAccount" className="nav-link">
+                <Link href="/createAccount" className={`dropdown-item ${pathName === "/createAccount" && "active"}`}>
                   Create Account
                 </Link>
               </NavItem>
               <NavItem>
-                <Link href="/pages/createItem" className="nav-link">
+                <Link href="/createItem" className={`dropdown-item ${pathName === "/createItem" && "active"}`}>
                   Create Item
                 </Link>
               </NavItem>

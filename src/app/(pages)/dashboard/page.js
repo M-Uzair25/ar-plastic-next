@@ -1,7 +1,7 @@
 'use client'
 import { Col, Row, Card, CardBody, CardTitle, CardSubtitle } from "reactstrap";
-import SalesChart from "@/app/components/SalesChart";
-import TopCards from "@/app/components/TopCards";
+import SalesChart from "@/components/SalesChart";
+import TopCards from "@/components/TopCards";
 
 const Dashboard = () => {
     return (

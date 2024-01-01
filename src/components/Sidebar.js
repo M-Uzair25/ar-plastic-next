@@ -11,42 +11,42 @@ const navigation = [
   },
   {
     title: "Sales",
-    href: "/pages/sales",
+    href: "/sales",
     icon: "bi bi-card-text",
   },
   {
     title: "Purchase",
-    href: "/pages/purchase",
+    href: "/purchase",
     icon: "bi bi-card-text",
   },
   {
     title: "Stock",
-    href: "/pages/stock",
+    href: "/stock",
     icon: "bi bi-card-text",
   },
   {
     title: "Accounts",
-    href: "/pages/accounts",
+    href: "/accounts",
     icon: "bi bi-layout-split",
   },
   {
     title: "Customers",
-    href: "/pages/customers",
+    href: "/customers",
     icon: "bi bi-layout-split",
   },
   {
     title: "Suppliers",
-    href: "/pages/suppliers",
+    href: "/suppliers",
     icon: "bi bi-layout-split",
   },
   {
     title: "My Accounts",
-    href: "/pages/myAccounts",
+    href: "/myAccounts",
     icon: "bi bi-layout-split",
   },
   {
     title: "About",
-    href: "/pages/about",
+    href: "/about",
     icon: "bi bi-people",
   },
 ];

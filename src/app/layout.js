@@ -3,8 +3,8 @@ import "@/styles/style.scss";
 import Head from "next/head";
 import React from "react";
 import { Container } from "reactstrap";
-import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 
 export default function RootLayout({
   // Layouts must accept a children prop.

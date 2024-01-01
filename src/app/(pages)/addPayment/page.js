@@ -1,7 +1,7 @@
 'use client'
 import React from 'react';
 import { Card, CardTitle, CardBody, Form, Row, Col, FormGroup, Label, Input, Button } from 'reactstrap';
-import SelectDropdown from '@/app/components/SelectDropdown';
+import SelectDropdown from '@/components/SelectDropdown';
 
 const defaultAccount = { value: 'Cash', label: 'Cash' };
 
