@@ -94,7 +94,7 @@ function TodayRates() {
       <Col lg="12">
         <Card>
           <CardTitle tag="h6" className="border-bottom p-3 mb-0"
-          style={{ backgroundColor: '#343a40', color: 'white' }}>
+            style={{ backgroundColor: '#343a40', color: 'white' }}>
             <i className="bi bi-card-text me-2"> </i>
             Today Rates {currentDate.getDate()} {currentDate.toLocaleDateString('en-US', { month: 'long' })}, {currentDate.getFullYear()}
           </CardTitle>
@@ -121,7 +121,8 @@ function TodayRates() {
                     <th>Item Sub-Category</th>
                     <th>Color</th>
                     <th>Number</th>
-                    <th>Rate</th>
+                    <th>Bag Rate</th>
+                    <th>Kg Rate</th>
                     <th>Stock</th>
                     <th>Edit</th>
                   </tr>
@@ -134,7 +135,21 @@ function TodayRates() {
                       <td>{rate.color}</td>
                       <td>{rate.number}</td>
                       <td>{rate.sellRate}</td>
-                      <td>{rate.bagQuantity}Bags {rate.kgQuantity}Kg</td>
+                      <td>{rate.sellRate / 25}</td>
+                      <td className="text-end">
+                        {rate.bagQuantity ? (
+                          <span style={{ color: 'blue', fontWeight: 'bold' }}>{rate.bagQuantity} </span>
+                        ) : (
+                          <span style={{ color: 'red' }}>{rate.bagQuantity} </span>
+                        )}
+                        Bags,
+                        {rate.kgQuantity ? (
+                          <span style={{ color: 'darkgreen', fontWeight: 'bold' }}> {rate.kgQuantity} </span>
+                        ) : (
+                          <span style={{ color: 'red' }}> {rate.kgQuantity} </span>
+                        )}
+                        Kg
+                      </td>
                       <td>
                         <Button color="primary" size="sm" onClick={() => handleEdit(rate._id, rate.sellRate)}>
                           Edit

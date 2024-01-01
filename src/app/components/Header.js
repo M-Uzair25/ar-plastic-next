@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Navbar, Collapse, Nav, NavItem, NavbarBrand, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Button, } from "reactstrap";
+import { Navbar, Collapse, Nav, NavItem, NavbarBrand, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Button, UncontrolledDropdown } from "reactstrap";
 import LogoWhite from "public/images/logos/xtremelogowhite.svg";
 import user1 from "public/images/users/user1.jpg";
 
@@ -56,11 +56,7 @@ const Header = ({ showMobmenu }) => {
               Online Payment
             </Link>
           </NavItem>
-          <NavItem>
-            <Link href="/pages/createItem" className="nav-link">
-              Create Item
-            </Link>
-          </NavItem>
+
           <NavItem>
             <Link href="/pages/addPayment" className="nav-link">
               Add Payment
@@ -76,11 +72,23 @@ const Header = ({ showMobmenu }) => {
               Bookings
             </Link>
           </NavItem>
-          <NavItem>
-            <Link href="/pages/createAccount" className="nav-link">
-              Create Account
-            </Link>
-          </NavItem>
+          <UncontrolledDropdown>
+            <DropdownToggle nav caret >
+              Create
+            </DropdownToggle>
+            <DropdownMenu style={{ backgroundColor: '#0d6efd' }}>
+              <NavItem>
+                <Link href="/pages/createAccount" className="nav-link">
+                  Create Account
+                </Link>
+              </NavItem>
+              <NavItem>
+                <Link href="/pages/createItem" className="nav-link">
+                  Create Item
+                </Link>
+              </NavItem>
+            </DropdownMenu>
+          </UncontrolledDropdown>
         </Nav>
         <Dropdown isOpen={dropdownOpen} toggle={toggle}>
           <DropdownToggle color="primary">

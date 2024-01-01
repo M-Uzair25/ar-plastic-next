@@ -7,10 +7,8 @@ const defaultAccount = { value: 'Cash', label: 'Cash' };
 
 const AddPayment = () => {
     const getAccounts = async (inputValue) => {
-        const apiUrl = '/api/accounts';
-
         try {
-            const response = await fetch(apiUrl);
+            const response = await fetch('/api/accounts');
             const data = await response.json();
 
             const options = data.map((account) => ({
@@ -33,7 +31,7 @@ const AddPayment = () => {
 
     return (
         <Card>
-            <CardTitle tag="h5" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
+            <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
                 <i className="me-2"> </i>
                 Add Payment
             </CardTitle>

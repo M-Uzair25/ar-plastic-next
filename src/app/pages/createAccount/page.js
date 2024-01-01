@@ -48,7 +48,7 @@ const CreateAccount = () => {
 
   return (
     <Card>
-      <CardTitle tag="h5" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
+      <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
         <i className="me-2"> </i>
         Create New Account
       </CardTitle>
@@ -70,8 +70,7 @@ const CreateAccount = () => {
               id="accountNo"
               name="accountNo"
               placeholder="Enter Phone No. or Account No."
-              type="number"
-              min="0"
+              type="text"
               value={accountData.accountNo}
               onChange={handleChange}
             />

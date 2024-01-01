@@ -42,7 +42,7 @@ const CreateItem = () => {
   };
   return (
     <Card>
-      <CardTitle tag="h5" className="border-bottom p-3 mb-0"
+      <CardTitle tag="h6" className="border-bottom p-3 mb-0"
         style={{ backgroundColor: '#343a40', color: 'white' }}>
         <i className="me-2"> </i>
         Create New Item
