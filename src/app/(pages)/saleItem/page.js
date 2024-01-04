@@ -1,33 +1,8 @@
 'use client'
 import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody } from 'reactstrap';
-import Select from 'react-select'
-
-const customerName = [
-  { value: 'Cash', label: 'Cash' },
-  { value: 'Meezan Abdul Razzaq', label: 'Meezan Abdul Razzaq' },
-  { value: 'Dasti', label: 'Dasti' },
-  { value: 'Adil & Co', label: 'Adil & Co' }
-]
-const category = [
-  { value: 'PP', label: 'PP' },
-  { value: 'Blow', label: 'Blow' },
-  { value: 'Marlex', label: 'Marlex' }
-]
-const description = [
-  { value: 'Advance 1100', label: 'Advance 1100' },
-  { value: 'Tasnee 1258', label: 'Tasnee 1258' },
-  { value: 'Sabic 200056', label: 'Sabic 200056' }
-]
-const itemColor = [
-  { value: 'Natural', label: 'Natural' },
-  { value: 'Green', label: 'Green' },
-  { value: 'Red', label: 'Red' }
-]
-const number = [
-  { value: '1', label: '1' },
-  { value: '2', label: '2' },
-  { value: '1000', label: '1000' }
-]
+import CustomerName from '@/components/saleItem/CustomerName';
+import ItemCategory from '@/components/saleItem/ItemCategory';
+import ItemDescription from '@/components/saleItem/ItemDescription';
 
 const SaleItem = () => {
   return (
@@ -46,7 +21,7 @@ const SaleItem = () => {
                   <Label for="customerName">
                     Customer Name
                   </Label>
-                  <Select id="customerName" name="customerName" defaultValue={customerName[0]} options={customerName} />
+                  <CustomerName id="customerName" name="customerName" />
                 </FormGroup>
               </Col>
               <Col md={5}>
@@ -67,7 +42,7 @@ const SaleItem = () => {
                   <Label for="category">
                     Item Category
                   </Label>
-                  <Select id="category" name="category" options={category} />
+                  <ItemCategory id="category" name="category" />
                 </FormGroup>
               </Col>
               <Col md={3}>
@@ -75,15 +50,15 @@ const SaleItem = () => {
                   <Label for="description">
                     Description
                   </Label>
-                  <Select id="description" name="description" options={description} />
+                  <ItemDescription id="description" name="description" />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="Rate">
+                  <Label for="rate">
                     Bag Rate
                   </Label>
-                  <Input id="Rate" name="Rate" type="number" min="0" defaultValue="0" />
+                  <Input id="rate" name="rate" type="number" min="0" defaultValue="0" />
                 </FormGroup>
               </Col>
 
@@ -113,7 +88,7 @@ const SaleItem = () => {
               </Col>
               <Col md={1}>
                 <FormGroup>
-                  <Button  color="primary">
+                  <Button color="primary">
                     Add to Cart
                   </Button>
                 </FormGroup>

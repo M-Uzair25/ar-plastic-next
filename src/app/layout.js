@@ -22,7 +22,7 @@ export default function RootLayout({
             {/******** Sidebar **********/}
             <aside
               className={`sidebarArea shadow bg-white ${!open ? "" : "showSidebar"
-                }`}
+                }`} style={{ width: '190px' }}
             >
               <Sidebar showMobilemenu={() => showMobilemenu()} />
             </aside>
