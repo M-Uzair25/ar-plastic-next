@@ -21,13 +21,8 @@ function TodayRates() {
   const filteredRates = rates.filter((rate) => {
     const searchTerm = searchQuery.toLowerCase();
     return (
-      rate.itemCategory.toLowerCase().includes(searchTerm) ||
-      rate.itemSubcategory.toLowerCase().includes(searchTerm) ||
-      rate.color.toLowerCase().includes(searchTerm) ||
-      rate.number.toString().includes(searchTerm) ||
-      rate.sellRate.toString().includes(searchTerm) ||
-      rate.bagQuantity.toString().includes(searchTerm) ||
-      rate.kgQuantity.toString().includes(searchTerm)
+      rate.category.toLowerCase().includes(searchTerm) ||
+      rate.description.toLowerCase().includes(searchTerm)
     );
   });
 
@@ -118,9 +113,7 @@ function TodayRates() {
                 <thead>
                   <tr>
                     <th>Item Category</th>
-                    <th>Item Sub-Category</th>
-                    <th>Color</th>
-                    <th>Number</th>
+                    <th>Description</th>
                     <th>Bag Rate</th>
                     <th>Kg Rate</th>
                     <th>Stock</th>
@@ -130,10 +123,8 @@ function TodayRates() {
                 <tbody>
                   {filteredRates.map((rate) => (
                     <tr key={rate._id}>
-                      <td scope="row">{rate.itemCategory}</td>
-                      <td>{rate.itemSubcategory}</td>
-                      <td>{rate.color}</td>
-                      <td>{rate.number}</td>
+                      <td scope="row">{rate.category}</td>
+                      <td>{rate.description}</td>
                       <td>{rate.sellRate}</td>
                       <td>{rate.sellRate / 25}</td>
                       <td className="text-end">

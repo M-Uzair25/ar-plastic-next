@@ -1,6 +1,5 @@
 'use client'
 import "@/styles/style.scss";
-import Head from "next/head";
 import React from "react";
 import { Container } from "reactstrap";
 import Header from "@/components/Header";
@@ -17,11 +16,6 @@ export default function RootLayout({
   };
   return (
     <html lang="en">
-      <Head>
-        <title>Abdul Razzaq Plastic Dashboard</title>
-        <meta name="description" content="Made by Muhammad Uzair" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <body>
         <main>
           <div className="pageWrapper d-md-block d-lg-flex">

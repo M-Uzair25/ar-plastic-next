@@ -8,12 +8,12 @@ const customerName = [
   { value: 'Dasti', label: 'Dasti' },
   { value: 'Adil & Co', label: 'Adil & Co' }
 ]
-const itemCategory = [
+const category = [
   { value: 'PP', label: 'PP' },
   { value: 'Blow', label: 'Blow' },
   { value: 'Marlex', label: 'Marlex' }
 ]
-const itemSubcategory = [
+const description = [
   { value: 'Advance 1100', label: 'Advance 1100' },
   { value: 'Tasnee 1258', label: 'Tasnee 1258' },
   { value: 'Sabic 200056', label: 'Sabic 200056' }
@@ -51,17 +51,42 @@ const SaleItem = () => {
               </Col>
               <Col md={5}>
                 <FormGroup>
-                  <Label for="Comments">
-                    Comments
+                  <Label for="note">
+                    Note
                   </Label>
                   <Input
-                    id="Comments"
-                    name="Comments"
+                    id="note"
+                    name="note"
                   />
                 </FormGroup>
               </Col>
             </Row>
             <Row>
+              <Col md={2}>
+                <FormGroup>
+                  <Label for="category">
+                    Item Category
+                  </Label>
+                  <Select id="category" name="category" options={category} />
+                </FormGroup>
+              </Col>
+              <Col md={3}>
+                <FormGroup>
+                  <Label for="description">
+                    Description
+                  </Label>
+                  <Select id="description" name="description" options={description} />
+                </FormGroup>
+              </Col>
+              <Col md={2}>
+                <FormGroup>
+                  <Label for="Rate">
+                    Bag Rate
+                  </Label>
+                  <Input id="Rate" name="Rate" type="number" min="0" defaultValue="0" />
+                </FormGroup>
+              </Col>
+
               <Col md={1}>
                 <FormGroup>
                   <Label for="bagQuantity">
@@ -80,55 +105,15 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="itemCategory">
-                    Item Category
-                  </Label>
-                  <Select id="itemCategory" name="itemCategory" options={itemCategory} />
-                </FormGroup>
-              </Col>
-              <Col md={3}>
-                <FormGroup>
-                  <Label for="itemSubcategory">
-                    Item Sub-Category
-                  </Label>
-                  <Select id="itemSubcategory" name="itemSubcategory" options={itemSubcategory} />
-                </FormGroup>
-              </Col>
-              <Col md={2}>
-                <FormGroup>
-                  <Label for="color">
-                    Color
-                  </Label>
-                  <Select id="color" name="color" defaultValue={itemColor[0]} options={itemColor} />
-                </FormGroup>
-              </Col>
-              <Col md={2}>
-                <FormGroup>
-                  <Label for="Number">
-                    Number
-                  </Label>
-                  <Select id="number" name="number" defaultValue={number[0]} options={number} />
-                </FormGroup>
-              </Col>
-              <Col md={2}>
-                <FormGroup>
-                  <Label for="Rate">
-                    Rate
-                  </Label>
-                  <Input id="Rate" name="Rate" type="number" min="0" defaultValue="0" />
-                </FormGroup>
-              </Col>
-              <Col md={2}>
-                <FormGroup>
                   <Label for="subtotal">
                     Sub Total
                   </Label>
                   <Input id="subtotal" name="subtotal" type="number" min="0" defaultValue="0" />
                 </FormGroup>
               </Col>
-              <Col md={2}>
+              <Col md={1}>
                 <FormGroup>
-                  <Button className="mt-4" color="primary">
+                  <Button  color="primary">
                     Add to Cart
                   </Button>
                 </FormGroup>

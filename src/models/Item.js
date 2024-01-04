@@ -1,21 +1,13 @@
 import mongoose from 'mongoose';
 
 const itemSchema = new mongoose.Schema({
-  itemCategory: {
+  category: {
     type: String,
     required: true,
   },
-  itemSubcategory: {
+  description: {
     type: String,
     required: true
-  },
-  color: {
-    type: String,
-    default: 'Natural',
-  },
-  number: {
-    type: Number,
-    default: 1,
   },
   bagQuantity: {
     type: Number,
