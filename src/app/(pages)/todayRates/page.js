@@ -161,6 +161,7 @@ function TodayRates() {
                     min="0"
                     value={newRate}
                     onChange={(e) => setNewRate(parseFloat(e.target.value))}
+                    onClick={(e) => e.target.select()}
                   />
                 </FormGroup>
               </ModalBody>

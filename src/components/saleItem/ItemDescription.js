@@ -2,7 +2,7 @@
 import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
 
-const ItemDescription = () => {
+const ItemDescription = ({ onDescriptionChange }) => {
     const [allDescriptions, setAllDescriptions] = useState([]);
 
     useEffect(() => {
@@ -50,6 +50,12 @@ const ItemDescription = () => {
             return [];
         }
     };
+    
+    const handleDescriptionChange = (selectedOption) => {
+        // Pass the selected value to the parent component
+        onDescriptionChange(selectedOption);
+    };
+
     return (
         <AsyncSelect
             instanceId="description"
@@ -57,6 +63,7 @@ const ItemDescription = () => {
             name="itemDescription"
             loadOptions={getDescriptions}
             defaultOptions={allDescriptions}
+            onChange={handleDescriptionChange}
         />
     )
 };

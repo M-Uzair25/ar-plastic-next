@@ -2,7 +2,7 @@
 import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
 
-const CustomerName = () => {
+const CustomerName = ({ onNameChange }) => {
     const [allAccounts, setAllAccounts] = useState([]);
     const defaultAccount = { value: 'Cash', label: 'Cash' };
 
@@ -27,11 +27,9 @@ const CustomerName = () => {
     }, []);
 
     const getAccounts = async (inputValue) => {
-        const apiUrl = '/api/accounts';
-
         try {
             // Fetch all accounts initially without a search term
-            const response = await fetch(apiUrl);
+            const response = await fetch('/api/accounts');
             const data = await response.json();
 
             // Map the response data to match the required format for react-select
@@ -53,6 +51,12 @@ const CustomerName = () => {
             return [];
         }
     };
+
+    const handleNameChange = (selectedOption) => {
+        // Pass the selected value to the parent component
+        onNameChange(selectedOption);
+    };
+
     return (
         <AsyncSelect
             instanceId="customerName"
@@ -62,6 +66,7 @@ const CustomerName = () => {
             defaultOptions={allAccounts}
             placeholder="Search or select an account"
             defaultValue={defaultAccount}
+            onChange={handleNameChange}
         />
     )
 };

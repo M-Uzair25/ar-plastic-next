@@ -2,7 +2,7 @@
 import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
 
-const ItemCategory = () => {
+const ItemCategory = ({ onCategoryChange }) => {
     const [allCategories, setAllCategories] = useState([]);
 
     useEffect(() => {
@@ -50,6 +50,12 @@ const ItemCategory = () => {
             return [];
         }
     };
+
+    const handleCategoryChange = (selectedOption) => {
+        // Pass the selected value to the parent component
+        onCategoryChange(selectedOption);
+    };
+
     return (
         <AsyncSelect
             instanceId="category"
@@ -57,6 +63,7 @@ const ItemCategory = () => {
             name="itemCategory"
             loadOptions={getCategories}
             defaultOptions={allCategories}
+            onChange={handleCategoryChange}
         />
     )
 };

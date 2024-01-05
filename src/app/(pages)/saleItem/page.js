@@ -1,10 +1,28 @@
 'use client'
+import React, { useState } from 'react';
 import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody } from 'reactstrap';
 import CustomerName from '@/components/saleItem/CustomerName';
 import ItemCategory from '@/components/saleItem/ItemCategory';
 import ItemDescription from '@/components/saleItem/ItemDescription';
 
 const SaleItem = () => {
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedName, setSelectedName] = useState({ value: 'Cash', label: 'Cash', });
+  const [selectedDescription, setSelectedDescription] = useState(null);
+
+  const handleNameChange = (selectedOption) => {
+    // Update state in the parent component with the selected value from the child
+    setSelectedName(selectedOption);
+  };
+  const handleCategoryChange = (selectedOption) => {
+    // Update state in the parent component with the selected value from the child
+    setSelectedCategory(selectedOption);
+  };
+  const handleDescriptionChange = (selectedOption) => {
+    // Update state in the parent component with the selected value from the child
+    setSelectedDescription(selectedOption);
+  };
+
   return (
     <>
       <CardTitle tag="h6" className="border-bottom p-3 mb-2"
@@ -21,7 +39,7 @@ const SaleItem = () => {
                   <Label for="customerName">
                     Customer Name
                   </Label>
-                  <CustomerName id="customerName" name="customerName" />
+                  <CustomerName onNameChange={handleNameChange} />
                 </FormGroup>
               </Col>
               <Col md={5}>
@@ -42,7 +60,7 @@ const SaleItem = () => {
                   <Label for="category">
                     Item Category
                   </Label>
-                  <ItemCategory id="category" name="category" />
+                  <ItemCategory onCategoryChange={handleCategoryChange} />
                 </FormGroup>
               </Col>
               <Col md={3}>
@@ -50,7 +68,7 @@ const SaleItem = () => {
                   <Label for="description">
                     Description
                   </Label>
-                  <ItemDescription id="description" name="description" />
+                  <ItemDescription onDescriptionChange={handleDescriptionChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -67,7 +85,7 @@ const SaleItem = () => {
                   <Label for="bagQuantity">
                     Bags
                   </Label>
-                  <Input id="bagQuantity" name="bagQuantity" type="number" min="0" defaultValue="0" />
+                  <Input id="bagQuantity" name="bagQuantity" type="number" min="0" defaultValue="0" onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col md={1}>
@@ -75,7 +93,7 @@ const SaleItem = () => {
                   <Label for="kgQuantity">
                     Kg
                   </Label>
-                  <Input id="kgQuantity" name="kgQuantity" type="number" min="0" defaultValue="0" />
+                  <Input id="kgQuantity" name="kgQuantity" type="number" min="0" defaultValue="0" onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col md={2}>
