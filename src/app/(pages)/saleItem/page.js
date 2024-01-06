@@ -6,8 +6,8 @@ import ItemCategory from '@/components/saleItem/ItemCategory';
 import ItemDescription from '@/components/saleItem/ItemDescription';
 
 const SaleItem = () => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedName, setSelectedName] = useState({ value: 'Cash', label: 'Cash', });
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
 
   const handleNameChange = (selectedOption) => {
@@ -16,7 +16,7 @@ const SaleItem = () => {
   };
   const handleCategoryChange = (selectedOption) => {
     // Update state in the parent component with the selected value from the child
-    setSelectedCategory(selectedOption);
+    setSelectedCategory(selectedOption ? selectedOption.value : null);
   };
   const handleDescriptionChange = (selectedOption) => {
     // Update state in the parent component with the selected value from the child
@@ -60,7 +60,8 @@ const SaleItem = () => {
                   <Label for="category">
                     Item Category
                   </Label>
-                  <ItemCategory onCategoryChange={handleCategoryChange} />
+                  {/* Pass selectedDescription and handleCategoryChange to ItemCategory component */}
+                  <ItemCategory onCategoryChange={handleCategoryChange}  selectedDescription={selectedDescription} />
                 </FormGroup>
               </Col>
               <Col md={3}>
@@ -68,7 +69,8 @@ const SaleItem = () => {
                   <Label for="description">
                     Description
                   </Label>
-                  <ItemDescription onDescriptionChange={handleDescriptionChange} />
+                  {/* Pass selectedCategory and handleDescriptionChange to ItemDescription component */}
+                  <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
                 </FormGroup>
               </Col>
               <Col md={2}>

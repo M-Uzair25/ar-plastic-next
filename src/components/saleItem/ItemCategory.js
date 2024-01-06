@@ -1,50 +1,48 @@
 'use client'
-import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
+import AsyncSelect from 'react-select/async';
+import PropTypes from 'prop-types';
 
-const ItemCategory = ({ onCategoryChange }) => {
+const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
     const [allCategories, setAllCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    const fetchAllCategories = async () => {
+        try {
+            setLoading(true);
+            
+            // Conditionally build the API request URL based on whether a description is selected
+            const apiUrl = selectedDescription
+                ? `/api/items/itemCategory?description=${selectedDescription.label}`
+                : `/api/items/itemCategory`;
+
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            const uniqueCategories = [...new Set(data.map(itemCategory => itemCategory.category))];
+            const options = uniqueCategories.map((category) => ({ value: category, label: category }));
+            setAllCategories(options);
+
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Call fetchAllCategories initially and whenever selectedDescription changes
     useEffect(() => {
-        const fetchAllCategories = async () => {
-            try {
-                const response = await fetch('/api/items/itemCategory');
-                const data = await response.json();
-
-                const options = data.map((itemCategory) => ({
-                    value: itemCategory.category,
-                    label: itemCategory.category,
-                }));
-
-                setAllCategories(options);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
         fetchAllCategories();
-    }, []);
+    }, [selectedDescription]);
 
     const getCategories = async (inputValue) => {
         try {
-            // Fetch all categories initially without a search term
-            const response = await fetch('/api/items/itemCategory');
-            const data = await response.json();
-
-            // Map the response data to match the required format for react-select
-            const options = data.map((itemCategory) => ({
-                value: itemCategory.category,
-                label: itemCategory.category,
-            }));
-
             // If there is an inputValue (search term), filter options
-            if (inputValue) {
-                return options.filter(option =>
-                    option.label.toLowerCase().includes(inputValue.toLowerCase())
-                );
-            }
+            const filteredOptions = allCategories.filter(option =>
+                option.label.toLowerCase().includes(inputValue.toLowerCase())
+            );
 
-            return options;
+            return filteredOptions;
         } catch (error) {
             console.error(error);
             return [];
@@ -64,8 +62,13 @@ const ItemCategory = ({ onCategoryChange }) => {
             loadOptions={getCategories}
             defaultOptions={allCategories}
             onChange={handleCategoryChange}
+            isLoading={loading}
         />
-    )
+    );
+};
+
+ItemCategory.propTypes = {
+    onCategoryChange: PropTypes.func.isRequired,
 };
 
 export default ItemCategory;

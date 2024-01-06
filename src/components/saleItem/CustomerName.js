@@ -28,24 +28,12 @@ const CustomerName = ({ onNameChange }) => {
 
     const getAccounts = async (inputValue) => {
         try {
-            // Fetch all accounts initially without a search term
-            const response = await fetch('/api/accounts');
-            const data = await response.json();
-
-            // Map the response data to match the required format for react-select
-            const options = data.map((account) => ({
-                value: account.accountName,
-                label: account.accountName,
-            }));
-
             // If there is an inputValue (search term), filter options
-            if (inputValue) {
-                return options.filter(option =>
-                    option.label.toLowerCase().includes(inputValue.toLowerCase())
-                );
-            }
+            const filteredOptions = allAccounts.filter(option =>
+                option.label.toLowerCase().includes(inputValue.toLowerCase())
+            );
+            return filteredOptions;
 
-            return options;
         } catch (error) {
             console.error(error);
             return [];

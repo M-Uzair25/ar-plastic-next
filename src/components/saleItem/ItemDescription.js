@@ -1,56 +1,57 @@
 'use client'
-import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
+import AsyncSelect from 'react-select/async';
+import PropTypes from 'prop-types';
 
-const ItemDescription = ({ onDescriptionChange }) => {
+const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
     const [allDescriptions, setAllDescriptions] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchAllDescriptions = async () => {
-            try {
-                const response = await fetch('/api/items/itemDescription');
-                const data = await response.json();
-
-                const options = data.map((itemDescription) => ({
-                    value: itemDescription.description,
-                    label: itemDescription.description,
-                }));
-
-                setAllDescriptions(options);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchAllDescriptions();
-    }, []);
-
-    const getDescriptions = async (inputValue) => {
+    const fetchAllDescriptions = async () => {
         try {
-            // Fetch all Descriptions initially without a search term
-            const response = await fetch('/api/items/itemDescription');
+            setLoading(true);
+
+            // Conditionally build the API request URL based on whether a category is selected
+            const apiUrl = selectedCategory
+                ? `/api/items/itemDescription?category=${selectedCategory}`
+                : `/api/items/itemDescription`;
+
+            const response = await fetch(apiUrl);
             const data = await response.json();
 
-            // Map the response data to match the required format for react-select
             const options = data.map((itemDescription) => ({
                 value: itemDescription.description,
                 label: itemDescription.description,
             }));
 
-            // If there is an inputValue (search term), filter options
-            if (inputValue) {
-                return options.filter(option =>
-                    option.label.toLowerCase().includes(inputValue.toLowerCase())
-                );
-            }
+            setAllDescriptions(options);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            return options;
+    // Call fetchAllDescriptions initially and whenever selectedCategory changes
+    useEffect(() => {
+        fetchAllDescriptions();
+    }, [selectedCategory]);
+
+
+    const getDescriptions = async (inputValue) => {
+        try {
+            // If there is an inputValue (search term), filter options
+            const filteredOptions = allDescriptions.filter(option =>
+                option.label.toLowerCase().includes(inputValue.toLowerCase())
+            );
+            return filteredOptions;
+
         } catch (error) {
             console.error(error);
             return [];
         }
     };
-    
+
     const handleDescriptionChange = (selectedOption) => {
         // Pass the selected value to the parent component
         onDescriptionChange(selectedOption);
@@ -64,8 +65,13 @@ const ItemDescription = ({ onDescriptionChange }) => {
             loadOptions={getDescriptions}
             defaultOptions={allDescriptions}
             onChange={handleDescriptionChange}
+            isLoading={loading}
         />
-    )
+    );
+};
+
+ItemDescription.propTypes = {
+    onDescriptionChange: PropTypes.func.isRequired,
 };
 
 export default ItemDescription;
