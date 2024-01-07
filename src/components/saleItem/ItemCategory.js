@@ -64,6 +64,17 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
 
     return (
         <AsyncSelect
+            styles={{
+                control: (styles, state) => ({
+                    ...styles,
+                    color: state.isDisabled ? '#aaa' : 'white',
+                    borderColor: state.isDisabled ? 'red' : '#cccccc',
+                }),
+                singleValue:(provided) => ({
+                    ...provided,
+                    color:'blue',
+                  }),
+            }}
             instanceId="category"
             id="itemCategory"
             name="itemCategory"
@@ -73,7 +84,7 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
             onChange={handleCategoryChange}
             isLoading={loading}
             isClearable
-            autoFocus={true}
+            isDisabled={selectedDescription}
         />
     );
 };

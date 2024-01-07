@@ -56,7 +56,6 @@ const CustomerName = ({ onNameChange }) => {
             defaultValue={defaultAccount}
             onChange={handleNameChange}
             isClearable
-            autoFocus = {true}
         />
     )
 };
