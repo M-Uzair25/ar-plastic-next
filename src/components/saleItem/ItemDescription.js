@@ -66,6 +66,7 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
             defaultOptions={allDescriptions}
             onChange={handleDescriptionChange}
             isLoading={loading}
+            isClearable
         />
     );
 };

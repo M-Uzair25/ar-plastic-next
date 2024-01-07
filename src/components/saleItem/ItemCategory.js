@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import AsyncSelect from 'react-select/async';
 import PropTypes from 'prop-types';
+// ... (existing imports and component code)
 
 const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
     const [allCategories, setAllCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
     const fetchAllCategories = async () => {
         try {
             setLoading(true);
-            
-            // Conditionally build the API request URL based on whether a description is selected
+
             const apiUrl = selectedDescription
                 ? `/api/items/itemCategory?description=${selectedDescription.label}`
                 : `/api/items/itemCategory`;
@@ -23,6 +24,15 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
             const options = uniqueCategories.map((category) => ({ value: category, label: category }));
             setAllCategories(options);
 
+            // Set selectedCategory if there's only one category
+            if (options.length === 1) {
+                setSelectedCategory(options[0]);
+                onCategoryChange(options[0]); // Update parent component when setting default value
+            } else {
+                setSelectedCategory(null);
+                onCategoryChange(null);
+            }
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -30,14 +40,12 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
         }
     };
 
-    // Call fetchAllCategories initially and whenever selectedDescription changes
     useEffect(() => {
         fetchAllCategories();
     }, [selectedDescription]);
 
     const getCategories = async (inputValue) => {
         try {
-            // If there is an inputValue (search term), filter options
             const filteredOptions = allCategories.filter(option =>
                 option.label.toLowerCase().includes(inputValue.toLowerCase())
             );
@@ -50,7 +58,7 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
     };
 
     const handleCategoryChange = (selectedOption) => {
-        // Pass the selected value to the parent component
+        setSelectedCategory(selectedOption);
         onCategoryChange(selectedOption);
     };
 
@@ -61,8 +69,11 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
             name="itemCategory"
             loadOptions={getCategories}
             defaultOptions={allCategories}
+            value={selectedCategory}
             onChange={handleCategoryChange}
             isLoading={loading}
+            isClearable
+            autoFocus={true}
         />
     );
 };

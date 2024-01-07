@@ -34,7 +34,7 @@ const CreateAccount = () => {
       console.log(response.data); // Handle successful creation
 
       // Example: Redirect to a success page or display a success message
-      router.push('/pages/saleItem');
+      router.push('/saleItem');
     } catch (error) {
       if (error.response.status === 400) {
         // Account already exists
@@ -95,6 +95,7 @@ const CreateAccount = () => {
                   min="0"
                   value={accountData.openingBalance}
                   onChange={handleChange}
+                  onClick={(e) => e.target.select()}
                 />
               </FormGroup>
             </Col>

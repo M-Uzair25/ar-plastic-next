@@ -22,7 +22,6 @@ const SaleItem = () => {
     // Update state in the parent component with the selected value from the child
     setSelectedDescription(selectedOption);
   };
-
   return (
     <>
       <CardTitle tag="h6" className="border-bottom p-3 mb-2"
@@ -61,7 +60,7 @@ const SaleItem = () => {
                     Item Category
                   </Label>
                   {/* Pass selectedDescription and handleCategoryChange to ItemCategory component */}
-                  <ItemCategory onCategoryChange={handleCategoryChange}  selectedDescription={selectedDescription} />
+                  <ItemCategory onCategoryChange={handleCategoryChange} selectedDescription={selectedDescription} />
                 </FormGroup>
               </Col>
               <Col md={3}>
