@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody } from 'reactstrap';
 import CustomerName from '@/components/saleItem/CustomerName';
 import ItemCategory from '@/components/saleItem/ItemCategory';
@@ -9,6 +9,27 @@ const SaleItem = () => {
   const [selectedName, setSelectedName] = useState({ value: 'Cash', label: 'Cash', });
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
+  const [itemRate, setItemRate] = useState(0); // New state for the fetched rate
+
+  // useEffect to fetch rate when category or description changes
+  const fetchRate = async () => {
+    try {
+      if (selectedCategory && selectedDescription) {
+        const response = await fetch(`/api/items/rate?category=${selectedCategory}&description=${selectedDescription.value}`);
+        const data = await response.json();
+        setItemRate(data.rate);
+      } else {
+        // Clear the rate when either selectedCategory or selectedDescription is empty
+        setItemRate(0);
+      }
+    } catch (error) {
+      console.error('Error fetching rate:', error);
+      // Handle error, e.g., show a notification to the user
+    }
+  };
+  useEffect(() => {
+    fetchRate();
+  }, [selectedCategory, selectedDescription]);
 
   const handleNameChange = (selectedOption) => {
     // Update state in the parent component with the selected value from the child
@@ -18,9 +39,16 @@ const SaleItem = () => {
     // Update state in the parent component with the selected value from the child
     setSelectedCategory(selectedOption ? selectedOption.value : null);
   };
-  const handleDescriptionChange = (selectedOption) => {
+  const handleDescriptionChange = async (selectedOption) => {
     // Update state in the parent component with the selected value from the child
     setSelectedDescription(selectedOption);
+  };
+  const handleRateChange = (e) => {
+    // Update the itemRate state when the user edits the field
+    setItemRate(parseFloat(e.target.value) || 0);
+  };
+  const handleReloadRate = () => {
+    fetchRate();
   };
   return (
     <>
@@ -74,13 +102,11 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="rate">
-                    Bag Rate
-                  </Label>
-                  <Input id="rate" name="rate" type="number" min="0" defaultValue="0" />
+                  <Label for="rate">Bag Rate</Label>
+                  <Input id="rate" name="rate" type="number" min="0" value={itemRate} onChange={handleRateChange} />
+                  <i className="bi bi-arrow-clockwise" onClick={handleReloadRate} style={{ cursor: 'pointer' }}>Reload Rate</i>
                 </FormGroup>
               </Col>
-
               <Col md={1}>
                 <FormGroup>
                   <Label for="bagQuantity">
