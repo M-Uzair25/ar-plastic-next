@@ -10,6 +10,8 @@ const SaleItem = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
   const [itemRate, setItemRate] = useState(0); // New state for the fetched rate
+  const [bagStock, setBagStock] = useState(0);
+  const [kgStock, setKgStock] = useState(0);
 
   // useEffect to fetch rate when category or description changes
   const fetchRate = async () => {
@@ -17,10 +19,14 @@ const SaleItem = () => {
       if (selectedCategory && selectedDescription) {
         const response = await fetch(`/api/items/rate?category=${selectedCategory}&description=${selectedDescription.value}`);
         const data = await response.json();
-        setItemRate(data.rate);
+        setItemRate(data.rate)
+        setBagStock(data.bag);
+        setKgStock(data.kg);
       } else {
         // Clear the rate when either selectedCategory or selectedDescription is empty
         setItemRate(0);
+        setBagStock(0);
+        setKgStock(0);
       }
     } catch (error) {
       console.error('Error fetching rate:', error);
@@ -107,20 +113,20 @@ const SaleItem = () => {
                   <i className="bi bi-arrow-clockwise" onClick={handleReloadRate} style={{ cursor: 'pointer' }}>Reload Rate</i>
                 </FormGroup>
               </Col>
-              <Col md={1}>
+              <Col md={2}>
                 <FormGroup>
                   <Label for="bagQuantity">
                     Bags
                   </Label>
-                  <Input id="bagQuantity" name="bagQuantity" type="number" min="0" defaultValue="0" onClick={(e) => e.target.select()} />
+                  <Input id="bagQuantity" name="bagQuantity" placeholder={`Stock: ${bagStock}`} type="number" min="0" onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
-              <Col md={1}>
+              <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">
                     Kg
                   </Label>
-                  <Input id="kgQuantity" name="kgQuantity" type="number" min="0" defaultValue="0" onClick={(e) => e.target.select()} />
+                  <Input id="kgQuantity" name="kgQuantity" placeholder={`Stock: ${kgStock}`} type="number" min="0" onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -131,8 +137,9 @@ const SaleItem = () => {
                   <Input id="subtotal" name="subtotal" type="number" min="0" defaultValue="0" />
                 </FormGroup>
               </Col>
-              <Col md={1}>
+              <Col md={2}>
                 <FormGroup>
+                  <br></br>
                   <Button color="primary">
                     Add to Cart
                   </Button>

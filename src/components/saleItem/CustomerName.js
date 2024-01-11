@@ -5,10 +5,12 @@ import React, { useState, useEffect } from 'react';
 const CustomerName = ({ onNameChange }) => {
     const [allAccounts, setAllAccounts] = useState([]);
     const defaultAccount = { value: 'Cash', label: 'Cash' };
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchAllAccounts = async () => {
             try {
+                setLoading(true);
                 const response = await fetch('/api/accounts');
                 const data = await response.json();
 
@@ -20,6 +22,8 @@ const CustomerName = ({ onNameChange }) => {
                 setAllAccounts(options);
             } catch (error) {
                 console.error(error);
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -56,6 +60,7 @@ const CustomerName = ({ onNameChange }) => {
             defaultValue={defaultAccount}
             onChange={handleNameChange}
             isClearable
+            isLoading={loading}
         />
     )
 };

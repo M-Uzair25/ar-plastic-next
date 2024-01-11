@@ -22,7 +22,7 @@ export async function GET(req = NextRequest) {
       return NextResponse.json({ message: 'Item not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ rate: item.sellRate });
+    return NextResponse.json({ rate: item.sellRate, bag: item.bagQuantity, kg: item.kgQuantity });
   } catch (error) {
     console.error('Error fetching item rate:', error.message);
     return NextResponse.json({ message: 'Error fetching item rate' }, { status: 500 });
