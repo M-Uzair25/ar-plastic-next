@@ -66,7 +66,7 @@ const CreateItem = () => {
                 />
               </FormGroup>
             </Col>
-            <Col md={1}>
+            <Col md={2}>
               <FormGroup>
                 <Label for="bagQuantity">
                   Bags
@@ -80,7 +80,7 @@ const CreateItem = () => {
                 />
               </FormGroup>
             </Col>
-            <Col md={1}>
+            <Col md={2}>
               <FormGroup>
                 <Label for="kgQuantity">
                   Kg

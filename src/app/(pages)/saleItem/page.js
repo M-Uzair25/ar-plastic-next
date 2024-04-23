@@ -10,6 +10,7 @@ const SaleItem = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
   const [itemRate, setItemRate] = useState(0); // New state for the fetched rate
+  const [kgRate, setkgRate] = useState(0); // New state for the fetched rate
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
 
@@ -25,6 +26,7 @@ const SaleItem = () => {
       } else {
         // Clear the rate when either selectedCategory or selectedDescription is empty
         setItemRate(0);
+        setkgRate(0);
         setBagStock(0);
         setKgStock(0);
       }
@@ -51,10 +53,50 @@ const SaleItem = () => {
   };
   const handleRateChange = (e) => {
     // Update the itemRate state when the user edits the field
-    setItemRate(parseFloat(e.target.value) || 0);
+    setItemRate(parseFloat(e.target.value));
+  };
+  const handleKgRateChange = (e) => {
+    // Update the itemRate state when the user edits the field
+    setItemRate(parseFloat(e.target.value) * 25);
+    setkgRate(parseFloat(e.target.value));
   };
   const handleReloadRate = () => {
     fetchRate();
+  };
+  const [cartItems, setCartItems] = useState([]);
+  const handleAddToCart = () => {
+    const bagQuantity = parseInt(document.getElementById('bagQuantity').value) || 0;
+  const kgQuantity = parseInt(document.getElementById('kgQuantity').value) || 0;
+  const totalQuantity = bagQuantity + kgQuantity;
+
+  const newItem = {
+    customerName: selectedName.value,
+    category: selectedCategory,
+    description: selectedDescription.value,
+    bagRate: itemRate,
+    kgRate: itemRate/25,
+    // Show only non-zero quantities in a formatted string
+    quantity: `${bagQuantity > 0 ? `${bagQuantity} Bags, ` : ''}${kgQuantity > 0 ? `${kgQuantity} Kg` : ''}`,
+    subtotal: (itemRate * bagQuantity) + ((itemRate/25) * kgQuantity),
+  };
+    setCartItems([...cartItems, newItem]); // Add new item to cart state
+    // Clear quantity inputs after adding to cart
+    document.getElementById('bagQuantity').value = '';
+    document.getElementById('kgQuantity').value = '';
+  };
+
+  const displayCartItems = () => {
+    return cartItems.map((item) => (
+      <div key={item.description}>
+        <p>Customer: {item.customerName}</p>
+        <p>Item: {item.category} - {item.description}</p>
+        <p>Quantity: {item.quantity}</p>
+        <p>Bag Rate: {item.bagRate}</p>
+        <p>Kg Rate: {item.kgRate}</p>
+        <p>Subtotal: {item.subtotal}</p>
+        {/* You can add a remove button or functionality here */}
+      </div>
+    ));
   };
   return (
     <>
@@ -115,6 +157,12 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
+                  <Label for="kgRate">Kg Rate</Label>
+                  <Input id="kgRate" name="kgRate" type="number" min="0" value={itemRate/25} onChange={handleKgRateChange} />
+                </FormGroup>
+              </Col>
+              <Col md={2}>
+                <FormGroup>
                   <Label for="bagQuantity">
                     Bags
                   </Label>
@@ -139,12 +187,14 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <br></br>
-                  <Button color="primary">
+                  <br />
+                  <Button color="primary" onClick={handleAddToCart}>
                     Add to Cart
                   </Button>
                 </FormGroup>
               </Col>
+              {/* Display cart items below the Add to Cart button */}
+              {cartItems.length > 0 && displayCartItems()}
             </Row>
 
             <Row>
