@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody } from 'reactstrap';
+import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table } from 'reactstrap';
 import CustomerName from '@/components/saleItem/CustomerName';
 import ItemCategory from '@/components/saleItem/ItemCategory';
 import ItemDescription from '@/components/saleItem/ItemDescription';
@@ -13,6 +13,7 @@ const SaleItem = () => {
   const [kgRate, setkgRate] = useState(0); // New state for the fetched rate
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
 
   // useEffect to fetch rate when category or description changes
   const fetchRate = async () => {
@@ -63,22 +64,24 @@ const SaleItem = () => {
   const handleReloadRate = () => {
     fetchRate();
   };
-  const [cartItems, setCartItems] = useState([]);
   const handleAddToCart = () => {
     const bagQuantity = parseInt(document.getElementById('bagQuantity').value) || 0;
-  const kgQuantity = parseInt(document.getElementById('kgQuantity').value) || 0;
-  const totalQuantity = bagQuantity + kgQuantity;
-
-  const newItem = {
-    customerName: selectedName.value,
-    category: selectedCategory,
-    description: selectedDescription.value,
-    bagRate: itemRate,
-    kgRate: itemRate/25,
-    // Show only non-zero quantities in a formatted string
-    quantity: `${bagQuantity > 0 ? `${bagQuantity} Bags, ` : ''}${kgQuantity > 0 ? `${kgQuantity} Kg` : ''}`,
-    subtotal: (itemRate * bagQuantity) + ((itemRate/25) * kgQuantity),
-  };
+    const kgQuantity = parseInt(document.getElementById('kgQuantity').value) || 0;
+    if (bagQuantity == 0 && kgQuantity == 0) {
+      alert("Please enter a valid quantity (Bag or Kg) for the item.");
+      return;
+    }
+    const newItem = {
+      customerName: selectedName.value,
+      category: selectedCategory,
+      description: selectedDescription.value,
+      bagRate: itemRate,
+      kgRate: itemRate / 25,
+      // Show only non-zero quantities in a formatted string
+      bagQuantity: `${bagQuantity > 0 ? `${bagQuantity}` : ''}`,
+      kgQuantity: `${kgQuantity > 0 ? `${kgQuantity}` : ''}`,
+      subtotal: (itemRate * bagQuantity) + ((itemRate / 25) * kgQuantity),
+    };
     setCartItems([...cartItems, newItem]); // Add new item to cart state
     // Clear quantity inputs after adding to cart
     document.getElementById('bagQuantity').value = '';
@@ -86,18 +89,51 @@ const SaleItem = () => {
   };
 
   const displayCartItems = () => {
-    return cartItems.map((item) => (
-      <div key={item.description}>
-        <p>Customer: {item.customerName}</p>
-        <p>Item: {item.category} - {item.description}</p>
-        <p>Quantity: {item.quantity}</p>
-        <p>Bag Rate: {item.bagRate}</p>
-        <p>Kg Rate: {item.kgRate}</p>
-        <p>Subtotal: {item.subtotal}</p>
-        {/* You can add a remove button or functionality here */}
-      </div>
-    ));
+    return (
+      <Table bordered hover className="table-primary">
+        <thead>
+          <tr>
+            <th className="table-secondary">Sr. No.</th>
+            <th colSpan="6" className="table-dark">Cash</th>
+          </tr>
+          <tr>
+            <th>Sr.</th>
+            <th>Item</th>
+            <th>Quantity (Bags, Kg)</th>
+            <th>Bag Rate</th>
+            <th>Kg Rate</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {cartItems.map((item, index) => (
+            <tr key={item.description}>
+              <td>{index + 1}</td>
+              <td>{item.category} - {item.description}</td>
+              <td>
+                {item.bagQuantity > 0 ? `${item.bagQuantity} Bag` : ''}
+                {item.bagQuantity && item.kgQuantity > 0 ? `, ` : ''}
+                {item.kgQuantity > 0 ? `${item.kgQuantity} Kg` : ''}
+              </td>
+              <td>{item.bagRate}</td>
+              <td>{item.kgRate}</td>
+              <td>{item.subtotal}</td>
+              <td>
+                <button type="button" className="btn btn-danger btn-sm">
+                  <i className="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    );
   };
+  const calculateTotal = () => {
+    const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+    return total;
+  }
   return (
     <>
       <CardTitle tag="h6" className="border-bottom p-3 mb-2"
@@ -158,7 +194,7 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgRate">Kg Rate</Label>
-                  <Input id="kgRate" name="kgRate" type="number" min="0" value={itemRate/25} onChange={handleKgRateChange} />
+                  <Input id="kgRate" name="kgRate" type="number" min="0" value={itemRate / 25} onChange={handleKgRateChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -179,14 +215,6 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="subtotal">
-                    Sub Total
-                  </Label>
-                  <Input id="subtotal" name="subtotal" type="number" min="0" defaultValue="0" />
-                </FormGroup>
-              </Col>
-              <Col md={2}>
-                <FormGroup>
                   <br />
                   <Button color="primary" onClick={handleAddToCart}>
                     Add to Cart
@@ -200,10 +228,8 @@ const SaleItem = () => {
             <Row>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="total">
-                    Total
-                  </Label>
-                  <Input id="total" name="total" type="number" min="0" defaultValue="0" />
+                  <Label for="total">Total</Label>
+                  <Input className="bg-danger text-white" id="total" name="total" type="text" disabled value={calculateTotal()} />
                 </FormGroup>
               </Col>
               <Col md={2}>

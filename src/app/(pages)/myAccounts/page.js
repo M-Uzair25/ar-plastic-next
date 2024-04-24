@@ -54,7 +54,7 @@ const MyAccounts = () => {
   return (
     <Card>
       <CardBody>
-        <CardTitle tag="h5">MY Accounts</CardTitle>
+        <CardTitle tag="h5">My Accounts</CardTitle>
         <CardSubtitle className="mb-3 text-muted" tag="h6">
           Dated: 8/12/2023
         </CardSubtitle>
