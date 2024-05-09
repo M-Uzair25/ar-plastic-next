@@ -6,12 +6,12 @@ import PropTypes from 'prop-types';
 const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
     const [allDescriptions, setAllDescriptions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedDescription, setSelectedDescription] = useState(null);
 
     const fetchAllDescriptions = async () => {
         try {
             setLoading(true);
 
-            // Conditionally build the API request URL based on whether a category is selected
             const apiUrl = selectedCategory
                 ? `/api/items/itemDescription?category=${selectedCategory}`
                 : `/api/items/itemDescription`;
@@ -25,6 +25,10 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
             }));
 
             setAllDescriptions(options);
+            if (options.length !== 1) {
+                setSelectedDescription(null);
+                onDescriptionChange(null);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -44,8 +48,8 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
             const filteredOptions = allDescriptions.filter(option =>
                 option.label.toLowerCase().includes(inputValue.toLowerCase())
             );
+            
             return filteredOptions;
-
         } catch (error) {
             console.error(error);
             return [];
@@ -53,6 +57,7 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
     };
 
     const handleDescriptionChange = (selectedOption) => {
+        setSelectedDescription(selectedOption);
         // Pass the selected value to the parent component
         onDescriptionChange(selectedOption);
     };
@@ -64,6 +69,7 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
             name="itemDescription"
             loadOptions={getDescriptions}
             defaultOptions={allDescriptions}
+            value={selectedDescription}
             onChange={handleDescriptionChange}
             isLoading={loading}
             isClearable

@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import AsyncSelect from 'react-select/async';
 import PropTypes from 'prop-types';
-// ... (existing imports and component code)
 
 const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
     const [allCategories, setAllCategories] = useState([]);

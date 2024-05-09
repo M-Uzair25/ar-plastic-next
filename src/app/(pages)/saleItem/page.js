@@ -9,11 +9,13 @@ const SaleItem = () => {
   const [selectedName, setSelectedName] = useState({ value: 'Cash', label: 'Cash', });
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
-  const [itemRate, setItemRate] = useState(0); // New state for the fetched rate
-  const [kgRate, setkgRate] = useState(0); // New state for the fetched rate
+  const [bagRate, setBagRate] = useState(0);
+  const [perKgRate, setPerKgRate] = useState(0);
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
+  const [cashReceived, setCashReceived] = useState(0); // New state for cash received
+  const [cashReturned, setCashReturned] = useState(0); // State for cash returned
 
   // useEffect to fetch rate when category or description changes
   const fetchRate = async () => {
@@ -21,27 +23,26 @@ const SaleItem = () => {
       if (selectedCategory && selectedDescription) {
         const response = await fetch(`/api/items/rate?category=${selectedCategory}&description=${selectedDescription.value}`);
         const data = await response.json();
-        setItemRate(data.rate)
+        setBagRate(data.rate)
         setBagStock(data.bag);
         setKgStock(data.kg);
       } else {
-        // Clear the rate when either selectedCategory or selectedDescription is empty
-        setItemRate(0);
-        setkgRate(0);
+        // Clear the rates and stocks when no category or description is selected
+        setBagRate(0);
+        setPerKgRate(0);
         setBagStock(0);
         setKgStock(0);
       }
     } catch (error) {
       console.error('Error fetching rate:', error);
-      // Handle error, e.g., show a notification to the user
     }
   };
   useEffect(() => {
     fetchRate();
   }, [selectedCategory, selectedDescription]);
 
+  // Event handlers
   const handleNameChange = (selectedOption) => {
-    // Update state in the parent component with the selected value from the child
     setSelectedName(selectedOption);
   };
   const handleCategoryChange = (selectedOption) => {
@@ -53,21 +54,26 @@ const SaleItem = () => {
     setSelectedDescription(selectedOption);
   };
   const handleRateChange = (e) => {
-    // Update the itemRate state when the user edits the field
-    setItemRate(parseFloat(e.target.value));
+    // Update the bagRate state when the user edits the field
+    setBagRate(parseFloat(e.target.value));
   };
-  const handleKgRateChange = (e) => {
-    // Update the itemRate state when the user edits the field
-    setItemRate(parseFloat(e.target.value) * 25);
-    setkgRate(parseFloat(e.target.value));
+  const handleperKgRateChange = (e) => {
+    // Update the bagRate state when the user edits the field
+    setBagRate(parseFloat(e.target.value) * 25);
+    setPerKgRate(parseFloat(e.target.value));
   };
   const handleReloadRate = () => {
-    fetchRate();
+    fetchRate(); // Re-fetch rate
   };
+
   const handleAddToCart = () => {
     const bagQuantity = parseInt(document.getElementById('bagQuantity').value) || 0;
     const kgQuantity = parseInt(document.getElementById('kgQuantity').value) || 0;
-    if (bagQuantity == 0 && kgQuantity == 0) {
+    if (!selectedCategory || !selectedDescription) {
+      alert("Please Select Item");
+      return;
+    }
+    if (bagQuantity === 0 && kgQuantity === 0) {
       alert("Please enter a valid quantity (Bag or Kg) for the item.");
       return;
     }
@@ -75,15 +81,16 @@ const SaleItem = () => {
       customerName: selectedName.value,
       category: selectedCategory,
       description: selectedDescription.value,
-      bagRate: itemRate,
-      kgRate: itemRate / 25,
+      bagRate: bagRate,
+      perKgRate: bagRate / 25,
       // Show only non-zero quantities in a formatted string
       bagQuantity: `${bagQuantity > 0 ? `${bagQuantity}` : ''}`,
       kgQuantity: `${kgQuantity > 0 ? `${kgQuantity}` : ''}`,
-      subtotal: (itemRate * bagQuantity) + ((itemRate / 25) * kgQuantity),
+      subtotal: (bagRate * bagQuantity) + ((bagRate / 25) * kgQuantity),
     };
     setCartItems([...cartItems, newItem]); // Add new item to cart state
     // Clear quantity inputs after adding to cart
+    setSelectedDescription(null);
     document.getElementById('bagQuantity').value = '';
     document.getElementById('kgQuantity').value = '';
   };
@@ -108,7 +115,7 @@ const SaleItem = () => {
         </thead>
         <tbody>
           {cartItems.map((item, index) => (
-            <tr key={item.description}>
+            <tr key={index}>
               <td>{index + 1}</td>
               <td>{item.category} - {item.description}</td>
               <td>
@@ -117,10 +124,13 @@ const SaleItem = () => {
                 {item.kgQuantity > 0 ? `${item.kgQuantity} Kg` : ''}
               </td>
               <td>{item.bagRate}</td>
-              <td>{item.kgRate}</td>
+              <td>{item.perKgRate}</td>
               <td>{item.subtotal}</td>
               <td>
-                <button type="button" className="btn btn-danger btn-sm">
+                <button type="button" className="btn btn-danger btn-sm" onClick={() => {
+                  // Remove item from cart
+                  setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
+                }}>
                   <i className="bi bi-trash"></i>
                 </button>
               </td>
@@ -134,6 +144,11 @@ const SaleItem = () => {
     const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
     return total;
   }
+  const handleCashReceivedChange = (e) => {
+    const received = parseFloat(e.target.value) || 0;
+    setCashReceived(received); // Update cash received
+    setCashReturned(received - calculateTotal()); // Calculate cash returned
+  };
   return (
     <>
       <CardTitle tag="h6" className="border-bottom p-3 mb-2"
@@ -187,14 +202,15 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="rate">Bag Rate</Label>
-                  <Input id="rate" name="rate" type="number" min="0" value={itemRate} onChange={handleRateChange} />
-                  <i className="bi bi-arrow-clockwise" onClick={handleReloadRate} style={{ cursor: 'pointer' }}>Reload Rate</i>
+                  <span> </span>
+                  <i className="bi bi-arrow-clockwise" onClick={handleReloadRate} style={{ cursor: 'pointer' }}></i>
+                  <Input id="rate" name="rate" type="number" min="0" value={bagRate} onChange={handleRateChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="kgRate">Kg Rate</Label>
-                  <Input id="kgRate" name="kgRate" type="number" min="0" value={itemRate / 25} onChange={handleKgRateChange} />
+                  <Label for="perKgRate">Kg Rate</Label>
+                  <Input id="perKgRate" name="perKgRate" type="number" min="0" value={bagRate / 25} onChange={handleperKgRateChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -215,8 +231,7 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <br />
-                  <Button color="primary" onClick={handleAddToCart}>
+                  <Button color="primary" style={{ marginTop: '32px' }} onClick={handleAddToCart}>
                     Add to Cart
                   </Button>
                 </FormGroup>
@@ -234,18 +249,19 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashReceived">
-                    Cash Received
-                  </Label>
-                  <Input id="cashReceived" name="cashReceived" type="number" min="0" />
+                  <Label for="cashReceived">Cash Received</Label>
+                  <Input id="cashReceived" name="cashReceived" type="number" min="0" onChange={handleCashReceivedChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashReturned">
-                    Cash Returned
-                  </Label>
-                  <Input id="cashReturned" name="cashReturned" type="number" min="0" defaultValue="0" />
+                  <Label for="cashReturned">Cash Returned</Label>
+                  <Input
+                    style={{
+                      backgroundColor: cashReturned < 0 ? 'rgb(246 78 96)' : '#47bc47',
+                      color: 'white' 
+                    }}
+                    id="cashReturned" name="cashReturned" type="number" disabled value={cashReturned} />
                 </FormGroup>
               </Col>
             </Row>
