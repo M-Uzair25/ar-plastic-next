@@ -14,7 +14,7 @@ const SaleItem = () => {
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
-  const [cashReceived, setCashReceived] = useState(0); // New state for cash received
+  const [cashReceived, setCashReceived] = useState(''); // New state for cash received
   const [cashReturned, setCashReturned] = useState(0); // State for cash returned
 
   // useEffect to fetch rate when category or description changes
@@ -130,6 +130,8 @@ const SaleItem = () => {
                 <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                   // Remove item from cart
                   setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
+                  setCashReceived('')
+                  setCashReturned(0)
                 }}>
                   <i className="bi bi-trash"></i>
                 </button>
@@ -146,8 +148,14 @@ const SaleItem = () => {
   }
   const handleCashReceivedChange = (e) => {
     const received = parseFloat(e.target.value) || 0;
-    setCashReceived(received); // Update cash received
-    setCashReturned(received - calculateTotal()); // Calculate cash returned
+    if (calculateTotal() === 0) {
+      setCashReceived('')
+      setCashReturned(0)
+    }
+    else {
+      setCashReceived(received); // Update cash received
+      setCashReturned(received - calculateTotal()); // Calculate cash returned
+    }
   };
   return (
     <>
@@ -250,7 +258,7 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="cashReceived">Cash Received</Label>
-                  <Input id="cashReceived" name="cashReceived" type="number" min="0" onChange={handleCashReceivedChange} />
+                  <Input id="cashReceived" name="cashReceived" type="number" min="0" value={cashReceived} onChange={handleCashReceivedChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -259,7 +267,7 @@ const SaleItem = () => {
                   <Input
                     style={{
                       backgroundColor: cashReturned < 0 ? 'rgb(246 78 96)' : '#47bc47',
-                      color: 'white' 
+                      color: 'white'
                     }}
                     id="cashReturned" name="cashReturned" type="number" disabled value={cashReturned} />
                 </FormGroup>
