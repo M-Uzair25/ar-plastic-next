@@ -76,7 +76,9 @@ const CreateItem = () => {
                   name="bagQuantity"
                   type="number"
                   min="0"
-                  value={itemData.bagQuantity} onChange={handleChange} onClick={(e) => e.target.select()}
+                  placeholder='0'
+                  onChange={handleChange}
+                  onClick={(e) => e.target.select()}
                 />
               </FormGroup>
             </Col>
@@ -90,7 +92,9 @@ const CreateItem = () => {
                   name="kgQuantity"
                   type="number"
                   min="0"
-                  value={itemData.kgQuantity} onChange={handleChange} onClick={(e) => e.target.select()}
+                  placeholder='0'
+                  onChange={handleChange}
+                  onClick={(e) => e.target.select()}
                 />
               </FormGroup>
             </Col>
@@ -104,7 +108,9 @@ const CreateItem = () => {
                   name="sellRate"
                   type="number"
                   min="0"
-                  value={itemData.sellRate} onChange={handleChange} onClick={(e) => e.target.select()}
+                  placeholder='0'
+                  onChange={handleChange}
+                  onClick={(e) => e.target.select()}
                 />
               </FormGroup>
             </Col>

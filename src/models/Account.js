@@ -6,7 +6,7 @@ const accountSchema = new mongoose.Schema({
   address: { type: String, required: true },
   openingBalance: { type: Number, default: 0 },
   closingBalance: { type: Number, default: 0 },
-  acctype: { type: String, enum: ['customer', 'supplier', 'myAccount'], required: true },
+  accountType: { type: String, enum: ['cash','credit', 'supplier', 'myAccount'], required: true },
 },
   { timestamps: true });
 

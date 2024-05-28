@@ -16,8 +16,8 @@ const SaleItem = () => {
   const [cartItems, setCartItems] = useState([]);
   const [cashReceived, setCashReceived] = useState(''); // New state for cash received
   const [cashReturned, setCashReturned] = useState(0); // State for cash returned
+  const [accountType, setaccountType] = useState('cash');
 
-  // useEffect to fetch rate when category or description changes
   const fetchRate = async () => {
     try {
       if (selectedCategory && selectedDescription) {
@@ -41,9 +41,27 @@ const SaleItem = () => {
     fetchRate();
   }, [selectedCategory, selectedDescription]);
 
+  // Function to fetch account types from the API
+  const fetchAccountType = async (accountName) => {
+    try {
+      const response = await fetch(`/api/accounts?accountName=${accountName}`);
+      const data = await response.json();
+      if (data.length > 0) {
+        return data[0].accountType;
+      } else {
+        return '';
+      }
+    } catch (error) {
+      console.error('Error fetching account type:', error);
+      return '';
+    }
+  };
+
   // Event handlers
-  const handleNameChange = (selectedOption) => {
+  const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
+    const accountType = await fetchAccountType(selectedOption.value);
+    setaccountType(accountType);
   };
   const handleCategoryChange = (selectedOption) => {
     // Update state in the parent component with the selected value from the child
@@ -274,27 +292,6 @@ const SaleItem = () => {
               </Col>
             </Row>
             <Row>
-              <Col md={2}>
-                <FormGroup>
-                  <Label for="payment">
-                    Payment Method
-                  </Label>
-                  <Input id="payment" name="payment" type="select" >
-                    <option>
-                      Cash
-                    </option>
-                    <option>
-                      Bank Account
-                    </option>
-                    <option>
-                      Khata
-                    </option>
-                    <option>
-                      Dasti
-                    </option>
-                  </Input>
-                </FormGroup>
-              </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="status">

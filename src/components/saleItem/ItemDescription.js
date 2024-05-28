@@ -25,7 +25,7 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
             }));
 
             setAllDescriptions(options);
-            if (options.length !== 1) {
+            if (options.length !== 1 && selectedCategory === null) {
                 setSelectedDescription(null);
                 onDescriptionChange(null);
             }

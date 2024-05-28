@@ -11,7 +11,7 @@ const CreateAccount = () => {
     accountNo: '',
     address: '',
     openingBalance: 0,
-    acctype: 'customer',
+    accountType: '',
   });
 
   const [buttonDisabled, setButtonDisabled] = useState(true);
@@ -93,55 +93,68 @@ const CreateAccount = () => {
                   name="openingBalance"
                   type="number"
                   min="0"
-                  value={accountData.openingBalance}
+                  placeholder='0'
                   onChange={handleChange}
                   onClick={(e) => e.target.select()}
                 />
               </FormGroup>
             </Col>
             <Col>
-              <FormGroup tag="fieldset">
+              <Form tag="fieldset">
                 <legend>Account Type</legend>
-                <FormGroup check>
+                <FormGroup check inline>
                   <Label check>
                     <Input
-                      name="acctype"
-                      id="customer"
+                      name="accountType"
+                      id="cash"
                       type="radio"
-                      value="customer"
-                      checked={accountData.acctype === 'customer'}
+                      value="cash"
+                      checked={accountData.accountType === 'cash'}
                       onChange={handleChange}
                     />
-                    Customer
+                    Cash
                   </Label>
                 </FormGroup>
-                <FormGroup check>
+                <FormGroup check inline>
                   <Label check>
                     <Input
-                      name="acctype"
+                      name="accountType"
+                      id="credit"
+                      type="radio"
+                      value="credit"
+                      checked={accountData.accountType === 'credit'}
+                      onChange={handleChange}
+                    />
+                    Customer Credit
+                  </Label>
+                </FormGroup>
+                <FormGroup check inline>
+                  <Label check>
+                    <Input
+                      name="accountType"
                       id="supplier"
                       type="radio"
                       value="supplier"
-                      checked={accountData.acctype === 'supplier'}
+                      checked={accountData.accountType === 'supplier'}
                       onChange={handleChange}
                     />
                     Supplier
                   </Label>
                 </FormGroup>
-                <FormGroup check>
+                <FormGroup check inline>
                   <Label check>
                     <Input
-                      name="acctype"
+                      name="accountType"
                       id="myAccount"
                       type="radio"
                       value="myAccount"
-                      checked={accountData.acctype === 'myAccount'}
+                      checked={accountData.accountType === 'myAccount'}
                       onChange={handleChange}
                     />
                     My Account
                   </Label>
                 </FormGroup>
-              </FormGroup>
+              </Form>
             </Col>
           </Row>
           <Button className="mt-2" disabled={buttonDisabled}>Submit</Button>
