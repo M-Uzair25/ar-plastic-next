@@ -59,7 +59,6 @@ const CustomerName = ({ onNameChange }) => {
             placeholder="Search or select an account"
             defaultValue={defaultAccount}
             onChange={handleNameChange}
-            isClearable
             isLoading={loading}
         />
     )
