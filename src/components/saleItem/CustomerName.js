@@ -2,9 +2,8 @@
 import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
 
-const CustomerName = ({ onNameChange }) => {
+const CustomerName = ({ onNameChange, disable, selectedName }) => {
     const [allAccounts, setAllAccounts] = useState([]);
-    const defaultAccount = { value: 'Cash', label: 'Cash' };
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -57,9 +56,10 @@ const CustomerName = ({ onNameChange }) => {
             loadOptions={getAccounts}
             defaultOptions={allAccounts}
             placeholder="Search or select an account"
-            defaultValue={defaultAccount}
+            value={selectedName}
             onChange={handleNameChange}
             isLoading={loading}
+            isDisabled={disable}
         />
     )
 };

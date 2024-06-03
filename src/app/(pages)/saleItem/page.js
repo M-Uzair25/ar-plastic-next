@@ -6,7 +6,8 @@ import ItemCategory from '@/components/saleItem/ItemCategory';
 import ItemDescription from '@/components/saleItem/ItemDescription';
 
 const SaleItem = () => {
-  const [selectedName, setSelectedName] = useState({ value: 'Cash', label: 'Cash' });
+  const defaultCustomerName = { value: 'Cash', label: 'Cash' };
+  const [selectedName, setSelectedName] = useState(defaultCustomerName);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
   const [bagRate, setBagRate] = useState(0);
@@ -14,6 +15,7 @@ const SaleItem = () => {
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
+  const [nameDisabled, setNameDisabled] = useState(false);
   const [cashReceived, setCashReceived] = useState('');
   const [cashReturned, setCashReturned] = useState(0);
   const [accountType, setAccountType] = useState('cash');
@@ -83,6 +85,15 @@ const SaleItem = () => {
     fetchRate();
   };
 
+  const handleBagQuantityChange = (e) => {
+    setBagQuantity(e.target.value);
+  };
+
+  const handleKgQuantityChange = (e) => {
+    setKgQuantity(e.target.value);
+  };
+
+
   const handleAddToCart = () => {
     const bagQty = parseInt(bagQuantity) || 0;
     const kgQty = parseInt(kgQuantity) || 0;
@@ -97,7 +108,6 @@ const SaleItem = () => {
     }
 
     const newItem = {
-      customerName: selectedName.value,
       category: selectedCategory,
       description: selectedDescription.value,
       bagRate: bagRate,
@@ -108,6 +118,7 @@ const SaleItem = () => {
     };
 
     setCartItems((prevItems) => [...prevItems, newItem]);
+    setNameDisabled(true)
     setSelectedDescription(null);
     setBagQuantity('');
     setKgQuantity('');
@@ -156,6 +167,7 @@ const SaleItem = () => {
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
+                index === 0 ? setNameDisabled(false) : setNameDisabled(true);
                 setCashReceived('');
                 setCashReturned(0);
               }}>
@@ -168,6 +180,45 @@ const SaleItem = () => {
     </Table>
   ), [cartItems]);
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const saleData = {
+      customerName: selectedName.value,
+      note: document.getElementById('note').value,
+      cartItems,
+      total: calculateTotal(),
+      status: document.getElementById('status').value
+    };
+
+    try {
+      const response = await fetch('/api/submitSale', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(saleData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert('Sale submitted successfully');
+        // Clear the form or perform any necessary actions
+        setCartItems([]);
+        setNameDisabled(false)
+        setSelectedName(defaultCustomerName);
+        setCashReceived('');
+        setCashReturned(0);
+      } else {
+        alert('Error submitting sale: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting sale:', error);
+      alert('Error submitting sale: ' + error.message);
+    }
+  };
+
   return (
     <>
       <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
@@ -175,12 +226,12 @@ const SaleItem = () => {
       </CardTitle>
       <Card>
         <CardBody>
-          <Form>
+          <Form onSubmit={handleSubmit}>
             <Row>
               <Col md={6}>
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
-                  <CustomerName onNameChange={handleNameChange} />
+                  <CustomerName onNameChange={handleNameChange} selectedName={selectedName} disable={nameDisabled} />
                 </FormGroup>
               </Col>
               <Col md={5}>
@@ -220,13 +271,13 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="bagQuantity">Bags</Label>
-                  <Input id="bagQuantity" name="bagQuantity" placeholder={`Stock: ${bagStock}`} type="number" min="0" value={bagQuantity} onChange={(e) => setBagQuantity(e.target.value)} />
+                  <Input id="bagQuantity" name="bagQuantity" placeholder={`Stock: ${bagStock}`} type="number" min="0" value={bagQuantity} onChange={handleBagQuantityChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" placeholder={`Stock: ${kgStock}`} type="number" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
+                  <Input id="kgQuantity" name="kgQuantity" placeholder={`Stock: ${kgStock}`} type="number" min="0" value={kgQuantity} onChange={handleKgQuantityChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -274,7 +325,7 @@ const SaleItem = () => {
                 </FormGroup>
               </Col>
             </Row>
-            <Button color="primary">Submit</Button>
+            <Button color="primary" type="submit">Submit</Button>
           </Form>
         </CardBody>
       </Card>
