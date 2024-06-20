@@ -12,18 +12,22 @@ const itemSchema = new mongoose.Schema({
   bagQuantity: {
     type: Number,
     default: 0,
+    min: 0,
   },
   kgQuantity: {
     type: Number,
     default: 0,
+    min: 0,
   },
   purchasedRate: {
     type: Number,
     default: 0,
+    min: 0,
   },
   sellRate: {
     type: Number,
     default: 0,
+    min: 0,
   },
 },
   { timestamps: true }

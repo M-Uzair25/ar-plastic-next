@@ -106,6 +106,16 @@ const SaleItem = () => {
       alert("Please enter a valid quantity (Bag or Kg) for the item.");
       return;
     }
+    if (bagQty > bagStock) {
+      setBagQuantity('')
+      alert("Bag stock is not enough.");
+      return;
+    }
+    if (bagStock === 0 && kgQty > kgStock) {
+      setKgQuantity('')
+      alert("Kg quantity is invalid | Not enough quantity in stock.");
+      return;
+    }
 
     const newItem = {
       category: selectedCategory,
@@ -211,11 +221,11 @@ const SaleItem = () => {
         setCashReceived('');
         setCashReturned(0);
       } else {
-        alert('Error submitting sale: ' + result.message);
+        alert(`Error submitting sale: ${result.message}`);
       }
     } catch (error) {
       console.error('Error submitting sale:', error);
-      alert('Error submitting sale: ' + error.message);
+      alert(`Error submitting sale: ${error.message}`);
     }
   };
 

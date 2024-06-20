@@ -6,6 +6,8 @@ const saleSchema = new mongoose.Schema({
   cartItems: { type: Array, required: true },
   total: { type: Number, required: true },
   status: { type: String, required: true }
-});
+},
+  { timestamps: true }
+);
 
 export default mongoose.models.Sale || mongoose.model('Sale', saleSchema);
