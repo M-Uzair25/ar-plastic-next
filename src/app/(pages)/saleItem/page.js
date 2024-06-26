@@ -202,7 +202,7 @@ const SaleItem = () => {
     };
 
     try {
-      const response = await fetch('/api/submitSale', {
+      const response = await fetch('/api/sales', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

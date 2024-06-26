@@ -26,7 +26,7 @@ export async function POST(req = NextRequest) {
   }
 }
 // GET request to fetch rates
-export async function GET(req = NextRequest) {
+export async function GET() {
   await connectToDB();
 
   try {
