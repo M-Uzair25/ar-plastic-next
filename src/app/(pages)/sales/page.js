@@ -1,24 +1,39 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
+import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input, Pagination, PaginationItem, PaginationLink } from "reactstrap";
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
-  const currentDate = new Date();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const itemsPerPage = 10;
+
+  const fetchSales = async (page = 1, query = '') => {
+    try {
+      const response = await fetch(`/api/sales?page=${page}&limit=${itemsPerPage}&search=${query}`);
+      const data = await response.json();
+      setSales(data.sales);
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.currentPage);
+    } catch (error) {
+      console.error('Error fetching sales data:', error);
+    }
+  };
 
   useEffect(() => {
-    const fetchSales = async () => {
-      try {
-        const response = await fetch('/api/sales');
-        const data = await response.json();
-        setSales(data);
-      } catch (error) {
-        console.error('Error fetching sales data:', error);
-      }
-    };
+    fetchSales(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
-    fetchSales();
-  }, []);
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchSales(page, searchQuery);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    fetchSales(1, e.target.value);
+  };
 
   const handleDeleteSale = async (sale) => {
     let itemList = "";
@@ -89,10 +104,12 @@ const Sales = () => {
               <Col md={3}>
                 <FormGroup>
                   <Input
-                    id="exampleSearch"
+                    id="search"
                     name="search"
                     placeholder="Search"
                     type="search"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
                   />
                 </FormGroup>
               </Col>
@@ -103,7 +120,7 @@ const Sales = () => {
                 <CardTitle>Save as pdf</CardTitle>
               </Col>
             </Row>
-            <Table bordered hover>
+            <Table bordered hover dark responsive>
               <thead>
                 <tr>
                   <th>Date</th>
@@ -127,9 +144,9 @@ const Sales = () => {
                           <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.customerName}</td>
                         </>
                       )}
-                      <td>{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
-                      <td>{item.category}</td>
-                      <td>{item.description}</td>
+                      <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
+                      <td className="centered-cell">{item.category}</td>
+                      <td className="centered-cell">{item.description}</td>
                       {index === 0 && (
                         <>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
@@ -147,6 +164,21 @@ const Sales = () => {
                 ))}
               </tbody>
             </Table>
+            <Pagination>
+              <PaginationItem disabled={currentPage === 1}>
+                <PaginationLink previous onClick={() => handlePageChange(currentPage - 1)} />
+              </PaginationItem>
+              {[...Array(totalPages)].map((_, index) => (
+                <PaginationItem active={index + 1 === currentPage} key={index}>
+                  <PaginationLink onClick={() => handlePageChange(index + 1)}>
+                    {index + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem disabled={currentPage === totalPages}>
+                <PaginationLink next onClick={() => handlePageChange(currentPage + 1)} />
+              </PaginationItem>
+            </Pagination>
           </CardBody>
         </Card>
       </Col>
