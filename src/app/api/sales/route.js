@@ -75,7 +75,7 @@ export async function GET(request) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 10;
+        const limit = parseInt(searchParams.get('limit')) || 1;
         const searchQuery = searchParams.get('search') || '';
 
         const escapedSearchQuery = escapeRegExp(searchQuery);
@@ -102,15 +102,32 @@ export async function GET(request) {
             });
         }
 
-        const skip = (page - 1) * limit;
-        const sales = await Sale.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
-        const totalSales = await Sale.countDocuments(query);
+        const sales = await Sale.find(query).sort({ createdAt: -1 });
 
-        return Response.json(
-            { sales },
-            { totalPages: Math.ceil(totalSales / limit) },
-            { currentPage: page },
-            { status: 200 });
+        // Group sales by date
+        const groupedSales = sales.reduce((acc, sale) => {
+            const date = new Date(sale.createdAt).toISOString().split('T')[0];
+            if (!acc[date]) {
+                acc[date] = [];
+            }
+            acc[date].push(sale);
+            return acc;
+        }, {});
+
+        const dates = Object.keys(groupedSales).sort((a, b) => new Date(b) - new Date(a));
+        const totalDates = dates.length;
+        const totalPages = Math.ceil(totalDates / limit);
+        const paginatedDates = dates.slice((page - 1) * limit, page * limit);
+        const paginatedSales = paginatedDates.reduce((acc, date) => {
+            acc[date] = groupedSales[date];
+            return acc;
+        }, {});
+
+        return new Response(JSON.stringify({
+            sales: paginatedSales,
+            totalPages,
+            currentPage: page,
+        }), { status: 200 });
     } catch (error) {
         console.error(error);
         return Response.json({ error: 'Error fetching sales' }, { status: 500 });

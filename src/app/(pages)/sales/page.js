@@ -1,38 +1,37 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input, Pagination, PaginationItem, PaginationLink } from "reactstrap";
+import { Table, Row, Col, Card, CardTitle, CardBody, FormGroup, Input, Button } from 'reactstrap';
+import ReactPaginate from 'react-paginate';
+import '@/styles/pagination.css';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const itemsPerPage = 10;
 
-  const fetchSales = async (page = 1, query = '') => {
+  useEffect(() => {
+    fetchSales();
+  }, [currentPage, searchQuery]);
+
+  const fetchSales = async () => {
     try {
-      const response = await fetch(`/api/sales?page=${page}&limit=${itemsPerPage}&search=${query}`);
+      const response = await fetch(`/api/sales?page=${currentPage + 1}&search=${searchQuery}`);
       const data = await response.json();
       setSales(data.sales);
       setTotalPages(data.totalPages);
-      setCurrentPage(data.currentPage);
     } catch (error) {
       console.error('Error fetching sales data:', error);
     }
   };
 
-  useEffect(() => {
-    fetchSales(currentPage, searchQuery);
-  }, [currentPage, searchQuery]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    fetchSales(page, searchQuery);
+  const handlePageChange = (selectedPage) => {
+    setCurrentPage(selectedPage.selected);
   };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
-    fetchSales(1, e.target.value);
+    setCurrentPage(0);
   };
 
   const handleDeleteSale = async (sale) => {
@@ -53,9 +52,8 @@ const Sales = () => {
         });
 
         if (response.ok) {
-          const deletedSale = await response.json();
           // Update state to remove the deleted sale from the UI
-          setSales(sales.filter((sale) => sale._id !== deletedSale._id));
+          fetchSales();
           alert('Sale deleted successfully');
         } else {
           const result = await response.json();
@@ -113,72 +111,154 @@ const Sales = () => {
                   />
                 </FormGroup>
               </Col>
-              <Col>
-                <CardTitle>Filter by:</CardTitle>
+              <Col md={3}>
+                <CardTitle><Input
+                  id="exampleDate"
+                  name="date"
+                  placeholder="date placeholder"
+                  type="date"
+                /></CardTitle>
               </Col>
-              <Col>
-                <CardTitle>Save as pdf</CardTitle>
+              <Col md={2}>
+                <CardTitle style={{ color: '#2962ff', cursor: 'pointer', marginTop: '8px' }}>Save as pdf <i className="bi bi-filetype-pdf mt-20"></i></CardTitle>
               </Col>
             </Row>
-            <Table bordered hover dark responsive>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>Quantity</th>
-                  <th>Item Category</th>
-                  <th>Item Description</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Comments</th>
-                  <th>Modify</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sales.map((sale) => (
-                  sale.cartItems.map((item, index) => (
-                    <tr key={`${sale._id}-${index}`}>
-                      {index === 0 && (
-                        <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell" scope="row">{formatDateTime(sale.createdAt)}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.customerName}</td>
-                        </>
-                      )}
-                      <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
-                      <td className="centered-cell">{item.category}</td>
-                      <td className="centered-cell">{item.description}</td>
-                      {index === 0 && (
-                        <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.status}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.note}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            <Button color="danger" size="sm" onClick={() => handleDeleteSale(sale)}>
-                              Delete
-                            </Button>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))
-                ))}
-              </tbody>
-            </Table>
-            <Pagination>
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationLink previous onClick={() => handlePageChange(currentPage - 1)} />
-              </PaginationItem>
-              {[...Array(totalPages)].map((_, index) => (
-                <PaginationItem active={index + 1 === currentPage} key={index}>
-                  <PaginationLink onClick={() => handlePageChange(index + 1)}>
-                    {index + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLink next onClick={() => handlePageChange(currentPage + 1)} />
-              </PaginationItem>
-            </Pagination>
+            {Object.keys(sales).length === 0 ? (
+              <p>No results found</p>
+            ) : (
+              Object.keys(sales).map((date) =>
+              (
+                <div key={date}>
+                  <h5 className="mt-4">{date}</h5>
+                  <Table bordered hover dark responsive>
+                    <thead>
+                      <tr>
+                        <th>
+                        </th>
+                        <th>
+                          <Input
+                            id="search"
+                            name="search"
+                            placeholder="Customer"
+                            type="search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                          /></th>
+                        <th>
+                          <Input
+                            id="search"
+                            name="search"
+                            placeholder="Quantity"
+                            type="search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                          /></th>
+                        <th>
+                          <Input
+                            id="search"
+                            name="search"
+                            placeholder="Category"
+                            type="search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                          /></th>
+                        <th>
+                          <Input
+                            id="search"
+                            name="search"
+                            placeholder="Description"
+                            type="search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                          /></th>
+                        <th>
+                          <Input
+                            id="search"
+                            name="search"
+                            placeholder="Amount"
+                            type="search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                          /></th>
+                        <th>
+                          <Input id="status" name="status" type="select">
+                            <option>All</option>
+                            <option>Paid</option>
+                            <option>Unpaid</option>
+                          </Input>
+                        </th>
+                        <th>
+                          <Input
+                            id="search"
+                            name="search"
+                            placeholder="Comments"
+                            type="search"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                          /></th>
+                        <th></th>
+                      </tr>
+                      <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Quantity</th>
+                        <th>Item Category</th>
+                        <th>Item Description</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Comments</th>
+                        <th>Modify</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sales[date].map((sale) => (
+                        sale.cartItems.map((item, index) => (
+                          <tr key={`${sale._id}-${index}`}>
+                            {index === 0 && (
+                              <>
+                                <td rowSpan={sale.cartItems.length} className="centered-cell" scope="row">{formatDateTime(sale.createdAt)}</td>
+                                <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.customerName}</td>
+                              </>
+                            )}
+                            <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
+                            <td className="centered-cell">{item.category}</td>
+                            <td className="centered-cell">{item.description}</td>
+                            {index === 0 && (
+                              <>
+                                <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
+                                <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.status} {formatDateTime(sale.updatedAt)}</td>
+                                <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.note}</td>
+                                <td rowSpan={sale.cartItems.length} className="centered-cell">
+                                  <Button color="danger" size="sm" onClick={() => handleDeleteSale(sale)}>
+                                    Delete
+                                  </Button>
+                                  <Button color="success" size="sm" >
+                                    Status
+                                  </Button>
+                                </td>
+                              </>
+                            )}
+                          </tr>
+                        ))
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+              ))
+            )}
+            <ReactPaginate
+              previousLabel={'‹'}
+              nextLabel={'›'}
+              breakLabel={'...'}
+              breakClassName={'break-me'}
+              pageCount={totalPages}
+              marginPagesDisplayed={1}
+              pageRangeDisplayed={2}
+              onPageChange={handlePageChange}
+              containerClassName={'pagination'}
+              subContainerClassName={'pages pagination'}
+              activeClassName={'active'}
+            />
           </CardBody>
         </Card>
       </Col>

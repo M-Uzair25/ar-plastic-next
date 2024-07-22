@@ -1,0 +1,73 @@
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    list-style: none;
+}
+
+.pagination li {
+    margin: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination li a {
+    color: #ffffff;
+    /* Text color */
+    background-color: #32a8dd;
+    /* Background color */
+    padding: 10px 15px;
+    /* Padding for the links */
+    text-decoration: none;
+    border: 1px solid transparent;
+    /* Remove border */
+    border-radius: 50%;
+    /* Circular links */
+    transition: background-color 0.3s, color 0.3s;
+    /* Smooth transition */
+}
+
+.pagination li a:hover {
+    background-color: #258dc4;
+    /* Darker background on hover */
+}
+
+.pagination li.active a {
+    background-color: #ffffff;
+    /* White background for active page */
+    color: #32a8dd;
+    /* Blue text for active page */
+    border: 1px solid #32a8dd;
+    /* Blue border for active page */
+}
+
+.pagination li.disabled a {
+    color: #ccc;
+    /* Grey text for disabled state */
+    cursor: not-allowed;
+    /* Not-allowed cursor */
+    background-color: #32a8dd;
+    /* Same background for disabled state */
+}
+
+.pagination li.break-me {
+    color: #ffffff;
+    /* White text for break label */
+    background-color: transparent;
+    /* Transparent background */
+    padding: 10px 15px;
+    /* Padding for break label */
+    border: 1px solid transparent;
+    /* Remove border */
+    border-radius: 0;
+    /* No border radius */
+    cursor: default;
+    /* Default cursor */
+    align-items: center;
+    /* Center vertically */
+    display: flex;
+    /* Use flex display */
+    justify-content: center;
+    /* Center horizontally */
+}

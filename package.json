@@ -20,6 +20,7 @@
     "react-apexcharts": "^1.4.1",
     "react-dom": "^18",
     "react-feather": "^2.0.10",
+    "react-paginate": "^8.2.0",
     "react-redux": "^9.0.4",
     "react-select": "^5.8.0",
     "reactstrap": "^9.2.1",
