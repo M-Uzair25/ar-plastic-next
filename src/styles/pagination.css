@@ -1,0 +1,31 @@
+/* Sales.css */
+.pagination {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .pagination button {
+    margin: 0 0.25rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #007bff;
+    color: black;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .pagination button:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  
+  .pagination button:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+  }
+  
+  .pagination button.active {
+    background-color: #0056b3;
+    font-weight: bold;
+  }
+  

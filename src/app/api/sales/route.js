@@ -102,15 +102,16 @@ export async function GET(request) {
             });
         }
 
-        const skip = (page - 1) * limit;
+        const skip = (page - 1) * limit; // Skip logic for pagination
         const sales = await Sale.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
         const totalSales = await Sale.countDocuments(query);
 
-        return Response.json(
-            { sales },
-            { totalPages: Math.ceil(totalSales / limit) },
-            { currentPage: page },
-            { status: 200 });
+        // Return all data in a single object
+        return Response.json({
+            sales,
+            totalPages: Math.ceil(totalSales / limit), // Total number of pages
+            currentPage: page // Current page being fetched
+        }, { status: 200 });
     } catch (error) {
         console.error(error);
         return Response.json({ error: 'Error fetching sales' }, { status: 500 });

@@ -1,13 +1,14 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input, Pagination, PaginationItem, PaginationLink } from "reactstrap";
+import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
+import '@/styles/pagination.css';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1); // One-indexed for user experience
   const [totalPages, setTotalPages] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
-  const itemsPerPage = 10;
+  const itemsPerPage = 1;
 
   const fetchSales = async (page = 1, query = '') => {
     try {
@@ -31,8 +32,12 @@ const Sales = () => {
   };
 
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    fetchSales(1, e.target.value);
+    const newQuery = e.target.value;
+    setSearchQuery(newQuery);
+
+    // Reset to the first page and fetch sales
+    setCurrentPage(1); // Set to 1 for user experience
+    fetchSales(1, newQuery); // Fetch sales for the first page on search
   };
 
   const handleDeleteSale = async (sale) => {
@@ -89,6 +94,51 @@ const Sales = () => {
       hour12: true,
     });
     return `${formattedDate} ${formattedTime}`;
+  };
+
+  const renderPagination = () => {
+    const pages = [];
+
+    if (totalPages <= 5) {
+      // If total pages are 5 or less, show all
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always add the first page
+      pages.push(1);
+
+      // Add ellipsis if necessary
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+
+      // Add a range of pages around the current page
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      // Add ellipsis if necessary
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+
+      // Always add the last page
+      pages.push(totalPages);
+    }
+
+    return pages.map((page, index) => (
+      <Button
+        key={index}
+        active={page === currentPage}
+        disabled={page === '...'}
+        onClick={() => typeof page === 'number' && handlePageChange(page)}
+      >
+        {page}
+      </Button>
+    ));
   };
 
   return (
@@ -164,21 +214,11 @@ const Sales = () => {
                 ))}
               </tbody>
             </Table>
-            <Pagination>
-              <PaginationItem disabled={currentPage === 1}>
-                <PaginationLink previous onClick={() => handlePageChange(currentPage - 1)} />
-              </PaginationItem>
-              {[...Array(totalPages)].map((_, index) => (
-                <PaginationItem active={index + 1 === currentPage} key={index}>
-                  <PaginationLink onClick={() => handlePageChange(index + 1)}>
-                    {index + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem disabled={currentPage === totalPages}>
-                <PaginationLink next onClick={() => handlePageChange(currentPage + 1)} />
-              </PaginationItem>
-            </Pagination>
+            <div className="pagination">
+              <Button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>← Previous</Button>
+              {renderPagination()}
+              <Button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>Next →</Button>
+            </div>
           </CardBody>
         </Card>
       </Col>
