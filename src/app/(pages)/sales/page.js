@@ -1,43 +1,51 @@
 'use client'
 import { useState, useEffect } from 'react';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input } from "reactstrap";
-import '@/styles/pagination.css';
+import { Row, Col, Table, Card, CardTitle, CardBody, Button, Input, InputGroup, InputGroupText } from "reactstrap";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format } from 'date-fns';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); // One-indexed for user experience
-  const [totalPages, setTotalPages] = useState(1);
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const itemsPerPage = 1;
 
-  const fetchSales = async (page = 1, query = '') => {
+  // Function to fetch sales data with optional date range and search filters
+  const fetchSales = async (fromDate = '', toDate = '', searchQuery = '') => {
     try {
-      const response = await fetch(`/api/sales?page=${page}&limit=${itemsPerPage}&search=${query}`);
+      const queryParams = new URLSearchParams();
+      if (fromDate) queryParams.append('fromDate', format(fromDate, 'yyyy-MM-dd'));
+      if (toDate) queryParams.append('toDate', format(toDate, 'yyyy-MM-dd'));
+      if (searchQuery) queryParams.append('search', searchQuery);
+
+      const response = await fetch(`/api/sales?${queryParams.toString()}`);
       const data = await response.json();
       setSales(data.sales);
-      setTotalPages(data.totalPages);
-      setCurrentPage(data.currentPage);
     } catch (error) {
       console.error('Error fetching sales data:', error);
     }
   };
 
+  // Fetch default sales data on component mount
   useEffect(() => {
-    fetchSales(currentPage, searchQuery);
-  }, [currentPage, searchQuery]);
+    const today = new Date();
+    setFromDate(today);
+    fetchSales(today); // Fetch sales for today's date by default
+  }, []);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    fetchSales(page, searchQuery);
+  // Handle search and date range change
+  const handleSearch = () => {
+    fetchSales(fromDate, toDate, searchQuery);
   };
 
+  // Automatically fetch sales again when the search query is cleared
   const handleSearchChange = (e) => {
-    const newQuery = e.target.value;
-    setSearchQuery(newQuery);
-
-    // Reset to the first page and fetch sales
-    setCurrentPage(1); // Set to 1 for user experience
-    fetchSales(1, newQuery); // Fetch sales for the first page on search
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query === '') {
+      fetchSales(fromDate, toDate, ''); // Re-fetch sales when the search query is cleared
+    }
   };
 
   const handleDeleteSale = async (sale) => {
@@ -87,58 +95,9 @@ const Sales = () => {
 
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
-    const formattedDate = date.toLocaleDateString('en-GB'); // dd/mm/yyyy format
-    const formattedTime = date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    });
+    const formattedDate = format(date, 'dd/MM/yy'); // Custom format
+    const formattedTime = format(date, 'hh:mm a'); // Time format
     return `${formattedDate} ${formattedTime}`;
-  };
-
-  const renderPagination = () => {
-    const pages = [];
-
-    if (totalPages <= 5) {
-      // If total pages are 5 or less, show all
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // Always add the first page
-      pages.push(1);
-
-      // Add ellipsis if necessary
-      if (currentPage > 3) {
-        pages.push('...');
-      }
-
-      // Add a range of pages around the current page
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      // Add ellipsis if necessary
-      if (currentPage < totalPages - 2) {
-        pages.push('...');
-      }
-
-      // Always add the last page
-      pages.push(totalPages);
-    }
-
-    return pages.map((page, index) => (
-      <Button
-        key={index}
-        active={page === currentPage}
-        disabled={page === '...'}
-        onClick={() => typeof page === 'number' && handlePageChange(page)}
-      >
-        {page}
-      </Button>
-    ));
   };
 
   return (
@@ -151,26 +110,53 @@ const Sales = () => {
           </CardTitle>
           <CardBody>
             <Row>
-              <Col md={3}>
-                <FormGroup>
-                  <Input
-                    id="search"
-                    name="search"
-                    placeholder="Search"
-                    type="search"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
-                </FormGroup>
-              </Col>
-              <Col>
-                <CardTitle>Filter by:</CardTitle>
-              </Col>
-              <Col>
-                <CardTitle>Save as pdf</CardTitle>
-              </Col>
+              <InputGroup>
+                <Col md={4}>
+                  <InputGroupText>
+                    <Input
+                      id="search"
+                      name="search"
+                      placeholder="Search"
+                      type="search"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()} // Search on Enter
+                    />
+                  </InputGroupText>
+                </Col>
+                <Col>
+                  <InputGroupText>From:
+                    <DatePicker
+                      selected={fromDate}
+                      onChange={(date) => setFromDate(date)}
+                      dateFormat="dd/MM/yyyy"
+                      className="form-control"
+                    />
+                  </InputGroupText>
+                </Col>
+                <Col>
+                  <InputGroupText>To:
+                    <DatePicker
+                      selected={toDate}
+                      onChange={(date) => setToDate(date)}
+                      dateFormat="dd/MM/yyyy"
+                      className="form-control"
+                    />
+                  </InputGroupText>
+                </Col>
+                <Col>
+                  <InputGroupText>
+                    <Button color="info" onClick={handleSearch}>
+                      Search
+                    </Button>
+                    <Button className='mx-2' color="info">
+                      Print
+                    </Button>
+                  </InputGroupText>
+                </Col>
+              </InputGroup>
             </Row>
-            <Table bordered hover dark responsive>
+            <Table bordered hover dark responsive className="mt-3">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -190,8 +176,12 @@ const Sales = () => {
                     <tr key={`${sale._id}-${index}`}>
                       {index === 0 && (
                         <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell" scope="row">{formatDateTime(sale.createdAt)}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.customerName}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {formatDateTime(sale.createdAt)}
+                          </td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {sale.customerName}
+                          </td>
                         </>
                       )}
                       <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
@@ -199,9 +189,15 @@ const Sales = () => {
                       <td className="centered-cell">{item.description}</td>
                       {index === 0 && (
                         <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.status}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.note}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {sale.total}
+                          </td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {sale.status}
+                          </td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {sale.note}
+                          </td>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">
                             <Button color="danger" size="sm" onClick={() => handleDeleteSale(sale)}>
                               Delete
@@ -214,11 +210,6 @@ const Sales = () => {
                 ))}
               </tbody>
             </Table>
-            <div className="pagination">
-              <Button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)}>← Previous</Button>
-              {renderPagination()}
-              <Button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)}>Next →</Button>
-            </div>
           </CardBody>
         </Card>
       </Col>

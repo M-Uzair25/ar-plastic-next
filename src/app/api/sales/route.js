@@ -2,11 +2,6 @@ import { connectToDB } from '@/dbConfig/dbConfig';
 import Sale from '@/models/Sale';
 import Item from '@/models/Item';
 
-// Function to escape special characters in the search query
-const escapeRegExp = (string) => {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-};
-
 export async function POST(request) {
     try {
         await connectToDB();
@@ -72,46 +67,56 @@ export async function POST(request) {
 export async function GET(request) {
     await connectToDB();
 
+    const searchParams = request.nextUrl.searchParams;
+    const fromDate = searchParams.get('fromDate');
+    const toDate = searchParams.get('toDate');
+    const searchQuery = searchParams.get('search');
+
     try {
-        const searchParams = request.nextUrl.searchParams;
-        const page = parseInt(searchParams.get('page')) || 1;
-        const limit = parseInt(searchParams.get('limit')) || 10;
-        const searchQuery = searchParams.get('search') || '';
+        let query = {};
 
-        const escapedSearchQuery = escapeRegExp(searchQuery);
-
-        const query = {
-            $or: [
-                { customerName: { $regex: escapedSearchQuery, $options: 'i' } },
-                { note: { $regex: escapedSearchQuery, $options: 'i' } },
-                { 'cartItems.category': { $regex: escapedSearchQuery, $options: 'i' } },
-                { 'cartItems.description': { $regex: escapedSearchQuery, $options: 'i' } },
-            ]
-        };
-
-        // Add numeric search for the total field if the search query is numeric
-        if (!isNaN(searchQuery)) {
-            query.$or.push({
-                $expr: {
-                    $regexMatch: {
-                        input: { $toString: "$total" },
-                        regex: escapedSearchQuery,
-                        options: 'i'
-                    }
-                }
-            });
+        // Date range filter
+        if (fromDate && toDate) {
+            query.createdAt = {
+                $gte: new Date(fromDate),
+                $lt: new Date(new Date(toDate).setDate(new Date(toDate).getDate() + 1)) // Include entire day
+            };
+        } else if (fromDate) {
+            query.createdAt = {
+                $gte: new Date(fromDate),
+                $lt: new Date(new Date(fromDate).setDate(new Date(fromDate).getDate() + 1))
+            };
+        } else {
+            // Default to today's sales if no date range is provided
+            const today = new Date().toISOString().split('T')[0];
+            query.createdAt = {
+                $gte: new Date(today),
+                $lt: new Date(new Date(today).setDate(new Date(today).getDate() + 1))
+            };
         }
 
-        const skip = (page - 1) * limit; // Skip logic for pagination
-        const sales = await Sale.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
-        const totalSales = await Sale.countDocuments(query);
+        // General search filter
+        if (searchQuery) {
+            const regexQuery = new RegExp(searchQuery, 'i');
+            query.$or = [
+                { customerName: regexQuery },
+                { note: regexQuery },
+                { 'cartItems.category': regexQuery },
+                { 'cartItems.description': regexQuery }
+            ];
 
-        // Return all data in a single object
-        return Response.json({
-            sales,
-            totalPages: Math.ceil(totalSales / limit), // Total number of pages
-            currentPage: page // Current page being fetched
-        }, { status: 200 });
+            // Add numeric search for the total and quantity field if the search query is numeric
+            if (!isNaN(searchQuery)) {
+                query.$or.push(
+                    { total: Number(searchQuery) },
+                    { 'cartItems.bagQuantity': Number(searchQuery) },  // Match bagQuantity
+                    { 'cartItems.kgQuantity': Number(searchQuery) }   // Match kgQuantity
+                );
+            }
+        }
+
+        const sales = await Sale.find(query).sort({ createdAt: -1 });
+        return Response.json({ sales }, { status: 200 });
     } catch (error) {
         console.error(error);
         return Response.json({ error: 'Error fetching sales' }, { status: 500 });
