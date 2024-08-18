@@ -34,6 +34,11 @@ const Sales = () => {
     fetchSales(today); // Fetch sales for today's date by default
   }, []);
 
+  // Trigger search whenever fromDate or toDate changes
+  useEffect(() => {
+    handleSearch();
+  }, [fromDate, toDate, searchQuery]);
+
   // Handle search and date range change
   const handleSearch = () => {
     fetchSales(fromDate, toDate, searchQuery);
@@ -100,6 +105,18 @@ const Sales = () => {
     return `${formattedDate} ${formattedTime}`;
   };
 
+  // Calculate sales statistics
+  const totalSales = sales.length;
+  const totalQuantity = sales.reduce((acc, sale) => {
+    sale.cartItems.forEach(item => {
+      acc.bags += item.bagQuantity ? parseInt(item.bagQuantity, 10) : 0;
+      acc.kgs += item.kgQuantity ? parseInt(item.kgQuantity, 10) : 0;
+    });
+    return acc;
+  }, { bags: 0, kgs: 0 });
+
+  const totalAmount = sales.reduce((acc, sale) => acc + sale.total, 0);
+
   return (
     <Row>
       <Col lg="12">
@@ -156,7 +173,15 @@ const Sales = () => {
                 </Col>
               </InputGroup>
             </Row>
-            <Table bordered hover dark responsive className="mt-3">
+
+            {/* Display selected date range above the table */}
+            <Row className="mt-3">
+              <Col>
+                <h6><strong>{fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? ' - ' + format(toDate, 'dd/MMM/yyyy') : ''}</strong> </h6>
+              </Col>
+            </Row>
+
+            <Table bordered hover responsive className="table-primary">
               <thead>
                 <tr>
                   <th>Date</th>
@@ -164,52 +189,64 @@ const Sales = () => {
                   <th>Quantity</th>
                   <th>Item Category</th>
                   <th>Item Description</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Comments</th>
-                  <th>Modify</th>
+                  <th>Bill Amount</th>
+                  <th>Remarks</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {sales.map((sale) => (
-                  sale.cartItems.map((item, index) => (
-                    <tr key={`${sale._id}-${index}`}>
-                      {index === 0 && (
-                        <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            {formatDateTime(sale.createdAt)}
-                          </td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            {sale.customerName}
-                          </td>
-                        </>
-                      )}
-                      <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
-                      <td className="centered-cell">{item.category}</td>
-                      <td className="centered-cell">{item.description}</td>
-                      {index === 0 && (
-                        <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            {sale.total}
-                          </td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            {sale.status}
-                          </td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            {sale.note}
-                          </td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            <Button color="danger" size="sm" onClick={() => handleDeleteSale(sale)}>
-                              Delete
-                            </Button>
-                          </td>
-                        </>
-                      )}
-                    </tr>
-                  ))
-                ))}
+                {sales.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="text-center">No Sales: {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</td>
+                  </tr>
+                ) : (
+                  sales.map((sale) =>
+                    sale.cartItems.map((item, index) => (
+                      <tr key={`${sale._id}-${index}`}>
+                        {index === 0 && (
+                          <>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">
+                              {formatDateTime(sale.createdAt)}
+                            </td>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">
+                              {sale.customerName}
+                            </td>
+                          </>
+                        )}
+                        <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
+                        <td className="centered-cell">{item.category}</td>
+                        <td className="centered-cell">{item.description}</td>
+                        {index === 0 && (
+                          <>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">
+                              {sale.total}
+                            </td>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">
+                              {sale.remarks}
+                            </td>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">
+                              <Button color="danger" size="sm" onClick={() => handleDeleteSale(sale)}>
+                                Delete
+                              </Button>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))
+                  )
+                )}
               </tbody>
             </Table>
+
+            <div className="mt-4">
+              <h6>Sales Report:<strong> {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</strong></h6>
+
+              <ul>
+                <li><strong>Total Sales:</strong> {totalSales}</li>
+                <li><strong>Total Quantity Sold:</strong> {totalQuantity.bags} Bags, {totalQuantity.kgs} Kgs</li>
+                <li><strong>Total Amount:</strong> {totalAmount.toFixed(0)} Rs</li>
+              </ul>
+            </div>
           </CardBody>
         </Card>
       </Col>

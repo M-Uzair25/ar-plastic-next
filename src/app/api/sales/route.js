@@ -100,7 +100,7 @@ export async function GET(request) {
             const regexQuery = new RegExp(searchQuery, 'i');
             query.$or = [
                 { customerName: regexQuery },
-                { note: regexQuery },
+                { remarks: regexQuery },
                 { 'cartItems.category': regexQuery },
                 { 'cartItems.description': regexQuery }
             ];

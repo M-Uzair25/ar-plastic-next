@@ -195,10 +195,9 @@ const SaleItem = () => {
 
     const saleData = {
       customerName: selectedName.value,
-      note: document.getElementById('note').value,
+      remarks: document.getElementById('remarks').value,
       cartItems,
       total: calculateTotal(),
-      status: document.getElementById('status').value
     };
 
     try {
@@ -246,8 +245,8 @@ const SaleItem = () => {
               </Col>
               <Col md={5}>
                 <FormGroup>
-                  <Label for="note">Note</Label>
-                  <Input id="note" name="note" />
+                  <Label for="remarks">Remarks</Label>
+                  <Input id="remarks" name="remarks" />
                 </FormGroup>
               </Col>
             </Row>
@@ -302,7 +301,7 @@ const SaleItem = () => {
             <Row>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="total">Total</Label>
+                  <Label for="total"><strong>Total</strong></Label>
                   <Input className="bg-danger text-white" id="total" name="total" type="text" disabled value={calculateTotal()} />
                 </FormGroup>
               </Col>
@@ -323,19 +322,13 @@ const SaleItem = () => {
                     id="cashReturned" name="cashReturned" type="number" disabled value={cashReturned} />
                 </FormGroup>
               </Col>
-            </Row>
-            <Row>
-              <Col md={2}>
+              <Col>
                 <FormGroup>
-                  <Label for="status">Status</Label>
-                  <Input id="status" name="status" type="select">
-                    <option>Paid</option>
-                    <option>Unpaid</option>
-                  </Input>
+                  <Button style={{ marginTop: '32px' }} color="primary" type="submit">Submit</Button>
                 </FormGroup>
               </Col>
             </Row>
-            <Button color="primary" type="submit">Submit</Button>
+
           </Form>
         </CardBody>
       </Card>
