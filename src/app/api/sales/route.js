@@ -125,8 +125,8 @@ export async function GET(request) {
 
 export async function DELETE(request) {
 
-    const searchParams = request.nextUrl.searchParams
-    const saleId = searchParams.get('id')
+    const searchParams = request.nextUrl.searchParams;
+    const saleId = searchParams.get('id');
 
     await connectToDB();
 

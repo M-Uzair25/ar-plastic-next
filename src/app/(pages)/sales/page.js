@@ -11,6 +11,15 @@ const Sales = () => {
   const [toDate, setToDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // States for column-specific search inputs
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [bagQuantitySearch, setBagQuantitySearch] = useState('');
+  const [kgQuantitySearch, setKgQuantitySearch] = useState('');
+  const [categorySearch, setCategorySearch] = useState('');
+  const [descriptionSearch, setDescriptionSearch] = useState('');
+  const [amountSearch, setAmountSearch] = useState('');
+  const [remarksSearch, setRemarksSearch] = useState('');
+
   // Function to fetch sales data with optional date range and search filters
   const fetchSales = async (fromDate = '', toDate = '', searchQuery = '') => {
     try {
@@ -57,8 +66,7 @@ const Sales = () => {
     let itemList = "";
 
     for (const item of sale.cartItems) {
-      const formattedQuantity = formatQuantity(item.bagQuantity, item.kgQuantity);
-      itemList += `${formattedQuantity} ${item.category} ${item.description}, `;
+      itemList += `${item.bagQuantity} Bag, ${item.kgQuantity} Kg ${item.category} ${item.description}, `;
     }
     itemList = itemList.slice(0, -2); // Remove trailing comma and space
 
@@ -86,18 +94,6 @@ const Sales = () => {
     }
   };
 
-  const formatQuantity = (bagQuantity, kgQuantity) => {
-    if (bagQuantity && kgQuantity) {
-      return `${bagQuantity} Bag, ${kgQuantity} Kg`;
-    } else if (bagQuantity) {
-      return `${bagQuantity} Bag`;
-    } else if (kgQuantity) {
-      return `${kgQuantity} Kg`;
-    } else {
-      return '';
-    }
-  };
-
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
     const formattedDate = format(date, 'dd/MM/yy'); // Custom format
@@ -105,9 +101,22 @@ const Sales = () => {
     return `${formattedDate} ${formattedTime}`;
   };
 
+  // Filtered sales based on column-specific search inputs
+  const filteredSales = sales.filter(sale =>
+    (sale.customerName.toLowerCase().includes(customerSearch.toLowerCase()) || !customerSearch) &&
+    (sale.cartItems.some(item => 
+      (item.bagQuantity.toString().includes(bagQuantitySearch) || !bagQuantitySearch) &&
+      (item.kgQuantity.toString().includes(kgQuantitySearch) || !kgQuantitySearch) &&
+      (item.category.toLowerCase().includes(categorySearch.toLowerCase()) || !categorySearch) &&
+      (item.description.toLowerCase().includes(descriptionSearch.toLowerCase()) || !descriptionSearch)
+    )) &&
+    (sale.total.toString().includes(amountSearch) || !amountSearch) &&
+    (sale.remarks.toLowerCase().includes(remarksSearch.toLowerCase()) || !remarksSearch)
+  );
+
   // Calculate sales statistics
-  const totalSales = sales.length;
-  const totalQuantity = sales.reduce((acc, sale) => {
+  const totalSales = filteredSales.length;
+  const totalQuantity = filteredSales.reduce((acc, sale) => {
     sale.cartItems.forEach(item => {
       acc.bags += item.bagQuantity ? parseInt(item.bagQuantity, 10) : 0;
       acc.kgs += item.kgQuantity ? parseInt(item.kgQuantity, 10) : 0;
@@ -115,7 +124,7 @@ const Sales = () => {
     return acc;
   }, { bags: 0, kgs: 0 });
 
-  const totalAmount = sales.reduce((acc, sale) => acc + sale.total, 0);
+  const totalAmount = filteredSales.reduce((acc, sale) => acc + sale.total, 0);
 
   return (
     <Row>
@@ -177,16 +186,92 @@ const Sales = () => {
             {/* Display selected date range above the table */}
             <Row className="mt-3">
               <Col>
-                <h6><strong>{fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? ' - ' + format(toDate, 'dd/MMM/yyyy') : ''}</strong> </h6>
+                <h6><strong>{fromDate ? format(fromDate, 'dd MMM yyyy') : ''} {toDate ? ' - ' + format(toDate, 'dd MMM yyyy') : ''}</strong> </h6>
               </Col>
             </Row>
 
-            <Table bordered hover responsive className="table-primary">
+            <Table bordered hover responsive className="table-primary" size="sm">
               <thead>
+                <tr className="table-dark">
+                  <th className='centered-cell'>
+                    Search
+                  </th>
+                  <th>
+                    <Input
+                      id="customerSearch"
+                      name="customerSearch"
+                      placeholder="Customer"
+                      type="search"
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
+                      id="bagQuantitySearch"
+                      name="bagQuantitySearch"
+                      placeholder="Bag"
+                      type="search"
+                      value={bagQuantitySearch}
+                      onChange={(e) => setBagQuantitySearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
+                      id="kgQuantitySearch"
+                      name="kgQuantitySearch"
+                      placeholder="Kg"
+                      type="search"
+                      value={kgQuantitySearch}
+                      onChange={(e) => setKgQuantitySearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
+                      id="categorySearch"
+                      name="categorySearch"
+                      placeholder="Category"
+                      type="search"
+                      value={categorySearch}
+                      onChange={(e) => setCategorySearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
+                      id="descriptionSearch"
+                      name="descriptionSearch"
+                      placeholder="Description"
+                      type="search"
+                      value={descriptionSearch}
+                      onChange={(e) => setDescriptionSearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
+                      id="amountSearch"
+                      name="amountSearch"
+                      placeholder="Amount"
+                      type="search"
+                      value={amountSearch}
+                      onChange={(e) => setAmountSearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
+                      id="remarksSearch"
+                      name="remarksSearch"
+                      placeholder="Remarks"
+                      type="search"
+                      value={remarksSearch}
+                      onChange={(e) => setRemarksSearch(e.target.value)}
+                    />
+                  </th>
+                </tr>
                 <tr>
                   <th>Date</th>
                   <th>Customer</th>
-                  <th>Quantity</th>
+                  <th>Bag Quantity</th>
+                  <th>Kg Quantity</th>
                   <th>Item Category</th>
                   <th>Item Description</th>
                   <th>Bill Amount</th>
@@ -195,12 +280,12 @@ const Sales = () => {
                 </tr>
               </thead>
               <tbody>
-                {sales.length === 0 ? (
+                {filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="text-center">No Sales: {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</td>
+                    <td colSpan="9" className="text-center">No Sales: {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</td>
                   </tr>
                 ) : (
-                  sales.map((sale) =>
+                  filteredSales.map((sale) =>
                     sale.cartItems.map((item, index) => (
                       <tr key={`${sale._id}-${index}`}>
                         {index === 0 && (
@@ -213,7 +298,8 @@ const Sales = () => {
                             </td>
                           </>
                         )}
-                        <td className="centered-cell">{formatQuantity(item.bagQuantity, item.kgQuantity)}</td>
+                        <td className="centered-cell">{item.bagQuantity}</td>
+                        <td className="centered-cell">{item.kgQuantity}</td>
                         <td className="centered-cell">{item.category}</td>
                         <td className="centered-cell">{item.description}</td>
                         {index === 0 && (
