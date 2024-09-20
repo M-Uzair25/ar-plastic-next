@@ -1,9 +1,10 @@
-'use client'
+'use client';
 import { useState, useEffect } from 'react';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, Input, InputGroup, InputGroupText } from "reactstrap";
+import { Row, Col, Table, Card, CardTitle, CardBody, Button, Input, InputGroup, InputGroupText } from 'reactstrap';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
+import { generateSalesPDF } from '@/components/sales/generateSalesPDF';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
@@ -17,6 +18,7 @@ const Sales = () => {
   const [kgQuantitySearch, setKgQuantitySearch] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
   const [descriptionSearch, setDescriptionSearch] = useState('');
+  const [subTotalSearch, setSubTotalSearch] = useState('');
   const [amountSearch, setAmountSearch] = useState('');
   const [remarksSearch, setRemarksSearch] = useState('');
 
@@ -43,40 +45,32 @@ const Sales = () => {
     fetchSales(today); // Fetch sales for today's date by default
   }, []);
 
-  // Trigger search whenever fromDate or toDate changes
+  // Trigger search whenever fromDate, toDate, or searchQuery changes
   useEffect(() => {
-    handleSearch();
+    fetchSales(fromDate, toDate, searchQuery);
   }, [fromDate, toDate, searchQuery]);
 
-  // Handle search and date range change
-  const handleSearch = () => {
-    fetchSales(fromDate, toDate, searchQuery);
-  };
-
-  // Automatically fetch sales again when the search query is cleared
+  // Handle search query input changes
   const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (query === '') {
-      fetchSales(fromDate, toDate, ''); // Re-fetch sales when the search query is cleared
-    }
+    setSearchQuery(e.target.value);
   };
 
-  const handleDeleteSale = async (sale) => {
-    let itemList = "";
+  // Handle print sales
+  const handleDownloadPDF = () => {
+    generateSalesPDF(sales, fromDate, toDate);
+  };
 
-    for (const item of sale.cartItems) {
-      itemList += `${item.bagQuantity} Bag, ${item.kgQuantity} Kg ${item.category} ${item.description}, `;
-    }
-    itemList = itemList.slice(0, -2); // Remove trailing comma and space
+  // Handle deletion of a sale
+  const handleDeleteSale = async (sale) => {
+    let itemList = sale.cartItems
+      .map((item) => `${item.bagQuantity} Bag, ${item.kgQuantity} Kg ${item.category} ${item.description}`)
+      .join(', '); // Create a comma-separated list of items
 
     const message = `Delete: ${sale.customerName}\nItems: ${itemList}\nTotal Amount: ${sale.total}`;
 
     if (window.confirm(message)) {
       try {
-        const response = await fetch(`/api/sales?id=${sale._id}`, {
-          method: 'DELETE',
-        });
+        const response = await fetch(`/api/sales?id=${sale._id}`, { method: 'DELETE' });
 
         if (response.ok) {
           const deletedSale = await response.json();
@@ -94,35 +88,32 @@ const Sales = () => {
     }
   };
 
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString);
-    const formattedDate = format(date, 'dd/MM/yy'); // Custom format
-    const formattedTime = format(date, 'hh:mm a'); // Time format
-    return `${formattedDate} ${formattedTime}`;
-  };
-
   // Filtered sales based on column-specific search inputs
-  const filteredSales = sales.filter(sale =>
+  const filteredSales = sales.filter((sale) =>
     (sale.customerName.toLowerCase().includes(customerSearch.toLowerCase()) || !customerSearch) &&
-    (sale.cartItems.some(item => 
+    sale.cartItems.some((item) =>
       (item.bagQuantity.toString().includes(bagQuantitySearch) || !bagQuantitySearch) &&
       (item.kgQuantity.toString().includes(kgQuantitySearch) || !kgQuantitySearch) &&
       (item.category.toLowerCase().includes(categorySearch.toLowerCase()) || !categorySearch) &&
-      (item.description.toLowerCase().includes(descriptionSearch.toLowerCase()) || !descriptionSearch)
-    )) &&
+      (item.description.toLowerCase().includes(descriptionSearch.toLowerCase()) || !descriptionSearch) &&
+      (item.subTotal.toString().includes(subTotalSearch) || !subTotalSearch)
+    ) &&
     (sale.total.toString().includes(amountSearch) || !amountSearch) &&
     (sale.remarks.toLowerCase().includes(remarksSearch.toLowerCase()) || !remarksSearch)
   );
 
   // Calculate sales statistics
   const totalSales = filteredSales.length;
-  const totalQuantity = filteredSales.reduce((acc, sale) => {
-    sale.cartItems.forEach(item => {
-      acc.bags += item.bagQuantity ? parseInt(item.bagQuantity, 10) : 0;
-      acc.kgs += item.kgQuantity ? parseInt(item.kgQuantity, 10) : 0;
-    });
-    return acc;
-  }, { bags: 0, kgs: 0 });
+  const totalQuantity = filteredSales.reduce(
+    (acc, sale) => {
+      sale.cartItems.forEach((item) => {
+        acc.bags += item.bagQuantity ? parseInt(item.bagQuantity, 10) : 0;
+        acc.kgs += item.kgQuantity ? parseInt(item.kgQuantity, 10) : 0;
+      });
+      return acc;
+    },
+    { bags: 0, kgs: 0 }
+  );
 
   const totalAmount = filteredSales.reduce((acc, sale) => acc + sale.total, 0);
 
@@ -132,7 +123,7 @@ const Sales = () => {
         <Card>
           <CardTitle tag="h6" className="border-bottom p-3 mb-0">
             <i className="bi bi-card-text me-2"> </i>
-            Sales {formatDateTime(new Date())}
+            Sales {format(new Date(), 'dd MMM yyyy hh:mm a')}
           </CardTitle>
           <CardBody>
             <Row>
@@ -146,7 +137,7 @@ const Sales = () => {
                       type="search"
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSearch()} // Search on Enter
+                      onKeyDown={(e) => e.key === 'Enter' && fetchSales(fromDate, toDate, searchQuery)} // Search on Enter key
                     />
                   </InputGroupText>
                 </Col>
@@ -172,11 +163,11 @@ const Sales = () => {
                 </Col>
                 <Col>
                   <InputGroupText>
-                    <Button color="info" onClick={handleSearch}>
+                    <Button color="info" onClick={() => fetchSales(fromDate, toDate, searchQuery)}>
                       Search
                     </Button>
-                    <Button className='mx-2' color="info">
-                      Print
+                    <Button className='mx-2' color="info" onClick={handleDownloadPDF}>
+                      Download PDF
                     </Button>
                   </InputGroupText>
                 </Col>
@@ -248,6 +239,16 @@ const Sales = () => {
                   </th>
                   <th>
                     <Input
+                      id="subTotalSearch"
+                      name="subTotalSearch"
+                      placeholder="subTotal"
+                      type="search"
+                      value={subTotalSearch}
+                      onChange={(e) => setSubTotalSearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
                       id="amountSearch"
                       name="amountSearch"
                       placeholder="Amount"
@@ -274,6 +275,7 @@ const Sales = () => {
                   <th>Kg Quantity</th>
                   <th>Item Category</th>
                   <th>Item Description</th>
+                  <th>Subtotal</th>
                   <th>Bill Amount</th>
                   <th>Remarks</th>
                   <th>Actions</th>
@@ -282,7 +284,7 @@ const Sales = () => {
               <tbody>
                 {filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="text-center">No Sales: {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</td>
+                    <td colSpan="10" className="text-center">No Sales: {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</td>
                   </tr>
                 ) : (
                   filteredSales.map((sale) =>
@@ -291,7 +293,7 @@ const Sales = () => {
                         {index === 0 && (
                           <>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
-                              {formatDateTime(sale.createdAt)}
+                              {format(sale.createdAt, 'dd/MM/yyyy hh:mm a')}
                             </td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
                               {sale.customerName}
@@ -302,6 +304,7 @@ const Sales = () => {
                         <td className="centered-cell">{item.kgQuantity}</td>
                         <td className="centered-cell">{item.category}</td>
                         <td className="centered-cell">{item.description}</td>
+                        <td className="centered-cell">{item.subTotal}</td>
                         {index === 0 && (
                           <>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">

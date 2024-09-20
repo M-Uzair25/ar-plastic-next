@@ -124,7 +124,7 @@ const SaleItem = () => {
       perKgRate: perKgRate,
       bagQuantity: bagQty,
       kgQuantity: kgQty,
-      subtotal: (bagRate * bagQty) + (perKgRate * kgQty),
+      subTotal: (bagRate * bagQty) + (perKgRate * kgQty),
     };
 
     setCartItems((prevItems) => [...prevItems, newItem]);
@@ -141,7 +141,7 @@ const SaleItem = () => {
   };
 
   const calculateTotal = useCallback(() => {
-    return cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+    return cartItems.reduce((acc, item) => acc + item.subTotal, 0);
   }, [cartItems]);
 
   const displayCartItems = useMemo(() => (
@@ -157,7 +157,7 @@ const SaleItem = () => {
           <th>Quantity (Bags, Kg)</th>
           <th>Bag Rate</th>
           <th>Kg Rate</th>
-          <th>Subtotal</th>
+          <th>Sub total</th>
           <th></th>
         </tr>
       </thead>
@@ -173,7 +173,7 @@ const SaleItem = () => {
             </td>
             <td>{item.bagRate}</td>
             <td>{item.perKgRate}</td>
-            <td>{item.subtotal}</td>
+            <td>{item.subTotal}</td>
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
