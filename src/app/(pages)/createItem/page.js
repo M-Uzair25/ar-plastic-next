@@ -12,6 +12,7 @@ const CreateItem = () => {
     bagQuantity: 0,
     kgQuantity: 0,
     sellRate: 0,
+    stockLimit: 0,
   });
   const [buttonDisabled, setButtonDisabled] = React.useState(false);
   useEffect(() => {
@@ -114,8 +115,26 @@ const CreateItem = () => {
                 />
               </FormGroup>
             </Col>
+            <Col md={2}>
+              <FormGroup>
+                <Label for="stockLimit">Stock Limit</Label>
+                <Input
+                  id="stockLimit"
+                  name="stockLimit"
+                  type="stockLimit"
+                  min="0"
+                  placeholder="0"
+                  onChange={handleChange}
+                  onClick={(e) => e.target.select()}
+                />
+              </FormGroup>
+            </Col>
+            <Col md={2}>
+              <Button className="mt-4" type="submit" disabled={buttonDisabled}>
+                Create Item
+              </Button>
+            </Col>
           </Row>
-          <Button type="submit" disabled={buttonDisabled}>Create Item</Button>
         </Form>
       </CardBody>
     </Card>

@@ -6,7 +6,7 @@ export async function POST(req = NextRequest) {
   await connectToDB();
 
   try {
-    const { category, description, bagQuantity, kgQuantity, sellRate } = await req.json();
+    const { category, description, bagQuantity, kgQuantity, sellRate, stockLimit } = await req.json();
     // Validate input data (optional, but recommended)
 
     const newItem = new Item({
@@ -15,6 +15,7 @@ export async function POST(req = NextRequest) {
       bagQuantity,
       kgQuantity,
       sellRate,
+      stockLimit
     });
 
     await newItem.save();
