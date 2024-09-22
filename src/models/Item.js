@@ -7,7 +7,7 @@ const itemSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
+    required: true,
   },
   bagQuantity: {
     type: Number,
@@ -34,8 +34,9 @@ const itemSchema = new mongoose.Schema({
     default: 0,
     min: 0,
   },
-},
-  { timestamps: true }
-);
+}, { timestamps: true });
+
+// Create an index on category and description for faster queries
+itemSchema.index({ category: 1, description: 1 }, { unique: true });
 
 export default mongoose.models.Item || mongoose.model('Item', itemSchema);

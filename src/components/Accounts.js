@@ -2,7 +2,7 @@
 import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
 
-const CustomerName = ({ onNameChange, disable, selectedName }) => {
+const Accounts = ({ onNameChange, disable, selectedName }) => {
     const [allAccounts, setAllAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -50,7 +50,7 @@ const CustomerName = ({ onNameChange, disable, selectedName }) => {
 
     return (
         <AsyncSelect
-            instanceId="customerName"
+            instanceId="Accounts"
             id="account"
             name="account"
             loadOptions={getAccounts}
@@ -64,4 +64,4 @@ const CustomerName = ({ onNameChange, disable, selectedName }) => {
     )
 };
 
-export default CustomerName;
+export default Accounts;

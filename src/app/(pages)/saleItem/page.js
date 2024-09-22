@@ -1,9 +1,9 @@
 'use client'
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table } from 'reactstrap';
-import CustomerName from '@/components/saleItem/CustomerName';
-import ItemCategory from '@/components/saleItem/ItemCategory';
-import ItemDescription from '@/components/saleItem/ItemDescription';
+import CustomerName from '@/components/Accounts';
+import ItemCategory from '@/components/ItemCategory';
+import ItemDescription from '@/components/ItemDescription';
 
 const SaleItem = () => {
   const defaultCustomerName = { value: 'Cash', label: 'Cash' };
@@ -72,7 +72,9 @@ const SaleItem = () => {
   };
 
   const handleRateChange = (e) => {
-    setBagRate(parseFloat(e.target.value));
+    const rate = parseFloat(e.target.value);
+    setPerKgRate(rate / 25);
+    setBagRate(rate);
   };
 
   const handlePerKgRateChange = (e) => {
@@ -328,7 +330,6 @@ const SaleItem = () => {
                 </FormGroup>
               </Col>
             </Row>
-
           </Form>
         </CardBody>
       </Card>

@@ -121,7 +121,7 @@ const CreateItem = () => {
                 <Input
                   id="stockLimit"
                   name="stockLimit"
-                  type="stockLimit"
+                  type="number"
                   min="0"
                   placeholder="0"
                   onChange={handleChange}
