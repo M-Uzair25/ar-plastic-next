@@ -1,11 +1,13 @@
 'use client'
 import React, { useState, useCallback } from 'react';
-import { Row, Col, Card, CardBody, CardTitle, Button, Form, FormGroup, Label, Input } from 'reactstrap';
+import { Row, Col, Card, CardBody, CardTitle, Button, Form, FormGroup, Label, Input, Spinner } from 'reactstrap';
 import CustomerName from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Purchase = () => {
   const [date, setDate] = useState(new Date());
@@ -19,6 +21,7 @@ const Purchase = () => {
   const [poundRate, setPoundRate] = useState('');
   const [bagRate, setBagRate] = useState('');
   const [perKgRate, setPerKgRate] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
@@ -74,10 +77,12 @@ const Purchase = () => {
   const fetchAccountType = useCallback(async (accountName) => {
     try {
       const response = await fetch(`/api/accounts?accountName=${accountName}`);
+      if (!response.ok) throw new Error('Failed to fetch account type');
       const data = await response.json();
       return data.length > 0 ? data[0].accountType : '';
     } catch (error) {
       console.error('Error fetching account type:', error);
+      alert('Error fetching account type');
       return '';
     }
   }, []);
@@ -90,6 +95,11 @@ const Purchase = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!selectedName || !selectedCategory || !selectedDescription || (!bagQuantity && !kgQuantity)) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
 
     const purchaseData = {
       supplierName: selectedName.value,
@@ -105,6 +115,8 @@ const Purchase = () => {
       total: calculateTotal(),
     };
 
+    setIsLoading(true); // Set loading to true when submitting
+
     try {
       const response = await fetch('/api/purchase', {
         method: 'POST',
@@ -115,19 +127,32 @@ const Purchase = () => {
       });
 
       const result = await response.json();
+
       if (response.ok) {
-        alert('Purchase submitted successfully');
-        // Optionally, reset the form here
+        toast.success('Purchase submitted successfully');
+        // Reset the form
+        setSelectedName(null);
+        setRemarks('');
+        setSelectedCategory(null);
+        setSelectedDescription(null);
+        setBagQuantity('');
+        setKgQuantity('');
+        setPoundRate('');
+        setBagRate('');
+        setPerKgRate('');
       } else {
-        alert(`Error submitting purchase: ${result.message}`);
+        toast.error(`Error submitting purchase: ${result.message}`);
       }
     } catch (error) {
-      alert(`Error submitting purchase: ${error.message}`);
+      toast.error(`Error submitting purchase: ${error.message}`);
+    } finally {
+      setIsLoading(false); // Set loading to false when request finishes
     }
   };
 
   return (
     <>
+      <ToastContainer /> {/* Toast notifications container */}
       <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
         Purchase Item
       </CardTitle>
@@ -211,7 +236,9 @@ const Purchase = () => {
                 </FormGroup>
               </Col>
             </Row>
-            <Button type="submit" color="primary">Submit</Button>
+            <Button type="submit" color="primary" disabled={isLoading}>
+              {isLoading ? <Spinner size="sm" /> : 'Submit'}
+            </Button>
           </Form>
         </CardBody>
       </Card>
