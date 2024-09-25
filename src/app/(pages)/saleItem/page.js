@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table } from 'reactstrap';
-import CustomerName from '@/components/Accounts';
+import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
 
@@ -59,8 +59,10 @@ const SaleItem = () => {
 
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
-    const accountType = await fetchAccountType(selectedOption.value);
-    setAccountType(accountType);
+    if (selectedOption) {
+      const accountType = await fetchAccountType(selectedOption.value);
+      setAccountType(accountType);
+    }
   };
 
   const handleCategoryChange = (selectedOption) => {
@@ -242,7 +244,7 @@ const SaleItem = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
-                  <CustomerName onNameChange={handleNameChange} selectedName={selectedName} disable={nameDisabled} />
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} disable={nameDisabled} />
                 </FormGroup>
               </Col>
               <Col md={5}>

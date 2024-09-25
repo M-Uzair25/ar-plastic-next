@@ -59,6 +59,7 @@ const Accounts = ({ onNameChange, disable, selectedName }) => {
             value={selectedName}
             onChange={handleNameChange}
             isLoading={loading}
+            isClearable
             isDisabled={disable}
         />
     )

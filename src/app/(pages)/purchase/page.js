@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useCallback } from 'react';
 import { Row, Col, Card, CardBody, CardTitle, Button, Form, FormGroup, Label, Input, Spinner } from 'reactstrap';
-import CustomerName from '@/components/Accounts';
+import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
 import DatePicker from 'react-datepicker';
@@ -162,8 +162,8 @@ const Purchase = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="customerName">Supplier Name</Label>
-                  <CustomerName onNameChange={handleNameChange} selectedName={selectedName} />
+                  <Label for="Accounts">Supplier Name</Label>
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
                 </FormGroup>
               </Col>
               <Col md={5}>

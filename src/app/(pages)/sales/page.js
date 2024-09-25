@@ -332,7 +332,7 @@ const Sales = () => {
 
               <ul>
                 <li><strong>Total Sales:</strong> {totalSales}</li>
-                <li><strong>Total Quantity Sold:</strong> {totalQuantity.bags} Bags, {totalQuantity.kgs} Kgs</li>
+                <li><strong>Total Quantity Sold:</strong> {totalQuantity.bags} Bags, {totalQuantity.kgs} Kg</li>
                 <li><strong>Total Amount:</strong> {totalAmount.toFixed(0)} Rs</li>
               </ul>
             </div>
