@@ -10,7 +10,7 @@ export async function GET(req = NextRequest) {
         const category = searchParams.get('category');
         const description = searchParams.get('description');
 
-        // Conditionally build the query based on whether a description is provided
+        // Conditionally build the query based on category and description
         const query = {};
         if (category) query.category = category;
         if (description) query.description = description;
