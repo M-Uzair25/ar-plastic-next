@@ -1,179 +1,214 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
-  Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Input, Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
+  Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Label, Input, Spinner, Progress,
+  Modal, ModalHeader, ModalBody, ModalFooter
 } from "reactstrap";
+import ItemCategory from '@/components/ItemCategory';
+import ItemDescription from '@/components/ItemDescription';
+import { format } from 'date-fns';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function TodayRates() {
-  const [rates, setRates] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const currentDate = new Date();
+  const [items, setItems] = useState([]);  // Store items data
+  const [isLoading, setIsLoading] = useState(true);  // Loading state
+  const [isUpdating, setIsUpdating] = useState(false);  // Updating state for progress bar
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const handleSearch = (event) => {
-    setSearchQuery(event.target.value);
-  };
-  const filteredRates = rates.filter((rate) => {
-    const searchTerm = searchQuery.toLowerCase();
-    return (
-      rate.category.toLowerCase().includes(searchTerm) ||
-      rate.description.toLowerCase().includes(searchTerm)
-    );
-  });
+  const [selectedCategory, setSelectedCategory] = useState(null); // Selected category
+  const [selectedDescription, setSelectedDescription] = useState(null); // Selected description
+  const [searchRate, setSearchRate] = useState(''); // Search query for the bag rate and kg rate
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [newRate, setNewRate] = useState(0); // State to store the new rate
   const [currentItemId, setCurrentItemId] = useState(null); // State to store the ID of the item being edited
+
+  // Handle category change
+  const handleCategoryChange = (selectedOption) => {
+    setSelectedCategory(selectedOption ? selectedOption.value : null);
+  };
+
+  // Handle description change
+  const handleDescriptionChange = (selectedOption) => {
+    setSelectedDescription(selectedOption);
+  };
+
+  // Handle bag and kg rate search change
+  const handleSearchRateChange = (event) => {
+    setSearchRate(event.target.value);  // Update searchRate state with input value
+  };
+
+  // Fetch items data based on selected category and description
+  const fetchItems = async () => {
+    setIsLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+
+      if (selectedCategory) queryParams.append('category', selectedCategory);
+      if (selectedDescription) queryParams.append('description', selectedDescription.value);
+
+      const response = await fetch(`/api/stock?${queryParams.toString()}`);
+      const data = await response.json();
+      setItems(data);
+    } catch (error) {
+      toast.error('Error fetching items');
+      console.error('Error fetching items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, [selectedCategory, selectedDescription]);
+
+  // Filter items based on the search rate for Bag or Kg
+  const filteredItems = items.filter((item) => {
+    const kgRate = item.sellRate / 25;  // Calculate the Kg rate
+    // Check if search rate is empty or if the item's sellRate or kgRate matches the search query
+    return searchRate === '' || item.sellRate.toString().includes(searchRate) || kgRate.toString().includes(searchRate);
+  });
+
   const handleEdit = (itemId, currentSellRate) => {
-    // Open the edit modal
     setIsEditModalOpen(true);
     setNewRate(currentSellRate); // Set the initial value to the current sell rate
     setCurrentItemId(itemId);
   };
 
   const handleCancelEdit = () => {
-    // Close the edit modal
     setIsEditModalOpen(false);
   };
-  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-  const handleUpdateRate = async () => {
-    try {
-      // Make a PUT request to update the sellRate
-      const response = await axios.put('/api/items', { itemId: currentItemId, sellRate: newRate });
-      console.log('Item updated successfully:', response.data);
-      // Close the edit modal
-      setIsEditModalOpen(false);
 
-      // Refetch the updated rates after editing
-      setIsLoading(true);
-      setError(null);
-      await delay(1000); // Delay 1 second to show data after update
-      try {
-        const response = await axios.get('/api/items');
-        setRates(response.data);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setIsLoading(false);
+  const handleUpdateRate = async () => {
+    setIsUpdating(true); // Start updating
+    try {
+      const response = await fetch('/api/items', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: currentItemId, sellRate: newRate }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        toast.success('Rate updated successfully');
+        setIsEditModalOpen(false);
+        fetchItems(); // Refetch the updated items after editing
+      } else {
+        toast.error(result.message || 'Error updating item');
       }
     } catch (error) {
-      console.error('Error updating item:', error);
-      // Handle error, e.g., show a notification to the user
+      toast.error('Error updating rate');
+      console.error('Error updating rate:', error);
+    } finally {
+      setIsUpdating(false); // End updating
     }
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await axios.get('/api/items');
-        setRates(response.data);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
 
   return (
     <Row>
       <Col lg="12">
+        <ToastContainer />
         <Card>
-          <CardTitle tag="h6" className="border-bottom p-3 mb-0"
-            style={{ backgroundColor: '#343a40', color: 'white' }}>
+          <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
             <i className="bi bi-card-text me-2"> </i>
-            Today Rates {currentDate.getDate()} {currentDate.toLocaleDateString('en-US', { month: 'long' })}, {currentDate.getFullYear()}
+            Today Rates: {format(new Date(), 'dd MMM yyyy hh:mm a')}
           </CardTitle>
           <CardBody>
-            {isLoading && <p className="text-center">Loading rates...</p>}
-            {error && <p className="text-center text-danger">Error fetching rates: {error.message}</p>}
-            <Col md={3}>
-              <FormGroup>
-                <Input
-                  id="search"
-                  name="search"
-                  value={searchQuery}
-                  placeholder="Search"
-                  type="search"
-                  onChange={handleSearch}
-                />
-              </FormGroup>
-            </Col>
-            {filteredRates.length > 0 && (
-              <Table bordered>
-                <thead>
-                  <tr>
-                    <th>Item Category</th>
-                    <th>Description</th>
-                    <th>Bag Rate</th>
-                    <th>Kg Rate</th>
-                    <th>Stock</th>
-                    <th>Edit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRates.map((rate) => (
-                    <tr key={rate._id}>
-                      <td scope="row">{rate.category}</td>
-                      <td>{rate.description}</td>
-                      <td>{rate.sellRate}</td>
-                      <td>{rate.sellRate / 25}</td>
-                      <td className="text-end">
-                        {rate.bagQuantity ? (
-                          <span style={{ color: 'blue', fontWeight: 'bold' }}>{rate.bagQuantity} </span>
-                        ) : (
-                          <span style={{ color: 'red' }}>{rate.bagQuantity} </span>
-                        )}
-                        Bags,
-                        {rate.kgQuantity ? (
-                          <span style={{ color: 'darkgreen', fontWeight: 'bold' }}> {rate.kgQuantity} </span>
-                        ) : (
-                          <span style={{ color: 'red' }}> {rate.kgQuantity} </span>
-                        )}
-                        Kg
-                      </td>
-                      <td>
-                        <Button color="primary" size="sm" onClick={() => handleEdit(rate._id, rate.sellRate)}>
-                          Edit
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            )}
-            <Modal isOpen={isEditModalOpen} toggle={handleCancelEdit}>
-              <ModalHeader>Edit Rate</ModalHeader>
-              <ModalBody>
+            <Row>
+              <Col md={2}>
                 <FormGroup>
+                  <Label for="category">Category</Label>
+                  <ItemCategory onCategoryChange={handleCategoryChange} selectedDescription={selectedDescription} />
+                </FormGroup>
+              </Col>
+              <Col md={3}>
+                <FormGroup>
+                  <Label for="description">Description</Label>
+                  <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
+                </FormGroup>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label for="searchRate">Search Bag or Kg Rate</Label>
                   <Input
-                    type="number"
-                    placeholder="New Rate"
-                    min="0"
-                    value={newRate}
-                    onChange={(e) => setNewRate(parseFloat(e.target.value))}
-                    onClick={(e) => e.target.select()}
+                    id="searchRate"
+                    name="searchRate"
+                    placeholder="Enter Bag or Kg Rate"
+                    type="search"
+                    value={searchRate}
+                    onChange={handleSearchRateChange}
                   />
                 </FormGroup>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="secondary" onClick={handleCancelEdit}>
-                  Cancel
-                </Button>
-                <Button color="primary" onClick={handleUpdateRate}>
-                  Update Rate
-                </Button>
-              </ModalFooter>
-            </Modal>
+              </Col>
+            </Row>
+            {isLoading ? (
+              <div className="text-center">
+                <Spinner color="primary" /> {/* Loading spinner */}
+              </div>
+            ) : filteredItems.length > 0 ? (
+              <>
+                <Table bordered>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Category</th>
+                      <th>Description</th>
+                      <th>Bag Rate (25Kg)</th>
+                      <th>Kg Rate</th>
+                      <th>Stock</th>
+                      <th>Edit Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredItems.map((item, index) => (
+                      <tr key={item._id}>
+                        <td>{index + 1}</td>
+                        <td>{item.category}</td>
+                        <td>{item.description}</td>
+                        <td>{item.sellRate}</td>
+                        <td>{item.sellRate / 25}</td>
+                        <td>
+                          <span style={{ color: item.bagQuantity > 0 ? 'blue' : 'red', fontWeight: 'bold' }}>
+                            {item.bagQuantity} </span>
+                          Bags,
+                          <span style={{ color: item.kgQuantity > 0 ? 'darkgreen' : 'red', fontWeight: 'bold' }}> {item.kgQuantity} </span>
+                          Kg
+                        </td>
+                        <td>
+                          <Button color="primary" size="sm" onClick={() => handleEdit(item._id, item.sellRate)}>
+                            Edit
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+
+                <Modal isOpen={isEditModalOpen} toggle={handleCancelEdit}>
+                  <ModalHeader>Edit Rate</ModalHeader>
+                  <ModalBody>
+                    <FormGroup>
+                      <Input
+                        type="number"
+                        placeholder="New Rate"
+                        min="0"
+                        value={newRate}
+                        onChange={(e) => setNewRate(parseFloat(e.target.value))}
+                        onClick={(e) => e.target.select()}
+                      />
+                    </FormGroup>
+                    {isUpdating && <Progress animated value="100" />} {/* Progress bar during update */}
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button color="secondary" onClick={handleCancelEdit}>Cancel</Button>
+                    <Button color="primary" onClick={handleUpdateRate} disabled={isUpdating}>
+                      {isUpdating ? 'Updating...' : 'Update Rate'}
+                    </Button>
+                  </ModalFooter>
+                </Modal>
+              </>
+            ) : (
+              <strong>No items found</strong>
+            )}
           </CardBody>
         </Card>
       </Col>

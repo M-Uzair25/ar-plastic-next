@@ -18,7 +18,8 @@ export function generateStockPDF(stockData) {
     doc.text(`Stock Report: ${currentDate}`, 105, 30, { align: 'center' });
 
     // Prepare the stock data for the table
-    const tableData = stockData.map(item => [
+    const tableData = stockData.map((item, index) => [
+        index + 1,
         item.category,
         item.description,
         {
@@ -36,6 +37,7 @@ export function generateStockPDF(stockData) {
 
     // Define table columns
     const columns = [
+        { header: '#', dataKey: '#' },
         { header: 'Category', dataKey: 'category' },
         { header: 'Description', dataKey: 'description' },
         { header: 'Stock', dataKey: 'stock' },

@@ -1,9 +1,9 @@
 'use client';
-import { Row, Col, Table, Card, CardTitle, CardBody, Label, Button, FormGroup, Spinner } from 'reactstrap';
 import React, { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { Row, Col, Table, Card, CardTitle, CardBody, Label, Button, FormGroup, Spinner } from 'reactstrap';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
+import { format } from 'date-fns';
 import { generateStockPDF } from '@/components/stock/generateStockPDF';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -97,10 +97,11 @@ const Stock = () => {
                 <div className="text-center">
                   <Spinner color="primary" /> {/* Loading spinner */}
                 </div>
-              ) : stockData.length > 0 ? (
+              ) : (
                 <Table bordered>
                   <thead>
                     <tr>
+                      <th>#</th>
                       <th>Category</th>
                       <th>Description</th>
                       <th>Stock</th>
@@ -108,8 +109,9 @@ const Stock = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {stockData.map((item) => (
+                    {stockData.map((item, index) => (
                       <tr key={item._id}>
+                        <td>{index + 1}</td>
                         <td>{item.category}</td>
                         <td>{item.description}</td>
                         <td>
@@ -122,12 +124,13 @@ const Stock = () => {
                         <td>{format(new Date(item.updatedAt), 'dd/MM/yyyy hh:mm a')}</td>
                       </tr>
                     ))}
+                    <tr>
+                      <td colSpan={3}></td>
+                      <th className="table-dark">{totalBags} Bags, {totalKg} Kg</th>
+                    </tr>
                   </tbody>
                 </Table>
-              ) : (
-                <p>No stock data found</p>
               )}
-
               {/* Stock Summary */}
               <div className="mt-4">
                 <h6>Stock Report:<strong> {format(new Date(), 'dd/MMM/yyyy')}</strong></h6>

@@ -1,12 +1,11 @@
 import { connectToDB } from "@/dbConfig/dbConfig";
 import Item from '@/models/Item';
-import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req = NextRequest) {
+export async function GET(request) {
     try {
         await connectToDB();
 
-        const searchParams = req.nextUrl.searchParams;
+        const searchParams = request.nextUrl.searchParams;
         const category = searchParams.get('category');
         const description = searchParams.get('description');
 
@@ -16,9 +15,9 @@ export async function GET(req = NextRequest) {
         if (description) query.description = description;
 
         const stock = await Item.find(query);
-        return NextResponse.json(stock);
+        return Response.json(stock);
     } catch (error) {
         console.error('Error fetching item stock:', error.message);
-        return NextResponse.json({ message: 'Error fetching item stock' }, { status: 500 });
+        return Response.json({ message: 'Error fetching item stock' }, { status: 500 });
     }
 }

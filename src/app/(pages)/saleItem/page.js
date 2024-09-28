@@ -25,7 +25,7 @@ const SaleItem = () => {
   const fetchRate = useCallback(async () => {
     if (selectedCategory && selectedDescription) {
       try {
-        const response = await fetch(`/api/items/rate?category=${selectedCategory}&description=${selectedDescription.value}`);
+        const response = await fetch(`/api/items?category=${selectedCategory}&description=${selectedDescription.value}`);
         const data = await response.json();
         setBagRate(data.rate);
         setPerKgRate(data.rate / 25);
