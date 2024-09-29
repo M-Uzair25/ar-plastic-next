@@ -25,9 +25,9 @@ const navigation = [
     icon: "bi bi-card-text",
   },
   {
-    title: "Accounts",
-    href: "/accounts",
-    icon: "bi bi-layout-split",
+    title: "Ledger",
+    href: "/ledger",
+    icon: "i bi-journal-bookmark",
   },
   {
     title: "Customers",
@@ -60,27 +60,27 @@ const Sidebar = ({ showMobilemenu }) => {
       <div className="d-flex align-items-center">
         Abdul Razzaq Plastic
         <span className="ms-auto d-lg-none">
-        <Button
-          close
-          size="sm"
-          onClick={showMobilemenu}
-        ></Button>
+          <Button
+            close
+            size="sm"
+            onClick={showMobilemenu}
+          ></Button>
         </span>
       </div>
       <div className="pt-4 mt-2">
         <Nav vertical className="sidebarNav">
           {navigation.map((navi, index) => (
-            <NavItem  key={index} className="sidenav-bg">
-              <Link 
-                  href={navi.href}
-                  className={
-                    location === navi.href
-                      ? "text-primary nav-link py-3"
-                      : "nav-link text-secondary py-3"
-                  }
-                >
-                  <i className={navi.icon}></i>
-                  <span className="ms-3 d-inline-block">{navi.title}</span>
+            <NavItem key={index} className="sidenav-bg">
+              <Link
+                href={navi.href}
+                className={
+                  location === navi.href
+                    ? "text-primary nav-link py-3"
+                    : "nav-link text-secondary py-3"
+                }
+              >
+                <i className={navi.icon}></i>
+                <span className="ms-3 d-inline-block">{navi.title}</span>
               </Link>
             </NavItem>
           ))}
