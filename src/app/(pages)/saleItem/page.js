@@ -1,6 +1,8 @@
 'use client'
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table } from 'reactstrap';
+import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table, Spinner } from 'reactstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
 import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
@@ -15,15 +17,18 @@ const SaleItem = () => {
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
-  const [nameDisabled, setNameDisabled] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [amountPaid, setAmountPaid] = useState('');
   const [cashReceived, setCashReceived] = useState('');
   const [cashReturned, setCashReturned] = useState(0);
-  const [accountType, setAccountType] = useState('cash');
   const [bagQuantity, setBagQuantity] = useState('');
   const [kgQuantity, setKgQuantity] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state for fetch
+  const [submitting, setSubmitting] = useState(false); // Add submitting state for form submission
 
   const fetchRate = useCallback(async () => {
     if (selectedCategory && selectedDescription) {
+      setLoading(true); // Show loading spinner while fetching rates
       try {
         const response = await fetch(`/api/items?category=${selectedCategory}&description=${selectedDescription.value}`);
         const data = await response.json();
@@ -31,8 +36,12 @@ const SaleItem = () => {
         setPerKgRate(data.rate / 25);
         setBagStock(data.bag);
         setKgStock(data.kg);
+        toast.success('Rate fetched successfully!');
       } catch (error) {
         console.error('Error fetching rate:', error);
+        toast.error('Error fetching rate.');
+      } finally {
+        setLoading(false); // Hide loading spinner
       }
     } else {
       setBagRate(0);
@@ -46,23 +55,8 @@ const SaleItem = () => {
     fetchRate();
   }, [fetchRate]);
 
-  const fetchAccountType = useCallback(async (accountName) => {
-    try {
-      const response = await fetch(`/api/accounts?accountName=${accountName}`);
-      const data = await response.json();
-      return data.length > 0 ? data[0].accountType : '';
-    } catch (error) {
-      console.error('Error fetching account type:', error);
-      return '';
-    }
-  }, []);
-
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
-    if (selectedOption) {
-      const accountType = await fetchAccountType(selectedOption.value);
-      setAccountType(accountType);
-    }
   };
 
   const handleCategoryChange = (selectedOption) => {
@@ -97,27 +91,30 @@ const SaleItem = () => {
     setKgQuantity(e.target.value);
   };
 
-
   const handleAddToCart = () => {
     const bagQty = parseInt(bagQuantity) || 0;
     const kgQty = parseInt(kgQuantity) || 0;
 
-    if (!selectedCategory || !selectedDescription) {
-      alert("Please Select Item");
+    if (!selectedName) {
+      toast.error("Please Select Customer Name");
       return;
     }
-    if (bagQty === 0 && kgQty === 0) {
-      alert("Please enter a valid quantity (Bag or Kg) for the item.");
+    else if (!selectedCategory || !selectedDescription) {
+      toast.error("Please Select Item");
       return;
     }
-    if (bagQty > bagStock) {
-      setBagQuantity('')
-      alert("Bag stock is not enough.");
+    else if (bagQty === 0 && kgQty === 0) {
+      toast.error("Please enter a valid quantity (Bag or Kg) for the item.");
       return;
     }
-    if (bagStock === 0 && kgQty > kgStock) {
-      setKgQuantity('')
-      alert("Kg quantity is invalid | Not enough quantity in stock.");
+    else if (bagQty > bagStock) {
+      setBagQuantity('');
+      toast.error("Bag stock is not enough.");
+      return;
+    }
+    else if (bagStock === 0 && kgQty > kgStock) {
+      setKgQuantity('');
+      toast.error("Kg quantity is invalid | Not enough quantity in stock.");
       return;
     }
 
@@ -132,28 +129,33 @@ const SaleItem = () => {
     };
 
     setCartItems((prevItems) => [...prevItems, newItem]);
-    setNameDisabled(true)
     setSelectedDescription(null);
     setBagQuantity('');
     setKgQuantity('');
+    toast.success("Item added to cart!");
+  };
+
+  const handleAmountPaidChange = (e) => {
+    setAmountPaid(e.target.value);
   };
 
   const handleCashReceivedChange = (e) => {
     const received = parseFloat(e.target.value);
     setCashReceived(received);
-    setCashReturned(received - calculateTotal());
+    setCashReturned(received - total);
   };
 
-  const calculateTotal = useCallback(() => {
-    return cartItems.reduce((acc, item) => acc + item.subTotal, 0);
+  // Recalculate the total whenever the cartItems change
+  useEffect(() => {
+    const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
+    setTotal(newTotal);
   }, [cartItems]);
 
   const displayCartItems = useMemo(() => (
     <Table bordered hover className="table-primary">
       <thead>
         <tr>
-          <th className="table-secondary">Sr. No.</th>
-          <th colSpan="6" className="table-dark">Cash</th>
+          <th colSpan="7" className="table-dark text-center">{selectedName.label}</th>
         </tr>
         <tr>
           <th>Sr.</th>
@@ -181,9 +183,10 @@ const SaleItem = () => {
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
-                index === 0 ? setNameDisabled(false) : setNameDisabled(true);
+                setAmountPaid('');
                 setCashReceived('');
                 setCashReturned(0);
+                toast.info("Item removed from cart");
               }}>
                 <i className="bi bi-trash"></i>
               </button>
@@ -197,11 +200,26 @@ const SaleItem = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!selectedName) {
+      toast.error("Please Select Customer Name");
+      return;
+    }
+    else if (!cartItems || cartItems.length === 0) {
+      toast.error("Cart is empty. Please add items to the cart before submitting.");
+      return;
+    }
+
+    setSubmitting(true); // Show submitting state
+
+    // Set amountPaid to total if it's empty
+    const finalAmountPaid = amountPaid === '' ? total : amountPaid;
+
     const saleData = {
       customerName: selectedName.value,
       remarks: document.getElementById('remarks').value,
       cartItems,
-      total: calculateTotal(),
+      total,
+      amountPaid: finalAmountPaid
     };
 
     try {
@@ -216,24 +234,26 @@ const SaleItem = () => {
       const result = await response.json();
 
       if (response.ok) {
-        alert('Sale submitted successfully');
-        // Clear the form or perform any necessary actions
+        toast.success('Sale submitted successfully');
         setCartItems([]);
-        setNameDisabled(false)
         setSelectedName(defaultCustomerName);
+        setAmountPaid('');
         setCashReceived('');
         setCashReturned(0);
       } else {
-        alert(`Error submitting sale: ${result.message}`);
+        toast.error(`Error submitting sale: ${result.message}`);
       }
     } catch (error) {
       console.error('Error submitting sale:', error);
-      alert(`Error submitting sale: ${error.message}`);
+      toast.error(`Error submitting sale: ${error.message}`);
+    } finally {
+      setSubmitting(false); // Hide submitting state
     }
   };
 
   return (
     <>
+      <ToastContainer />
       <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
         Sale Item
       </CardTitle>
@@ -244,7 +264,7 @@ const SaleItem = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
-                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} disable={nameDisabled} />
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
                 </FormGroup>
               </Col>
               <Col md={5}>
@@ -296,7 +316,7 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Button color="primary" style={{ marginTop: '32px' }} onClick={handleAddToCart}>
-                    Add to Cart
+                    {loading ? <Spinner size="sm" /> : 'Add to Cart'} {/* Loading spinner when adding */}
                   </Button>
                 </FormGroup>
               </Col>
@@ -306,7 +326,20 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="total"><strong>Total</strong></Label>
-                  <Input className="bg-danger text-white" id="total" name="total" type="text" disabled value={calculateTotal()} />
+                  <Input className="bg-danger text-white" id="total" name="total" type="text" disabled value={total} />
+                </FormGroup>
+              </Col>
+              <Col md={2}>
+                <FormGroup>
+                  <Label for="amountPaid">Amount Paid</Label>
+                  <Input id="amountPaid" name="amountPaid" type="number" min="0" value={amountPaid} onChange={handleAmountPaidChange} />
+                </FormGroup>
+              </Col>
+              <Col>
+                <FormGroup>
+                  <Button style={{ marginTop: '32px' }} color="primary" type="submit" disabled={submitting}>
+                    {submitting ? <Spinner size="sm" /> : 'Submit'} {/* Show spinner when submitting */}
+                  </Button>
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -324,11 +357,6 @@ const SaleItem = () => {
                       color: 'white'
                     }}
                     id="cashReturned" name="cashReturned" type="number" disabled value={cashReturned} />
-                </FormGroup>
-              </Col>
-              <Col>
-                <FormGroup>
-                  <Button style={{ marginTop: '32px' }} color="primary" type="submit">Submit</Button>
                 </FormGroup>
               </Col>
             </Row>
