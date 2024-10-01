@@ -155,7 +155,7 @@ const SaleItem = () => {
     <Table bordered hover className="table-primary">
       <thead>
         <tr>
-          <th colSpan="7" className="table-dark text-center">{selectedName.label}</th>
+          <th colSpan="7" className="table-dark text-center">{selectedName?.label ? selectedName.label : 'No Account Selected'}</th>
         </tr>
         <tr>
           <th>Sr.</th>

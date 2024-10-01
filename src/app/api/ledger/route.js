@@ -6,17 +6,17 @@ export async function POST(request) {
   try {
     await connectToDB(); // Connect to the database
 
-    const { party, details, debit, credit, balance } = await request.json(); // Get input data from request
+    const { party, description, debit, credit, balance } = await request.json(); // Get input data from request
 
     // Validate input fields
-    if (!party || !details || balance === undefined) {
-      return Response.json({ message: "Party, details, and balance are required" }, { status: 400 });
+    if (!party || !description || balance === undefined) {
+      return Response.json({ message: "Party, description, and balance are required" }, { status: 400 });
     }
 
     // Create a new ledger entry with the received data
     const newLedgerEntry = new Ledger({
       party,
-      details,
+      description,
       debit: debit || 0,  // Default to 0 if not provided
       credit: credit || 0, // Default to 0 if not provided
       balance,
@@ -37,25 +37,45 @@ export async function GET(request) {
   try {
     await connectToDB();
 
-    const searchParams = new URL(request.url).searchParams;
+    const searchParams = request.nextUrl.searchParams;
     const party = searchParams.get('party');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // Validate parameters
+    // Validate that party is provided
     if (!party) {
       return Response.json({ message: 'Party name is required' }, { status: 400 });
     }
 
+    // Base query for party
     const query = { party };
-    if (startDate && endDate) {
+
+    // Handle the case when only startDate or endDate is selected
+    if (startDate && !endDate) {
+      // If only startDate is selected, return entries from startDate to the present
       query.createdAt = {
         $gte: new Date(startDate),
-        $lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) // Include entire day
+      };
+    } else if (!startDate && endDate) {
+      // If only endDate is selected, return entries from the first ledger entry to endDate
+      // Find the earliest ledger entry
+      const firstEntry = await Ledger.findOne({ party }).sort({ createdAt: 1 });
+      if (firstEntry) {
+        query.createdAt = {
+          $gte: firstEntry.createdAt, // Start from the first entry
+          $lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)), // Include the entire end date
+        };
+      }
+    } else if (startDate && endDate) {
+      // If both startDate and endDate are selected, apply both filters
+      query.createdAt = {
+        $gte: new Date(startDate),
+        $lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)), // Include the entire end date
       };
     }
-    // Fetch ledger entries
-    const ledgerEntries = await Ledger.find(query).sort({ date: 1 });
+
+    // Fetch ledger entries, sort by creation date
+    const ledgerEntries = await Ledger.find(query).sort({ createdAt: 1 });
 
     // Calculate total debit, credit, and closing balance
     const totalDebit = ledgerEntries.reduce((sum, entry) => sum + entry.debit, 0);
