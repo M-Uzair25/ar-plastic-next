@@ -65,6 +65,8 @@ const SaleItem = () => {
 
   const handleDescriptionChange = (selectedOption) => {
     setSelectedDescription(selectedOption);
+    setBagQuantity(''); // Reset quantities
+    setKgQuantity('');
   };
 
   const handleRateChange = (e) => {

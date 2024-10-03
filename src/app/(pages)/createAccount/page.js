@@ -10,7 +10,7 @@ const CreateAccount = () => {
     accountName: '',
     accountNo: '',
     address: '',
-    openingBalance: 0,
+    balance: 0,
     accountType: '',
   });
 
@@ -87,10 +87,10 @@ const CreateAccount = () => {
           <Row>
             <Col md={2}>
               <FormGroup>
-                <Label for="openingBalance">Opening Balance</Label>
+                <Label for="balance">Opening Balance</Label>
                 <Input
-                  id="openingBalance"
-                  name="openingBalance"
+                  id="balance"
+                  name="balance"
                   type="number"
                   min="0"
                   placeholder='0'
@@ -119,13 +119,13 @@ const CreateAccount = () => {
                   <Label check>
                     <Input
                       name="accountType"
-                      id="credit"
+                      id="customer"
                       type="radio"
-                      value="credit"
-                      checked={accountData.accountType === 'credit'}
+                      value="customer"
+                      checked={accountData.accountType === 'customer'}
                       onChange={handleChange}
                     />
-                    Customer Credit
+                    Customer
                   </Label>
                 </FormGroup>
                 <FormGroup check inline>
