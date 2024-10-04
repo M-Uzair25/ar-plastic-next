@@ -1,5 +1,6 @@
 import { connectToDB } from '@/dbConfig/dbConfig';
 import Ledger from '@/models/Ledger';
+import Account from '@/models/Account';
 
 // Create Ledger Entry
 export async function POST(request) {
@@ -13,17 +14,37 @@ export async function POST(request) {
       return Response.json({ message: "Party, description, and balance are required" }, { status: 400 });
     }
 
+    const dbAccount = await Account.findOne({ accountName: party });
+    if (!dbAccount) {
+      throw new Error('Account not found for the specified customer.');
+    }
+
+    let currentBalance = dbAccount.balance; // Start with the current balance
+
+    currentBalance -= debit;
+    currentBalance += credit;
+
     // Create a new ledger entry with the received data
     const newLedgerEntry = new Ledger({
       party,
       description,
       debit: debit || 0,  // Default to 0 if not provided
       credit: credit || 0, // Default to 0 if not provided
-      balance,
+      balance: currentBalance,
     });
 
     // Save the new ledger entry in the database
     await newLedgerEntry.save();
+
+    // Update the account balance in the database after processing all items
+    await Account.updateOne(
+      { _id: dbAccount._id },
+      {
+        $set: {
+          balance: currentBalance,  // Set the final updated balance
+        }
+      }
+    );
 
     return Response.json({ message: "Ledger entry created successfully", entry: newLedgerEntry }, { status: 201 });
   } catch (error) {

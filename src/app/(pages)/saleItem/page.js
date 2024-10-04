@@ -12,13 +12,15 @@ const SaleItem = () => {
   const [selectedName, setSelectedName] = useState(defaultCustomerName);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
+  const [remarks, setRemarks] = useState('');
   const [bagRate, setBagRate] = useState(0);
   const [perKgRate, setPerKgRate] = useState(0);
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [amountPaid, setAmountPaid] = useState('');
+  const [cashPaid, setCashPaid] = useState('');
+  const [discount, setDiscount] = useState('');
   const [cashReceived, setCashReceived] = useState('');
   const [cashReturned, setCashReturned] = useState(0);
   const [bagQuantity, setBagQuantity] = useState('');
@@ -26,6 +28,11 @@ const SaleItem = () => {
   const [loading, setLoading] = useState(false); // Add loading state for fetch
   const [submitting, setSubmitting] = useState(false); // Add submitting state for form submission
 
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [accountDescription, setAccountDescription] = useState('');
+  const [accountAmount, setAccountAmount] = useState('');
+
+  // Fetch rate and stock data based on category and description
   const fetchRate = useCallback(async () => {
     if (selectedCategory && selectedDescription) {
       setLoading(true); // Show loading spinner while fetching rates
@@ -67,6 +74,10 @@ const SaleItem = () => {
     setSelectedDescription(selectedOption);
     setBagQuantity(''); // Reset quantities
     setKgQuantity('');
+  };
+
+  const handleRemarksChange = (e) => {
+    setRemarks(e.target.value);
   };
 
   const handleRateChange = (e) => {
@@ -137,8 +148,12 @@ const SaleItem = () => {
     toast.success("Item added to cart!");
   };
 
-  const handleAmountPaidChange = (e) => {
-    setAmountPaid(e.target.value);
+  const handleCashPaidChange = (e) => {
+    setCashPaid(e.target.value);
+  };
+
+  const handleDiscountChange = (e) => {
+    setDiscount(e.target.value);
   };
 
   const handleCashReceivedChange = (e) => {
@@ -185,7 +200,7 @@ const SaleItem = () => {
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
-                setAmountPaid('');
+                setCashPaid('');
                 setCashReceived('');
                 setCashReturned(0);
                 toast.info("Item removed from cart");
@@ -213,15 +228,15 @@ const SaleItem = () => {
 
     setSubmitting(true); // Show submitting state
 
-    // Set amountPaid to total if it's empty
-    const finalAmountPaid = amountPaid === '' ? total : amountPaid;
+    // Set cashPaid to total if it's empty
+    const finalCashPaid = cashPaid === '' ? total - discount : cashPaid;
 
     const saleData = {
       customerName: selectedName.value,
-      remarks: document.getElementById('remarks').value,
+      remarks,
       cartItems,
       total,
-      amountPaid: finalAmountPaid
+      cashPaid: finalCashPaid,
     };
 
     try {
@@ -239,9 +254,11 @@ const SaleItem = () => {
         toast.success('Sale submitted successfully');
         setCartItems([]);
         setSelectedName(defaultCustomerName);
-        setAmountPaid('');
+        setCashPaid('');
+        setDiscount('');
         setCashReceived('');
         setCashReturned(0);
+        setRemarks('');
       } else {
         toast.error(`Error submitting sale: ${result.message}`);
       }
@@ -249,7 +266,70 @@ const SaleItem = () => {
       console.error('Error submitting sale:', error);
       toast.error(`Error submitting sale: ${error.message}`);
     } finally {
-      setSubmitting(false); // Hide submitting state
+      setSubmitting(false);
+    }
+  };
+
+  const handleAccountChange = async (selectedOption) => {
+    setSelectedAccount(selectedOption);
+  };
+
+  const handleAccountPaymentSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!selectedAccount) {
+      toast.error("Please Select Account");
+      return;
+    }
+    else if (!accountAmount || accountAmount.length === 0) {
+      toast.error("Please enter credit amount.");
+      return;
+    }
+    else if (!cartItems || cartItems.length === 0) {
+      toast.error("Cart is empty. Please add items to the cart before submitting.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    // Submit Sale first
+    await handleSubmit(e); // Submit sale data first
+
+    const creditAmoumt = parseInt(accountAmount)
+
+    // Now submit ledger entry for account payment
+    const paymentData = {
+      party: selectedAccount.value,
+      description: accountDescription ? accountDescription : `${cartItems[0].category} Sale`,
+      debit: 0,
+      credit: creditAmoumt,
+      balance: 0,
+    };
+
+    try {
+      const response = await fetch('/api/ledger', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success('Account payment submitted successfully');
+        setSelectedAccount(null);
+        setAccountDescription('');
+        setAccountAmount('');
+      } else {
+        toast.error(`Error submitting account payment: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error submitting account payment:', error);
+      toast.error(`Error submitting account payment: ${error.message}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -272,7 +352,7 @@ const SaleItem = () => {
               <Col md={5}>
                 <FormGroup>
                   <Label for="remarks">Remarks</Label>
-                  <Input id="remarks" name="remarks" />
+                  <Input id="remarks" name="remarks" value={remarks} onChange={handleRemarksChange} />
                 </FormGroup>
               </Col>
             </Row>
@@ -333,8 +413,8 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="amountPaid">Amount Paid</Label>
-                  <Input id="amountPaid" name="amountPaid" type="number" min="0" value={amountPaid} onChange={handleAmountPaidChange} />
+                  <Label for="cashPaid">Cash Paid</Label>
+                  <Input id="cashPaid" name="cashPaid" type="number" min="0" value={cashPaid} onChange={handleCashPaidChange} />
                 </FormGroup>
               </Col>
               <Col>
@@ -342,6 +422,12 @@ const SaleItem = () => {
                   <Button style={{ marginTop: '32px' }} color="primary" type="submit" disabled={submitting}>
                     {submitting ? <Spinner size="sm" /> : 'Submit'} {/* Show spinner when submitting */}
                   </Button>
+                </FormGroup>
+              </Col>
+              <Col md={1}>
+                <FormGroup>
+                  <Label for="discount">Discount</Label>
+                  <Input id="discount" name="discount" placeholder='0' type="number" min="0" value={discount} onChange={handleDiscountChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -359,6 +445,41 @@ const SaleItem = () => {
                       color: 'white'
                     }}
                     id="cashReturned" name="cashReturned" type="number" disabled value={cashReturned} />
+                </FormGroup>
+              </Col>
+            </Row>
+          </Form>
+        </CardBody>
+      </Card>
+
+      {/* Account Payment Form */}
+      <Card>
+        <CardBody>
+          <Form onSubmit={handleAccountPaymentSubmit}>
+            <Row>
+              <Col md={4}>
+                <FormGroup>
+                  <Label for="account">Account Name</Label>
+                  <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} />
+                </FormGroup>
+              </Col>
+              <Col md={4}>
+                <FormGroup>
+                  <Label for="accountDescription">Description</Label>
+                  <Input id="accountDescription" name="accountDescription" value={accountDescription} onChange={(e) => setAccountDescription(e.target.value)} />
+                </FormGroup>
+              </Col>
+              <Col md={2}>
+                <FormGroup>
+                  <Label for="accountAmount">Amount Credit</Label>
+                  <Input id="accountAmount" name="accountAmount" type="number" min="0" value={accountAmount} onChange={(e) => setAccountAmount(e.target.value)} />
+                </FormGroup>
+              </Col>
+              <Col>
+                <FormGroup>
+                  <Button style={{ marginTop: '32px' }} color="primary" type="submit" disabled={submitting}>
+                    {submitting ? <Spinner size="sm" /> : 'Submit Payment'} {/* Show spinner when submitting */}
+                  </Button>
                 </FormGroup>
               </Col>
             </Row>
