@@ -1,5 +1,6 @@
 import { connectToDB } from '@/dbConfig/dbConfig';
 import Sale from '@/models/Sale';
+import SaleItem from '@/models/SaleItem';
 import Item from '@/models/Item';
 import Ledger from '@/models/Ledger';
 import Account from '@/models/Account';
@@ -37,14 +38,16 @@ export async function POST(request) {
         let currentBalance = dbAccount.balance; // Start with the current balance
 
         // Save Sale data
-        const newSale = new Sale(saleData);
-        const result = await newSale.save();
+        const newSale = new Sale({
+            customerName: saleData.customerName,
+            remarks: saleData.remarks,
+            total: saleData.total,
+            cashPaid: saleData.cashPaid,
+        });
+        const savedSale = await newSale.save();
 
-        // Process all cart items
-        const updatePromises = saleData.cartItems.map(async (item) => {
-            // Format quantities using the helper function
-            const formattedQuantity = formatQuantity(item.bagQuantity, item.kgQuantity);
-
+        // Process all cart items and save them as SaleItem documents
+        const saleItemPromises = saleData.cartItems.map(async (item) => {
             // Update item stock in the database
             const dbItem = await Item.findOne({ category: item.category, description: item.description });
             if (!dbItem) {
@@ -75,17 +78,27 @@ export async function POST(request) {
             }
 
             // Update the item quantities in the database
-            await Item.updateOne(
-                { _id: dbItem._id },
-                {
-                    $set: {
-                        bagQuantity: newBagStock,
-                        kgQuantity: newKgStock,
-                    }
-                }
-            );
+            await Item.updateOne({ _id: dbItem._id }, { bagQuantity: newBagStock, kgQuantity: newKgStock });
 
-            // Update the account balance and create Ledger entry
+            // Create a SaleItem entry
+            const newSaleItem = new SaleItem({
+                saleId: savedSale._id,
+                itemId: dbItem._id,
+                category: item.category,
+                description: item.description,
+                bagQuantity: item.bagQuantity,
+                kgQuantity: item.kgQuantity,
+                bagRate: item.bagRate,
+                perKgRate: item.perKgRate,
+                subTotal: item.subTotal,
+            });
+
+            const savedSaleItem = await newSaleItem.save();
+
+            // Update the sale's cartItems array with SaleItem references
+            await Sale.updateOne({ _id: savedSale._id }, { $push: { cartItems: savedSaleItem._id } });
+
+            // Prepare ledger entry data
             let debit = 0;
             let credit = 0;
 
@@ -99,21 +112,21 @@ export async function POST(request) {
                 currentBalance -= item.subTotal;
             }
 
-            // Create Ledger entry for each item
+            // Create a Ledger entry for each sale item
             const newLedgerEntry = new Ledger({
                 party: saleData.customerName,
-                description: `[${formattedQuantity}] ${item.category} ${item.description} @ ${item.bagRate}`, // Include item details
+                description: `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`,
                 debit: debit,
                 credit: credit,
-                balance: currentBalance,  // Incrementally updated balance
+                balance: currentBalance,
             });
 
             // Save the Ledger entry
             await newLedgerEntry.save();
         });
 
-        // Execute all the updates concurrently
-        await Promise.all(updatePromises);
+        // Wait for all sale items to be processed
+        await Promise.all(saleItemPromises);
 
         // Adjust cash ledger in case less cash is paid
         if (saleData.cashPaid != saleData.total && dbAccount.accountType === 'cash') {
@@ -132,17 +145,10 @@ export async function POST(request) {
             await newLedgerEntry.save();
         }
 
-        // Update the account balance in the database after processing all items
-        await Account.updateOne(
-            { _id: dbAccount._id },
-            {
-                $set: {
-                    balance: currentBalance,  // Set the final updated balance
-                }
-            }
-        );
+        // Update the account balance after all sale items are processed
+        await Account.updateOne({ _id: dbAccount._id }, { balance: currentBalance });
 
-        return Response.json({ message: 'Sale and ledger entries created successfully', data: result }, { status: 201 });
+        return Response.json({ message: 'Sale and ledger entries created successfully', sale: savedSale }, { status: 201 });
     } catch (error) {
         console.error('Error submitting sale:', error);
         return Response.json({ message: error.message }, { status: 500 });
