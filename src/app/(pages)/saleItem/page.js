@@ -25,7 +25,7 @@ const SaleItem = () => {
   const [cashReturned, setCashReturned] = useState(0);
   const [bagQuantity, setBagQuantity] = useState('');
   const [kgQuantity, setKgQuantity] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state for fetch
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false); // Add submitting state for form submission
 
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -72,7 +72,7 @@ const SaleItem = () => {
 
   const handleDescriptionChange = (selectedOption) => {
     setSelectedDescription(selectedOption);
-    setBagQuantity(''); // Reset quantities
+    setBagQuantity('');
     setKgQuantity('');
   };
 
@@ -90,10 +90,6 @@ const SaleItem = () => {
     const rate = parseFloat(e.target.value);
     setBagRate(rate * 25);
     setPerKgRate(rate);
-  };
-
-  const handleReloadRate = () => {
-    fetchRate();
   };
 
   const handleBagQuantityChange = (e) => {
@@ -226,7 +222,7 @@ const SaleItem = () => {
       return;
     }
 
-    setSubmitting(true); // Show submitting state
+    setSubmitting(true);
 
     // Set cashPaid to total if it's empty
     const finalCashPaid = cashPaid === '' ? total - discount : cashPaid;
@@ -237,6 +233,7 @@ const SaleItem = () => {
       cartItems,
       total,
       cashPaid: finalCashPaid,
+      selectedAccount: selectedAccount ? selectedAccount.value : '',
     };
 
     try {
@@ -293,16 +290,15 @@ const SaleItem = () => {
     setSubmitting(true);
 
     // Submit Sale first
-    await handleSubmit(e); // Submit sale data first
+    await handleSubmit(e);
 
-    const creditAmoumt = parseInt(accountAmount)
+    const creditAmount = parseInt(accountAmount);
 
-    // Now submit ledger entry for account payment
     const paymentData = {
       party: selectedAccount.value,
       description: accountDescription ? accountDescription : `${cartItems[0].category} Sale`,
       debit: 0,
-      credit: creditAmoumt,
+      credit: creditAmount,
       balance: 0,
     };
 
@@ -373,7 +369,7 @@ const SaleItem = () => {
                 <FormGroup>
                   <Label for="rate">Bag Rate</Label>
                   <span> </span>
-                  <i className="bi bi-arrow-clockwise" onClick={handleReloadRate} style={{ cursor: 'pointer' }}></i>
+                  <i className="bi bi-arrow-clockwise" onClick={fetchRate} style={{ cursor: 'pointer' }}></i>
                   <Input id="rate" name="rate" type="number" min="0" value={bagRate} onChange={handleRateChange} />
                 </FormGroup>
               </Col>

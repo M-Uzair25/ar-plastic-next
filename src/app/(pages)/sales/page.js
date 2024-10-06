@@ -1,6 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Row, Col, Table, Card, CardTitle, CardBody, Button, Input, InputGroup, InputGroupText } from 'reactstrap';
+import Accounts from '@/components/Accounts';
+import ItemCategory from '@/components/ItemCategory';
+import ItemDescription from '@/components/ItemDescription';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
@@ -8,26 +11,44 @@ import { generateSalesPDF } from '@/components/sales/generateSalesPDF';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   // States for column-specific search inputs
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerName, setCustomerName] = useState(null);
   const [bagQuantitySearch, setBagQuantitySearch] = useState('');
   const [kgQuantitySearch, setKgQuantitySearch] = useState('');
-  const [categorySearch, setCategorySearch] = useState('');
-  const [descriptionSearch, setDescriptionSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedDescription, setSelectedDescription] = useState(null);
   const [subTotalSearch, setSubTotalSearch] = useState('');
   const [amountSearch, setAmountSearch] = useState('');
+  const [paidSearch, setPaidSearch] = useState('');
   const [remarksSearch, setRemarksSearch] = useState('');
 
+  const handleNameChange = async (selectedOption) => {
+    setCustomerName(selectedOption);
+  };
+
+  const handleCategoryChange = (selectedOption) => {
+    setSelectedCategory(selectedOption ? selectedOption.value : null);
+  };
+
+  const handleDescriptionChange = (selectedOption) => {
+    setSelectedDescription(selectedOption);
+  };
+
   // Function to fetch sales data with optional date range and search filters
-  const fetchSales = async (fromDate = '', toDate = '', searchQuery = '') => {
+  const fetchSales = async (startDate = '', endDate = '', searchQuery = '') => {
     try {
       const queryParams = new URLSearchParams();
-      if (fromDate) queryParams.append('fromDate', format(fromDate, 'yyyy-MM-dd'));
-      if (toDate) queryParams.append('toDate', format(toDate, 'yyyy-MM-dd'));
+
+      if (customerName) queryParams.append('customerName', customerName.value);
+      if (selectedCategory) queryParams.append('category', selectedCategory);
+      if (selectedDescription) queryParams.append('description', selectedDescription);
+
+      if (startDate) queryParams.append('startDate', format(startDate, 'yyyy-MM-dd'));
+      if (endDate) queryParams.append('endDate', format(endDate, 'yyyy-MM-dd'));
       if (searchQuery) queryParams.append('search', searchQuery);
 
       const response = await fetch(`/api/sales?${queryParams.toString()}`);
@@ -41,14 +62,14 @@ const Sales = () => {
   // Fetch default sales data on component mount
   useEffect(() => {
     const today = new Date();
-    setFromDate(today);
+    setStartDate(today);
     fetchSales(today); // Fetch sales for today's date by default
   }, []);
 
-  // Trigger search whenever fromDate, toDate, or searchQuery changes
+  // Trigger search whenever startDate, endDate, or searchQuery changes
   useEffect(() => {
-    fetchSales(fromDate, toDate, searchQuery);
-  }, [fromDate, toDate, searchQuery]);
+    fetchSales(startDate, endDate, searchQuery);
+  }, [startDate, endDate, searchQuery, customerName, selectedCategory, selectedDescription]);
 
   // Handle search query input changes
   const handleSearchChange = (e) => {
@@ -57,7 +78,7 @@ const Sales = () => {
 
   // Handle print sales
   const handleDownloadPDF = () => {
-    generateSalesPDF(sales, fromDate, toDate);
+    generateSalesPDF(sales, startDate, endDate);
   };
 
   // Handle deletion of a sale
@@ -90,15 +111,13 @@ const Sales = () => {
 
   // Filtered sales based on column-specific search inputs
   const filteredSales = sales.filter((sale) =>
-    (sale.customerName.toLowerCase().includes(customerSearch.toLowerCase()) || !customerSearch) &&
     sale.cartItems.some((item) =>
       (item.bagQuantity.toString().includes(bagQuantitySearch) || !bagQuantitySearch) &&
       (item.kgQuantity.toString().includes(kgQuantitySearch) || !kgQuantitySearch) &&
-      (item.category.toLowerCase().includes(categorySearch.toLowerCase()) || !categorySearch) &&
-      (item.description.toLowerCase().includes(descriptionSearch.toLowerCase()) || !descriptionSearch) &&
       (item.subTotal.toString().includes(subTotalSearch) || !subTotalSearch)
     ) &&
     (sale.total.toString().includes(amountSearch) || !amountSearch) &&
+    (sale.cashPaid.toString().includes(paidSearch) || !paidSearch) &&
     (sale.remarks.toLowerCase().includes(remarksSearch.toLowerCase()) || !remarksSearch)
   );
 
@@ -137,15 +156,15 @@ const Sales = () => {
                       type="search"
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      onKeyDown={(e) => e.key === 'Enter' && fetchSales(fromDate, toDate, searchQuery)} // Search on Enter key
+                      onKeyDown={(e) => e.key === 'Enter' && fetchSales(startDate, endDate, searchQuery)} // Search on Enter key
                     />
                   </InputGroupText>
                 </Col>
                 <Col>
                   <InputGroupText>From:
                     <DatePicker
-                      selected={fromDate}
-                      onChange={(date) => setFromDate(date)}
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
                       dateFormat="dd/MM/yyyy"
                       className="form-control"
                     />
@@ -154,8 +173,8 @@ const Sales = () => {
                 <Col>
                   <InputGroupText>To:
                     <DatePicker
-                      selected={toDate}
-                      onChange={(date) => setToDate(date)}
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
                       dateFormat="dd/MM/yyyy"
                       className="form-control"
                     />
@@ -163,7 +182,7 @@ const Sales = () => {
                 </Col>
                 <Col>
                   <InputGroupText>
-                    <Button color="info" onClick={() => fetchSales(fromDate, toDate, searchQuery)}>
+                    <Button color="info" onClick={() => fetchSales(startDate, endDate, searchQuery)}>
                       Search
                     </Button>
                     <Button className='mx-2' color="info" onClick={handleDownloadPDF}>
@@ -177,25 +196,18 @@ const Sales = () => {
             {/* Display selected date range above the table */}
             <Row className="mt-3">
               <Col>
-                <h6><strong>{fromDate ? format(fromDate, 'dd MMM yyyy') : ''} {toDate ? ' - ' + format(toDate, 'dd MMM yyyy') : ''}</strong> </h6>
+                <h6><strong>{startDate ? format(startDate, 'dd MMM yyyy') : ''} {endDate ? ' - ' + format(endDate, 'dd MMM yyyy') : ''}</strong> </h6>
               </Col>
             </Row>
 
-            <Table bordered hover responsive className="table-primary" size="sm">
+            <Table bordered hover responsive size="sm">
               <thead>
-                <tr className="table-dark">
+                <tr className="table-secondary">
                   <th className='centered-cell'>
                     Search
                   </th>
                   <th>
-                    <Input
-                      id="customerSearch"
-                      name="customerSearch"
-                      placeholder="Customer"
-                      type="search"
-                      value={customerSearch}
-                      onChange={(e) => setCustomerSearch(e.target.value)}
-                    />
+                    <Accounts onNameChange={handleNameChange} customerName={customerName} />
                   </th>
                   <th>
                     <Input
@@ -218,30 +230,16 @@ const Sales = () => {
                     />
                   </th>
                   <th>
-                    <Input
-                      id="categorySearch"
-                      name="categorySearch"
-                      placeholder="Category"
-                      type="search"
-                      value={categorySearch}
-                      onChange={(e) => setCategorySearch(e.target.value)}
-                    />
+                    <ItemCategory onCategoryChange={handleCategoryChange} selectedDescription={selectedDescription} />
                   </th>
                   <th>
-                    <Input
-                      id="descriptionSearch"
-                      name="descriptionSearch"
-                      placeholder="Description"
-                      type="search"
-                      value={descriptionSearch}
-                      onChange={(e) => setDescriptionSearch(e.target.value)}
-                    />
+                    <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
                   </th>
                   <th>
                     <Input
                       id="subTotalSearch"
                       name="subTotalSearch"
-                      placeholder="subTotal"
+                      placeholder="SubTotal"
                       type="search"
                       value={subTotalSearch}
                       onChange={(e) => setSubTotalSearch(e.target.value)}
@@ -259,6 +257,16 @@ const Sales = () => {
                   </th>
                   <th>
                     <Input
+                      id="cashPaid"
+                      name="cashPaid"
+                      placeholder="Paid"
+                      type="search"
+                      value={paidSearch}
+                      onChange={(e) => setPaidSearch(e.target.value)}
+                    />
+                  </th>
+                  <th>
+                    <Input
                       id="remarksSearch"
                       name="remarksSearch"
                       placeholder="Remarks"
@@ -268,15 +276,16 @@ const Sales = () => {
                     />
                   </th>
                 </tr>
-                <tr>
+                <tr className="text-center">
                   <th>Date</th>
                   <th>Customer</th>
                   <th>Bag Quantity</th>
                   <th>Kg Quantity</th>
-                  <th>Item Category</th>
-                  <th>Item Description</th>
+                  <th>Category</th>
+                  <th>Description</th>
                   <th>Subtotal</th>
-                  <th>Bill Amount</th>
+                  <th>Total Amount</th>
+                  <th>Cash Paid</th>
                   <th>Remarks</th>
                   <th>Actions</th>
                 </tr>
@@ -284,7 +293,7 @@ const Sales = () => {
               <tbody>
                 {filteredSales.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center">No Sales: {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</td>
+                    <td colSpan="10" className="text-center">No Sales: {startDate ? format(startDate, 'dd/MMM/yyyy') : ''} {endDate ? '-' : ''}  {endDate ? format(endDate, 'dd/MMM/yyyy') : ''}</td>
                   </tr>
                 ) : (
                   filteredSales.map((sale) =>
@@ -311,6 +320,9 @@ const Sales = () => {
                               {sale.total}
                             </td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
+                              {sale.cashPaid}
+                            </td>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">
                               {sale.remarks}
                             </td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
@@ -328,7 +340,7 @@ const Sales = () => {
             </Table>
 
             <div className="mt-4">
-              <h6>Sales Report:<strong> {fromDate ? format(fromDate, 'dd/MMM/yyyy') : ''} {toDate ? '-' : ''}  {toDate ? format(toDate, 'dd/MMM/yyyy') : ''}</strong></h6>
+              <h6>Sales Report:<strong> {startDate ? format(startDate, 'dd/MMM/yyyy') : ''} {endDate ? '-' : ''}  {endDate ? format(endDate, 'dd/MMM/yyyy') : ''}</strong></h6>
 
               <ul>
                 <li><strong>Total Sales:</strong> {totalSales}</li>

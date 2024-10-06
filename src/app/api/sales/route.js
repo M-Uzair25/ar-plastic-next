@@ -115,6 +115,23 @@ export async function POST(request) {
         // Execute all the updates concurrently
         await Promise.all(updatePromises);
 
+        // Adjust cash ledger in case less cash is paid
+        if (saleData.cashPaid != saleData.total && dbAccount.accountType === 'cash') {
+            const debit = saleData.total - saleData.cashPaid;
+            currentBalance -= debit;
+
+            const newLedgerEntry = new Ledger({
+                party: saleData.customerName,
+                description: `Sale Cash Paid: ${saleData.cashPaid} Rs, Transferred to ${saleData.selectedAccount}: ${debit}`,
+                debit: debit,
+                credit: 0,
+                balance: currentBalance,  // Incrementally updated balance
+            });
+
+            // Save the Ledger entry
+            await newLedgerEntry.save();
+        }
+
         // Update the account balance in the database after processing all items
         await Account.updateOne(
             { _id: dbAccount._id },
@@ -136,23 +153,42 @@ export async function GET(request) {
     await connectToDB();
 
     const searchParams = request.nextUrl.searchParams;
-    const fromDate = searchParams.get('fromDate');
-    const toDate = searchParams.get('toDate');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
     const searchQuery = searchParams.get('search');
+
+    const customerName = searchParams.get('customerName');
+    const category = searchParams.get('category');
+    const description = searchParams.get('description');
 
     try {
         let query = {};
 
+        // Add customerName filter
+        if (customerName) {
+            query.customerName = new RegExp(customerName, 'i');  // Case-insensitive search for customerName
+        }
+
+        // Add category filter (inside cartItems array)
+        if (category) {
+            query['cartItems.category'] = new RegExp(category, 'i');  // Case-insensitive search for category
+        }
+
+        // Add description filter (inside cartItems array)
+        if (description) {
+            query['cartItems.description'] = new RegExp(description, 'i');  // Case-insensitive search for description
+        }
+
         // Date range filter
-        if (fromDate && toDate) {
+        if (startDate && endDate) {
             query.createdAt = {
-                $gte: new Date(fromDate),
-                $lt: new Date(new Date(toDate).setDate(new Date(toDate).getDate() + 1)) // Include entire day
+                $gte: new Date(startDate),
+                $lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) // Include entire day
             };
-        } else if (fromDate) {
+        } else if (startDate) {
             query.createdAt = {
-                $gte: new Date(fromDate),
-                $lt: new Date(new Date(fromDate).setDate(new Date(fromDate).getDate() + 1))
+                $gte: new Date(startDate),
+                $lt: new Date(new Date(startDate).setDate(new Date(startDate).getDate() + 1))
             };
         } else {
             // Default to today's sales if no date range is provided
