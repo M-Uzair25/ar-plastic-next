@@ -45,7 +45,7 @@ const Sales = () => {
 
       if (customerName) queryParams.append('customerName', customerName.value);
       if (selectedCategory) queryParams.append('category', selectedCategory);
-      if (selectedDescription) queryParams.append('description', selectedDescription);
+      if (selectedDescription) queryParams.append('description', selectedDescription.value);
 
       if (startDate) queryParams.append('startDate', format(startDate, 'yyyy-MM-dd'));
       if (endDate) queryParams.append('endDate', format(endDate, 'yyyy-MM-dd'));
@@ -69,7 +69,7 @@ const Sales = () => {
   // Trigger search whenever startDate, endDate, or searchQuery changes
   useEffect(() => {
     fetchSales(startDate, endDate, searchQuery);
-  }, [startDate, endDate, searchQuery, customerName, selectedCategory, selectedDescription]);
+  }, [startDate, endDate, searchQuery, customerName, selectedCategory]);
 
   // Handle search query input changes
   const handleSearchChange = (e) => {
@@ -112,13 +112,13 @@ const Sales = () => {
   // Filtered sales based on column-specific search inputs
   const filteredSales = sales.filter((sale) =>
     sale.cartItems.some((item) =>
-      (item.bagQuantity.toString().includes(bagQuantitySearch) || !bagQuantitySearch) &&
-      (item.kgQuantity.toString().includes(kgQuantitySearch) || !kgQuantitySearch) &&
-      (item.subTotal.toString().includes(subTotalSearch) || !subTotalSearch)
+      (item.bagQuantity?.toString().includes(bagQuantitySearch) || !bagQuantitySearch) &&
+      (item.kgQuantity?.toString().includes(kgQuantitySearch) || !kgQuantitySearch) &&
+      (item.subTotal?.toString().includes(subTotalSearch) || !subTotalSearch)
     ) &&
-    (sale.total.toString().includes(amountSearch) || !amountSearch) &&
-    (sale.cashPaid.toString().includes(paidSearch) || !paidSearch) &&
-    (sale.remarks.toLowerCase().includes(remarksSearch.toLowerCase()) || !remarksSearch)
+    (sale.total?.toString().includes(amountSearch) || !amountSearch) &&
+    (sale.cashPaid?.toString().includes(paidSearch) || !paidSearch) &&
+    (sale.remarks?.toLowerCase().includes(remarksSearch.toLowerCase()) || !remarksSearch)
   );
 
   // Calculate sales statistics

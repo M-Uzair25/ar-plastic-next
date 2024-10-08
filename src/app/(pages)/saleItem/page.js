@@ -234,6 +234,7 @@ const SaleItem = () => {
       total,
       cashPaid: finalCashPaid,
       selectedAccount: selectedAccount ? selectedAccount.value : '',
+      accountAmount: accountAmount ? accountAmount : 0,
     };
 
     try {

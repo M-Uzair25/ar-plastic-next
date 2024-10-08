@@ -135,7 +135,7 @@ export async function POST(request) {
 
             const newLedgerEntry = new Ledger({
                 party: saleData.customerName,
-                description: `Sale Cash Paid: ${saleData.cashPaid} Rs, Transferred to ${saleData.selectedAccount}: ${debit}`,
+                description: `Sale Total: ${saleData.total} Rs, Transferred to ${saleData.selectedAccount}: ${accountAmount}`,
                 debit: debit,
                 credit: 0,
                 balance: currentBalance,  // Incrementally updated balance
@@ -172,17 +172,7 @@ export async function GET(request) {
 
         // Add customerName filter
         if (customerName) {
-            query.customerName = new RegExp(customerName, 'i');  // Case-insensitive search for customerName
-        }
-
-        // Add category filter (inside cartItems array)
-        if (category) {
-            query['cartItems.category'] = new RegExp(category, 'i');  // Case-insensitive search for category
-        }
-
-        // Add description filter (inside cartItems array)
-        if (description) {
-            query['cartItems.description'] = new RegExp(description, 'i');  // Case-insensitive search for description
+            query.customerName = customerName;
         }
 
         // Date range filter
@@ -210,23 +200,25 @@ export async function GET(request) {
             const regexQuery = new RegExp(searchQuery, 'i');
             query.$or = [
                 { customerName: regexQuery },
-                { remarks: regexQuery },
-                { 'cartItems.category': regexQuery },
-                { 'cartItems.description': regexQuery }
+                { remarks: regexQuery }
             ];
-
-            // Add numeric search for the total and quantity field if the search query is numeric
-            if (!isNaN(searchQuery)) {
-                query.$or.push(
-                    { total: Number(searchQuery) },
-                    { 'cartItems.bagQuantity': Number(searchQuery) },  // Match bagQuantity
-                    { 'cartItems.kgQuantity': Number(searchQuery) }   // Match kgQuantity
-                );
-            }
         }
 
-        const sales = await Sale.find(query).sort({ createdAt: -1 });
-        return Response.json({ sales }, { status: 200 });
+        // Find sales matching the criteria and populate cartItems
+        const sales = await Sale.find(query)
+            .populate({
+                path: 'cartItems',
+                match: {
+                    ...(category && { category: category }),
+                    ...(description && { description: description })
+                }
+            })
+            .sort({ createdAt: -1 });
+
+        // Filter out sales with no matching cartItems
+        const filteredSales = sales.filter(sale => sale.cartItems.length > 0);
+
+        return Response.json({ sales: filteredSales }, { status: 200 });
     } catch (error) {
         console.error(error);
         return Response.json({ error: 'Error fetching sales' }, { status: 500 });
