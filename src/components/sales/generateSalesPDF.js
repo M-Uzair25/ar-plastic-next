@@ -46,6 +46,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
     // Calculate total quantities and amount
     const totalBags = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.bagQuantity, 0), 0);
     const totalKgs = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.kgQuantity, 0), 0);
+    const subTotal = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.subTotal, 0), 0);
     const totalAmount = sortedSales.reduce((sum, sale) => sum + sale.total, 0);
     const totalCashPaid = sortedSales.reduce((sum, sale) => sum + sale.cashPaid, 0);
 
@@ -81,7 +82,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
             fontStyle: 'bold',
         },
         foot: [[
-            `Total: ${sortedSales.length}`, '', totalBags, totalKgs, '', '', '', totalAmount.toFixed(0), totalCashPaid.toFixed(0), ''
+            `Total: ${sortedSales.length}`, '', totalBags, totalKgs, '', '', subTotal.toFixed(0), totalAmount.toFixed(0), totalCashPaid.toFixed(0), ''
         ]],
         footStyles: {
             fillColor: [240, 240, 240],
@@ -99,8 +100,9 @@ export function generateSalesPDF(sales, startDate, endDate) {
     doc.text(`Total Sales: ${sortedSales.length}`, 14, finalYPosition);
     doc.text(`Total Bag Quantity: ${totalBags}`, 14, finalYPosition + 7);
     doc.text(`Total Kg Quantity: ${totalKgs}`, 14, finalYPosition + 14);
-    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 14, finalYPosition + 21);
-    doc.text(`Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 14, finalYPosition + 28);
+    doc.text(`Sub-total: ${subTotal.toFixed(0)} Rs`, 14, finalYPosition + 21);
+    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 14, finalYPosition + 28);
+    doc.text(`Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 14, finalYPosition + 35);
 
     // Generate the PDF as a Blob and open it automatically in a new tab
     const pdfBlob = doc.output('blob'); // Generate PDF as a Blob

@@ -226,49 +226,96 @@ export async function GET(request) {
 }
 
 export async function DELETE(request) {
-
     const searchParams = request.nextUrl.searchParams;
     const saleId = searchParams.get('id');
 
     await connectToDB();
 
     try {
-        const sale = await Sale.findById(saleId);
+        // Find the sale by its ID and populate the related cartItems
+        const sale = await Sale.findById(saleId).populate('cartItems');
         if (!sale) {
             return Response.json({ error: 'Sale not found' }, { status: 404 });
         }
 
-        const updatePromises = sale.cartItems.map(async (item) => {
-            let bagQty = parseInt(item.bagQuantity, 10);
-            let kgQty = parseInt(item.kgQuantity, 10);
+        // Find the customer's account based on customerName from the sale
+        const dbAccount = await Account.findOne({ accountName: sale.customerName });
+        if (!dbAccount) {
+            return Response.json({ error: 'Customer account not found' }, { status: 404 });
+        }
 
-            const dbItem = await Item.findOne({ category: item.category, description: item.description });
+        let currentBalance = dbAccount.balance;
 
+        // Step 1: Update stock for each sale item
+        const updatePromises = sale.cartItems.map(async (saleItem) => {
+            const dbItem = await Item.findById(saleItem.itemId);  // Fetch the item by its ID
             if (dbItem) {
-                let newBagStock = dbItem.bagQuantity + bagQty;
-                let newKgStock = dbItem.kgQuantity + kgQty;
+                let newBagStock = dbItem.bagQuantity + parseInt(saleItem.bagQuantity, 10);
+                let newKgStock = dbItem.kgQuantity + parseInt(saleItem.kgQuantity, 10);
 
+                // Update the item with the restored quantities
                 await Item.updateOne(
                     { _id: dbItem._id },
                     {
                         $set: {
                             bagQuantity: newBagStock,
-                            kgQuantity: newKgStock
-                        }
+                            kgQuantity: newKgStock,
+                        },
                     }
                 );
             }
         });
 
+        // Wait for all stock updates to complete
         await Promise.all(updatePromises);
 
-        const deletedSale = await Sale.findByIdAndDelete(saleId);
+        // Step 2: Create a reversal ledger entry
+        let debit = 0;
+        let credit = 0;
 
+        if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+            // For cash or My Account, create a debit entry to reverse the sale (since cash was paid)
+            debit = sale.total;
+            currentBalance -= sale.total;
+        } else {
+            // For credit customers, create a credit entry to reverse the sale
+            credit = sale.total;
+            currentBalance += sale.total;
+        }
+
+        // Format the sale data into a single string
+        let formattedSaleData = sale.cartItems.map(item => {
+            return `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`;
+        }).join(', ');
+
+        // Create the reversal ledger entry
+        const newLedgerEntry = new Ledger({
+            party: sale.customerName,
+            description: `Sale Deleted: ${formattedSaleData}`,
+            debit: debit,
+            credit: credit,
+            balance: currentBalance,
+        });
+
+        // Save the ledger entry
+        await newLedgerEntry.save();
+
+        // Step 3: Update the customer's account balance
+        await Account.updateOne({ _id: dbAccount._id }, { balance: currentBalance });
+
+        // Step 4: Delete the sale and its related sale items
+        const deleteSaleItemsPromises = sale.cartItems.map(async (saleItem) => {
+            await SaleItem.findByIdAndDelete(saleItem._id);
+        });
+
+        await Promise.all(deleteSaleItemsPromises);
+
+        const deletedSale = await Sale.findByIdAndDelete(saleId);
         if (!deletedSale) {
             return Response.json({ error: 'Sale not found' }, { status: 404 });
         }
 
-        return Response.json(deletedSale, { status: 201 });
+        return Response.json({ message: 'Sale and related items deleted successfully, ledger updated', deletedSale }, { status: 201 });
     } catch (error) {
         console.error('Error deleting sale:', error);
         return Response.json({ message: error.message }, { status: 500 });
