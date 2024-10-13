@@ -55,7 +55,6 @@ const Accounts = ({ onNameChange, disable, selectedName }) => {
             name="account"
             loadOptions={getAccounts}
             defaultOptions={allAccounts}
-            placeholder="Search or select an account"
             value={selectedName}
             onChange={handleNameChange}
             isLoading={loading}

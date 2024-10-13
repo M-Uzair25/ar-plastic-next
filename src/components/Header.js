@@ -44,7 +44,6 @@ const Header = ({ showMobmenu }) => {
       <Collapse navbar isOpen={isOpen}>
         <Nav className="me-auto" navbar>
           <NavItem>
-
             <Link href="/todayRates" className={`nav-link ${pathName === "/todayRates" && "active"}`}>
               Today Rates
             </Link>
@@ -54,17 +53,23 @@ const Header = ({ showMobmenu }) => {
               Sale Item
             </Link>
           </NavItem>
-          <NavItem>
-            <Link href="/onlinePayment" className={`nav-link ${pathName === "/onlinePayment" && "active"}`}>
-              Online Payment
-            </Link>
-          </NavItem>
-
-          <NavItem>
-            <Link href="/addPayment" className={`nav-link ${pathName === "/addPayment" && "active"}`}>
-              Add Payment
-            </Link>
-          </NavItem>
+          <UncontrolledDropdown>
+            <DropdownToggle nav caret className={`${(pathName === "/doubleReceivingandPayment" || pathName === "/singleReceivingandPayment") && "active"}`}>
+              Receivings and Payments
+            </DropdownToggle>
+            <DropdownMenu className="btn btn-outline-light border border-dark border-4">
+              <NavItem>
+                <Link href="/doubleReceivingandPayment" className={`dropdown-item ${pathName === "/doubleReceivingandPayment" && "active"}`}>
+                  Double Entry RP
+                </Link>
+              </NavItem>
+              <NavItem>
+                <Link href="/singleReceivingandPayment" className={`dropdown-item ${pathName === "/singleReceivingandPayment" && "active"}`}>
+                  Single Entry RP
+                </Link>
+              </NavItem>
+            </DropdownMenu>
+          </UncontrolledDropdown>
           <NavItem>
             <Link href="/todos" className={`nav-link ${pathName === "/todos" && "active"}`}>
               Todos
