@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const purchaseSchema = new mongoose.Schema({
     supplierName: { type: String, required: true },
     remarks: { type: String },
-    dateOfPurchase: { type: Date, required: true },
     category: { type: String, required: true },
     description: { type: String, required: true },
     bagQuantity: { type: Number, default: 0, min: 0 },

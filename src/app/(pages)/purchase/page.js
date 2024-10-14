@@ -4,15 +4,11 @@ import { Row, Col, Card, CardBody, CardTitle, Button, Form, FormGroup, Label, In
 import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Purchase = () => {
-  const [date, setDate] = useState(new Date());
   const [selectedName, setSelectedName] = useState(null);
-  const [accountType, setAccountType] = useState('cash');
   const [remarks, setRemarks] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
@@ -25,16 +21,6 @@ const Purchase = () => {
 
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
-    const accountType = await fetchAccountType(selectedOption.value);
-    setAccountType(accountType);
-  };
-
-  const handleBagQuantityChange = (e) => {
-    setBagQuantity(e.target.value);
-  };
-
-  const handleKgQuantityChange = (e) => {
-    setKgQuantity(e.target.value);
   };
 
   const handleCategoryChange = (selectedOption) => {
@@ -73,24 +59,10 @@ const Purchase = () => {
   const handleBagRateChange = (e) => calculateRates('bag', parseFloat(e.target.value));
   const handlePerKgRateChange = (e) => calculateRates('kg', parseFloat(e.target.value));
 
-
-  const fetchAccountType = useCallback(async (accountName) => {
-    try {
-      const response = await fetch(`/api/accounts?accountName=${accountName}`);
-      if (!response.ok) throw new Error('Failed to fetch account type');
-      const data = await response.json();
-      return data.length > 0 ? data[0].accountType : '';
-    } catch (error) {
-      console.error('Error fetching account type:', error);
-      alert('Error fetching account type');
-      return '';
-    }
-  }, []);
-
   const calculateTotal = () => {
     const bagTotal = bagQuantity * bagRate;
     const kgTotal = kgQuantity * perKgRate;
-    return bagTotal + kgTotal;
+    return parseInt(bagTotal + kgTotal);
   };
 
   const handleSubmit = async (e) => {
@@ -104,14 +76,13 @@ const Purchase = () => {
     const purchaseData = {
       supplierName: selectedName.value,
       remarks,
-      dateOfPurchase: date,
       category: selectedCategory,
       description: selectedDescription.value,
       bagQuantity: parseInt(bagQuantity) || 0,
       kgQuantity: kgQuantity || 0,
-      poundRate: parseFloat(poundRate) || 0,
-      bagRate: parseFloat(bagRate) || 0,
-      perKgRate: parseFloat(perKgRate) || 0,
+      poundRate: parseFloat(poundRate).toFixed(2) || 0,
+      bagRate: parseFloat(bagRate).toFixed(2) || 0,
+      perKgRate: parseFloat(perKgRate).toFixed(2) || 0,
       total: calculateTotal(),
     };
 
@@ -152,7 +123,7 @@ const Purchase = () => {
 
   return (
     <>
-      <ToastContainer /> {/* Toast notifications container */}
+      <ToastContainer />
       <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
         Purchase Item
       </CardTitle>
@@ -169,18 +140,7 @@ const Purchase = () => {
               <Col md={5}>
                 <FormGroup>
                   <Label for="remarks">Remarks</Label>
-                  <Input id="remarks" name="remarks" value={remarks} onChange={(e) => setRemarks(e.target.value)} />
-                </FormGroup>
-              </Col>
-              <Col md={3}>
-                <FormGroup>
-                  <Label for="date">Date of Purchase</Label>
-                  <DatePicker
-                    selected={date}
-                    onChange={(date) => setDate(date)}
-                    dateFormat="dd/MM/yyyy"
-                    className="form-control"
-                  />
+                  <Input id="remarks" name="remarks" type='textarea' bsSize="sm" value={remarks} onChange={(e) => setRemarks(e.target.value)} />
                 </FormGroup>
               </Col>
             </Row>
@@ -188,13 +148,13 @@ const Purchase = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="bagQuantity">Bags</Label>
-                  <Input id="bagQuantity" name="bagQuantity" type="number" min="0" value={bagQuantity} onChange={handleBagQuantityChange} />
+                  <Input id="bagQuantity" name="bagQuantity" type="number" min="0" value={bagQuantity} onChange={(e) => setBagQuantity(e.target.value)} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" type="number" min="0" value={kgQuantity} onChange={handleKgQuantityChange} />
+                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.01" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -205,7 +165,7 @@ const Purchase = () => {
               </Col>
               <Col md={3}>
                 <FormGroup>
-                  <Label for="description">Description</Label>
+                  <Label for="description">Item Description</Label>
                   <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
                 </FormGroup>
               </Col>
@@ -214,19 +174,19 @@ const Purchase = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="poundRate">Pound Rate</Label>
-                  <Input id="poundRate" name="poundRate" type="number" step="0.01" min="0" value={poundRate} onChange={handlePoundRateChange} />
+                  <Input id="poundRate" name="poundRate" type="number" step="any" min="0" value={poundRate} onChange={handlePoundRateChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="bagRate">Bag Rate</Label>
-                  <Input id="bagRate" name="bagRate" type="number" step="0.01" min="0" value={bagRate} onChange={handleBagRateChange} />
+                  <Input id="bagRate" name="bagRate" type="number" step="any" min="0" value={bagRate} onChange={handleBagRateChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="perKgRate">Kg Rate</Label>
-                  <Input id="perKgRate" name="perKgRate" type="number" step="0.01" min="0" value={perKgRate} onChange={handlePerKgRateChange} />
+                  <Input id="perKgRate" name="perKgRate" type="number" step="any" min="0" value={perKgRate} onChange={handlePerKgRateChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
