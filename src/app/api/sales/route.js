@@ -135,7 +135,7 @@ export async function POST(request) {
 
             const newLedgerEntry = new Ledger({
                 party: saleData.customerName,
-                description: `Sale Total: ${saleData.total} Rs, Transferred to ${saleData.selectedAccount}: ${accountAmount}`,
+                description: `Sale Total: ${saleData.total} Rs, Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`,
                 debit: debit,
                 credit: 0,
                 balance: currentBalance,  // Incrementally updated balance

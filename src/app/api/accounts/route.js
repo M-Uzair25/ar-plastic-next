@@ -1,24 +1,30 @@
 import { connectToDB } from "@/dbConfig/dbConfig";
 import Account from '@/models/Account';
 
+// Create Account
 export async function POST(request) {
-    await connectToDB();
-
     try {
+        await connectToDB();
+
         const { accountName, accountNo, address, balance, accountType } = await request.json();
 
-        // Check if the accountName already exists
-        const existingAccount = await Account.findOne({ accountName });
-
-        if (existingAccount) {
-            return Response.json({ message: 'Account already exists' }, { status: 400 });
+        // Validate required fields
+        if (!accountName || !accountNo || !accountType) {
+            return Response.json({ message: 'Missing required fields' }, { status: 400 });
         }
 
+        // Check if account already exists
+        const existingAccount = await Account.findOne({ accountName });
+        if (existingAccount) {
+            return Response.json({ message: 'Account already exists' }, { status: 401 });
+        }
+
+        // Create new account
         const newAccount = new Account({
             accountName,
             accountNo,
-            address,
-            balance,
+            address: address || '', // Optional fields
+            balance: balance || 0,  // Default balance to 0
             accountType,
         });
 
@@ -30,6 +36,8 @@ export async function POST(request) {
         return Response.json({ message: 'Error creating account' }, { status: 500 });
     }
 }
+
+// Get Accounts
 export async function GET(request) {
     try {
         await connectToDB();

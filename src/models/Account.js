@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 
 const accountSchema = new mongoose.Schema({
   accountName: { type: String, required: true, unique: true },
-  accountNo: { type: String, required: true},
-  address: { type: String, required: true },
+  accountNo: { type: String, required: true },
+  address: { type: String },
   balance: { type: Number, default: 0 },
-  accountType: { type: String, enum: ['cash','customer', 'supplier', 'myAccount'], required: true },
+  accountType: { type: String, enum: ['cash', 'customer', 'supplier', 'myAccount', 'other'], required: true },
 },
   { timestamps: true });
 

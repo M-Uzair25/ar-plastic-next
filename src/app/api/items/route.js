@@ -7,15 +7,25 @@ export async function POST(request) {
 
   try {
     const { category, description, bagQuantity, kgQuantity, sellRate, stockLimit } = await request.json();
-    // Validate input data (optional, but recommended)
+
+    // Validate input data
+    if (!category || !description) {
+      return Response.json({ message: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Check if item already exists
+    const existingItem = await Item.findOne({ category, description });
+    if (existingItem) {
+      return Response.json({ message: 'Item already exists' }, { status: 401 });
+    }
 
     const newItem = new Item({
       category,
       description,
-      bagQuantity,
-      kgQuantity,
-      sellRate,
-      stockLimit
+      bagQuantity: bagQuantity || 0,
+      kgQuantity: kgQuantity || 0,
+      sellRate: sellRate || 0,
+      stockLimit: stockLimit || 0,
     });
 
     await newItem.save();
