@@ -28,6 +28,10 @@ const doubleReceivingandPayment = () => {
             toast.error('Please fill in all required fields.');
             return;
         }
+        if (!selectedCustomerName.value === !selectedAccount.value) {
+            toast.error('Customer and Account name cannot be same.');
+            return;
+        }
 
         setLoading(true);
         const paymentData = {

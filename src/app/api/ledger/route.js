@@ -28,8 +28,8 @@ export async function POST(request) {
     const newLedgerEntry = new Ledger({
       party,
       description,
-      debit: debit || 0,  // Default to 0 if not provided
-      credit: credit || 0, // Default to 0 if not provided
+      debit: dbAccount.accountType === 'supplier' ? credit : debit,  // Make debit = credit for supplier
+      credit: dbAccount.accountType === 'supplier' ? debit : credit, // Make credit = 0 for supplier
       balance: currentBalance,
     });
 

@@ -27,10 +27,18 @@ export async function POST(request) {
         // Update the balance based on payment type
         if (paymentType === 'Debit') {
             debit = amount;
-            currentBalance -= amount;  // Deduct amount for debit
+            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+                dbAccount.balance -= amount;  // Debit decreases balance
+            } else {
+                dbAccount.balance += amount;  // Debit increases balance
+            }
         } else if (paymentType === 'Credit') {
             credit = amount;
-            currentBalance += amount;  // Add amount for credit
+            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+                dbAccount.balance += amount;  // Credit increases balance
+            } else {
+                dbAccount.balance -= amount;  // Credit decreases balance
+            }
         }
 
         // Update the account balance in the database

@@ -75,14 +75,8 @@ export async function POST(request) {
         let debit = 0;
         let credit = 0;
 
-        if (dbAccount.accountType === 'supplier') {
-            credit = total;
-            currentBalance += total;
-        } else {
-            // For credit customers, balance increases (debit transaction)
-            debit = total;
-            currentBalance -= total;
-        }
+        credit = total;
+        currentBalance -= total;
 
         // Create a new ledger entry with the received data
         const newLedgerEntry = new Ledger({

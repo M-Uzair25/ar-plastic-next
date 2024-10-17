@@ -29,19 +29,35 @@ export async function POST(request) {
         // Determine debit/credit logic for customer account
         if (paymentType1 === 'Debit') {
             customerDebit = amount;
-            customerAccount.balance -= amount;  // Debit decreases balance
+            if (customerAccount.accountType === 'cash' || customerAccount.accountType === 'myAccount') {
+                customerAccount.balance -= amount;  // Debit decreases balance
+            } else {
+                customerAccount.balance += amount;  // Debit increases balance
+            }
         } else if (paymentType1 === 'Credit') {
             customerCredit = amount;
-            customerAccount.balance += amount;  // Credit increases balance
+            if (customerAccount.accountType === 'cash' || customerAccount.accountType === 'myAccount') {
+                customerAccount.balance += amount;  // Credit increases balance
+            } else {
+                customerAccount.balance -= amount;  // Credit decreases balance
+            }
         }
 
         // Determine debit/credit logic for other account
         if (paymentType2 === 'Debit') {
             otherDebit = amount;
-            otherAccount.balance -= amount;
+            if (otherAccount.accountType === 'cash' || otherAccount.accountType === 'myAccount') {
+                otherAccount.balance -= amount;  // Debit decreases balance
+            } else {
+                otherAccount.balance += amount;  // Debit increases balance
+            }
         } else if (paymentType2 === 'Credit') {
             otherCredit = amount;
-            otherAccount.balance += amount;
+            if (otherAccount.accountType === 'cash' || otherAccount.accountType === 'myAccount') {
+                otherAccount.balance += amount;  // Credit increases balance
+            } else {
+                otherAccount.balance -= amount;  // Credit decreases balance
+            }
         }
 
         // Create ledger entry for customer

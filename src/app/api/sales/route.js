@@ -103,14 +103,13 @@ export async function POST(request) {
             let credit = 0;
 
             if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
-                // For cash or My Account, balance decreases (credit transaction)
+                // For cash or My Account, credit increases balance (credit transaction)
                 credit = item.subTotal;
-                currentBalance += item.subTotal;
             } else {
-                // For credit customers, balance increases (debit transaction)
+                // For debit customers, debit increases balance (debit transaction)
                 debit = item.subTotal;
-                currentBalance -= item.subTotal;
             }
+            currentBalance += item.subTotal;
 
             // Create a Ledger entry for each sale item
             const newLedgerEntry = new Ledger({
@@ -274,14 +273,13 @@ export async function DELETE(request) {
         let credit = 0;
 
         if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
-            // For cash or My Account, create a debit entry to reverse the sale (since cash was paid)
+            // For cash or My Account, create a debit entry to reverse the sale (since cash was credit)
             debit = sale.total;
-            currentBalance -= sale.total;
         } else {
             // For credit customers, create a credit entry to reverse the sale
             credit = sale.total;
-            currentBalance += sale.total;
         }
+        currentBalance -= sale.total;
 
         // Format the sale data into a single string
         let formattedSaleData = sale.cartItems.map(item => {
