@@ -44,11 +44,16 @@ export async function GET(request) {
 
         const searchParams = request.nextUrl.searchParams;
         const accountName = searchParams.get('accountName');
+        const accountType = searchParams.get('accountType');
 
         if (accountName) {
             // Fetch specific account with its type
             const accountType = await Account.find({ accountName }).select('accountType');
             return Response.json(accountType);
+        } else if (accountType) {
+            // Fetch all account names with the specific account type
+            const accounts = await Account.find({ accountType }).select('accountName');
+            return Response.json(accounts);
         } else {
             // Fetch all account names
             const accounts = await Account.find().select('accountName');
