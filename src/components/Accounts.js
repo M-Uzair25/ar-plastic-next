@@ -2,7 +2,7 @@
 import AsyncSelect from 'react-select/async';
 import React, { useState, useEffect } from 'react';
 
-const Accounts = ({ onNameChange, disable, selectedName }) => {
+const Accounts = ({ onNameChange, disable, selectedName, apiEndpoint }) => {
     const [allAccounts, setAllAccounts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -10,7 +10,7 @@ const Accounts = ({ onNameChange, disable, selectedName }) => {
         const fetchAllAccounts = async () => {
             try {
                 setLoading(true);
-                const response = await fetch('/api/accounts');
+                const response = apiEndpoint ? await fetch(`/api/accounts?${apiEndpoint}`) : await fetch('/api/accounts');
                 const data = await response.json();
 
                 const options = data.map((account) => ({

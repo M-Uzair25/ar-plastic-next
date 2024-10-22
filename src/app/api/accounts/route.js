@@ -43,24 +43,24 @@ export async function GET(request) {
         await connectToDB();
 
         const searchParams = request.nextUrl.searchParams;
-        const accountName = searchParams.get('accountName');
-        const accountType = searchParams.get('accountType');
+        const accountName = searchParams.get("accountName");
 
         if (accountName) {
-            // Fetch specific account with its type
-            const accountType = await Account.find({ accountName }).select('accountType');
-            return Response.json(accountType);
-        } else if (accountType) {
-            // Fetch all account names with the specific account type
-            const accounts = await Account.find({ accountType }).select('accountName');
-            return Response.json(accounts);
+            // Fetch specific account by name
+            const accountData = await Account.findOne({ accountName });
+            return Response.json(accountData);
+        } else if (searchParams.get('accountType')) {
+            // Fetch accounts by multiple types
+            const accountTypes = searchParams.get("accountType").split(",");
+            const accountData = await Account.find({ accountType: { $in: accountTypes } });
+            return Response.json(accountData);
         } else {
-            // Fetch all account names
-            const accounts = await Account.find().select('accountName');
+            // Fetch all accounts
+            const accounts = await Account.find();
             return Response.json(accounts);
         }
     } catch (error) {
-        console.error('Error fetching accounts:', error.message);
-        return Response.json({ message: 'Error fetching accounts' }, { status: 500 });
+        console.error("Error fetching accounts:", error.message);
+        return Response.json({ message: "Error fetching accounts" }, { status: 500 });
     }
 }

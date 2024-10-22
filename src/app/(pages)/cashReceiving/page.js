@@ -13,6 +13,14 @@ const CashReceiving = () => {
     const [cashReceived, setCashReceived] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const handleAccountChange = async (selectedOption) => {
+        setSelectedAccount(selectedOption);
+    };
+
+    useEffect(() => {
+        fetchAccountData();
+    }, [selectedAccount]);
+
     const fetchAccountData = async () => {
         if (!selectedAccount) {
             resetForm();
@@ -21,7 +29,7 @@ const CashReceiving = () => {
 
         setLoading(true);
         try {
-            const response = await fetch(`/api/receiving/cashReceiving?accountName=${selectedAccount.value}`);
+            const response = await fetch(`/api/accounts?accountName=${selectedAccount.value}`);
             const data = await response.json();
 
             if (response.ok) {
@@ -39,21 +47,13 @@ const CashReceiving = () => {
         }
     };
 
-    const handleAccountChange = async (selectedOption) => {
-        setSelectedAccount(selectedOption);
-    };
-
-    useEffect(() => {
-        fetchAccountData();
-    }, [selectedAccount]);
-
     const calculatedRemainingBalance = useMemo(() => {
         const balance = Number(previousBalance) || 0;
         const cash = Number(cashReceived) || 0;
 
         if (!accountType || !cash) return balance;
 
-        return accountType === 'customer' ? balance - cash : balance + cash;
+        return balance - cash;
     }, [previousBalance, cashReceived, accountType]);
 
     const handleSubmit = async (e) => {
@@ -63,32 +63,36 @@ const CashReceiving = () => {
             toast.error('Please fill in all required fields.');
             return;
         }
+        if (selectedAccount.value === 'Cash') {
+            toast.error('Customer name cannot be "Cash". Kindly select another customer!');
+            return;
+        }
 
         setLoading(true);
-        const paymentData = {
+        const receivingData = {
             account: selectedAccount.value,
             description,
             amount: parseInt(cashReceived),
         };
 
         try {
-            const response = await fetch('/api/receiving/cashReceiving', {
+            const response = await fetch('/api/receivings/cashReceiving', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(paymentData),
+                body: JSON.stringify(receivingData),
             });
 
             const result = await response.json();
             if (response.ok) {
-                toast.success('Payment added successfully');
+                toast.success('Cash Received successfully');
                 resetForm();
             } else {
                 toast.error(`Error: ${result.message}`);
             }
         } catch (error) {
-            toast.error('Error submitting payment.');
+            toast.error('Error submitting cash.');
         } finally {
             setLoading(false);
         }
