@@ -12,9 +12,9 @@ export async function POST(request) {
         if (!account || !amount) {
             return Response.json({ message: 'All fields are required' }, { status: 400 });
         }
-        // Check if selected account is Cash
+        // Check if selected account is Payment
         if (account === 'Cash') {
-            return Response.json({ message: 'Customer name cannot be "Cash". Kindly select another customer!' }, { status: 400 });
+            return Response.json({ message: 'Party name cannot be "Cash". Kindly select another party!' }, { status: 400 });
         }
 
         // Find the account to update its balance
@@ -27,17 +27,17 @@ export async function POST(request) {
 
         let debit = 0;
         let credit = 0;
-        let ledgerDescription = "Cash Received";
+        let ledgerDescription = "Cash Paid";
 
         if (dbAccount.accountType === 'myAccount') {
-            debit = amount;
+            credit = amount;
             if (!description) {
-                ledgerDescription = "Cash Withdrawl";
+                ledgerDescription = "Cash Deposited";
             }
         } else {
-            credit = amount
+            debit = amount
         }
-        dbAccount.balance -= amount;  // Credit decreases balance
+        dbAccount.balance += amount;  // Credit increases balance
 
         // Create a new ledger entry
         const newLedgerEntry = new Ledger({
@@ -50,13 +50,13 @@ export async function POST(request) {
 
         await newLedgerEntry.save();
 
-        cashAccount.balance += amount;  // Credit increases cash
+        cashAccount.balance -= amount;  // Credit decreases cash
         // Create Cash Ledger entry
         const cashLedger = new Ledger({
             party: 'Cash',
-            description: `Cash Received By (${account})`,
-            debit: 0,
-            credit: amount,
+            description: `Cash Paid To (${account})`,
+            debit: amount,
+            credit: 0,
             balance: cashAccount.balance,
         });
         await cashLedger.save();
@@ -65,9 +65,9 @@ export async function POST(request) {
         await Account.updateOne({ _id: dbAccount._id }, { balance: dbAccount.balance });
         await Account.updateOne({ _id: cashAccount._id }, { balance: cashAccount.balance });
 
-        return Response.json({ message: 'Cash Received Successfully', newLedgerEntry, cashLedger }, { status: 201 });
+        return Response.json({ message: 'Cash Paid Successfully', newLedgerEntry, cashLedger }, { status: 201 });
     } catch (error) {
-        console.error('Error submitting cash receiving:', error);
-        return Response.json({ message: 'Error submitting cash receiving', error: error.message }, { status: 500 });
+        console.error('Error submitting payment receiving:', error);
+        return Response.json({ message: 'Error submitting payment', error: error.message }, { status: 500 });
     }
 }

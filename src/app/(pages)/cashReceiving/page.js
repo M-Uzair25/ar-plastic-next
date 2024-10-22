@@ -7,7 +7,6 @@ import Accounts from '@/components/Accounts';
 
 const CashReceiving = () => {
     const [selectedAccount, setSelectedAccount] = useState(null);
-    const [accountType, setAccountType] = useState('');
     const [description, setDescription] = useState('');
     const [previousBalance, setPreviousBalance] = useState('');
     const [cashReceived, setCashReceived] = useState('');
@@ -33,7 +32,6 @@ const CashReceiving = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setAccountType(data.accountType);
                 setPreviousBalance(data.balance);
                 setCashReceived('');
             } else {
@@ -51,10 +49,10 @@ const CashReceiving = () => {
         const balance = Number(previousBalance) || 0;
         const cash = Number(cashReceived) || 0;
 
-        if (!accountType || !cash) return balance;
+        if (!selectedAccount || !cash) return balance;
 
         return balance - cash;
-    }, [previousBalance, cashReceived, accountType]);
+    }, [previousBalance, cashReceived, selectedAccount]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -100,7 +98,6 @@ const CashReceiving = () => {
 
     const resetForm = () => {
         setSelectedAccount(null);
-        setAccountType('');
         setPreviousBalance('');
         setCashReceived('');
         setDescription('');

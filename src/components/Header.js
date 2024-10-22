@@ -45,42 +45,31 @@ const Header = ({ showMobmenu }) => {
             </Link>
           </NavItem>
 
-          {/* Dropdown for Receivings and Payments */}
+          {/* Dropdown for Receivings */}
           <UncontrolledDropdown nav inNavbar>
             <DropdownToggle nav caret className={`px-2 ${(pathName === "/cashReceiving" || pathName === "/transferReceiving") && "active"}`}>
-              Receivings and Payments
+              Receivings
             </DropdownToggle>
-            <DropdownMenu className="rounded shadow border-0">
-              {/* Submenu for Receivings */}
-              <UncontrolledDropdown inNavbar direction="end">
-                <DropdownToggle nav caret className={`dropdown-item ${(pathName === "/cashReceiving" || pathName === "/transferReceiving") && "active"}`}>
-                  <span style={{ color: 'black' }}>Receivings</span>
-                </DropdownToggle>
-                <DropdownMenu className="rounded shadow border-4">
-                  <Link href="/cashReceiving" className={`dropdown-item ${pathName === "/cashReceiving" && "active"}`}>
-                    Cash Receiving
-                  </Link>
-                  <Link href="/transferReceiving" className={`dropdown-item ${pathName === "/transferReceiving" && "active"}`}>
-                    Account Transfer
-                  </Link>
-                </DropdownMenu>
-              </UncontrolledDropdown>
-              {/* Submenu for Payments */}
-              <UncontrolledDropdown inNavbar direction="end">
-                <DropdownToggle nav caret className={`dropdown-item ${(pathName === "/cashPayment" || pathName === "/transferPayment") && "active"}`}>
-                  <span style={{ color: 'black' }}>Payments</span>
-                </DropdownToggle>
-                <DropdownMenu className="rounded shadow border-4">
-                  <Link href="/cashPayment" className={`dropdown-item ${pathName === "/cashPayment" && "active"}`}>
-                    Cash Payment
-                  </Link>
-                  <Link href="/transferPayment" className={`dropdown-item ${pathName === "/transferPayment" && "active"}`}>
-                    Account Transfer
-                  </Link>
-                </DropdownMenu>
-              </UncontrolledDropdown>
-              <Link href="/singleReceivingandPayment" className={`dropdown-item ${pathName === "/singleReceivingandPayment" && "active"}`}>
-                Ledger Entry RP
+            <DropdownMenu className="rounded shadow border-4">
+              <Link href="/cashReceiving" className={`dropdown-item ${pathName === "/cashReceiving" && "active"}`}>
+                Cash Receiving
+              </Link>
+              <Link href="/transferReceiving" className={`dropdown-item ${pathName === "/transferReceiving" && "active"}`}>
+                Account Transfer
+              </Link>
+            </DropdownMenu>
+          </UncontrolledDropdown>
+          {/* Dropdown for Payments */}
+          <UncontrolledDropdown nav inNavbar>
+            <DropdownToggle nav caret className={`px-2 ${(pathName === "/cashPayment" || pathName === "/transferPayment") && "active"}`}>
+              Payments
+            </DropdownToggle>
+            <DropdownMenu className="rounded shadow border-4">
+              <Link href="/cashPayment" className={`dropdown-item ${pathName === "/cashPayment" && "active"}`}>
+                Cash Payment
+              </Link>
+              <Link href="/transferPayment" className={`dropdown-item ${pathName === "/transferPayment" && "active"}`}>
+                Account Transfer
               </Link>
             </DropdownMenu>
           </UncontrolledDropdown>
