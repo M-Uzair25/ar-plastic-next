@@ -49,6 +49,8 @@ export async function POST(request) {
             else
                 customerDescription = "Account Transfer";
         }
+        else
+            customerDescription = description;
 
         // Create ledger entry for customer
         const customerLedger = new Ledger({

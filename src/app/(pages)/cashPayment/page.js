@@ -9,7 +9,7 @@ const CashPayment = () => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [description, setDescription] = useState('');
   const [previousBalance, setPreviousBalance] = useState('');
-  const [cashPayment, setCashPayment] = useState('');
+  const [cashPaid, setCashPaid] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAccountChange = async (selectedOption) => {
@@ -33,7 +33,7 @@ const CashPayment = () => {
 
       if (response.ok) {
         setPreviousBalance(data.balance);
-        setCashPayment('');
+        setCashPaid('');
       } else {
         toast.error(`Error: ${data.message}`);
       }
@@ -47,17 +47,17 @@ const CashPayment = () => {
 
   const calculatedRemainingBalance = useMemo(() => {
     const balance = Number(previousBalance) || 0;
-    const cash = Number(cashPayment) || 0;
+    const cash = Number(cashPaid) || 0;
 
     if (!selectedAccount || !cash) return balance;
 
     return balance + cash;
-  }, [previousBalance, cashPayment, selectedAccount]);
+  }, [previousBalance, cashPaid, selectedAccount]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedAccount || !cashPayment) {
+    if (!selectedAccount || !cashPaid) {
       toast.error('Please fill in all required fields.');
       return;
     }
@@ -70,11 +70,11 @@ const CashPayment = () => {
     const paymentData = {
       account: selectedAccount.value,
       description,
-      amount: parseInt(cashPayment),
+      amount: parseInt(cashPaid),
     };
 
     try {
-      const response = await fetch('/api/payments/cashPayment', {
+      const response = await fetch('/api/payments/cashPaid', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ const CashPayment = () => {
   const resetForm = () => {
     setSelectedAccount(null);
     setPreviousBalance('');
-    setCashPayment('');
+    setCashPaid('');
     setDescription('');
   };
 
@@ -149,14 +149,14 @@ const CashPayment = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashPayment">Cash Payment</Label>
+                  <Label for="cashPaid">Cash Paid</Label>
                   <Input
-                    id="cashPayment"
-                    name="cashPayment"
+                    id="cashPaid"
+                    name="cashPaid"
                     type="number"
                     min="0"
-                    value={cashPayment}
-                    onChange={(e) => setCashPayment(e.target.value)}
+                    value={cashPaid}
+                    onChange={(e) => setCashPaid(e.target.value)}
                   />
                 </FormGroup>
               </Col>
