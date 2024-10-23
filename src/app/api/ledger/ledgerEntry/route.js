@@ -2,6 +2,7 @@ import { connectToDB } from '@/dbConfig/dbConfig';
 import Ledger from '@/models/Ledger';
 import Account from '@/models/Account';
 
+// Create any ledger entry
 export async function POST(request) {
     try {
         await connectToDB();

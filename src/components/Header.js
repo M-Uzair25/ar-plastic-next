@@ -59,6 +59,7 @@ const Header = ({ showMobmenu }) => {
               </Link>
             </DropdownMenu>
           </UncontrolledDropdown>
+
           {/* Dropdown for Payments */}
           <UncontrolledDropdown nav inNavbar>
             <DropdownToggle nav caret className={`px-2 ${(pathName === "/cashPayment" || pathName === "/transferPayment") && "active"}`}>
@@ -74,6 +75,11 @@ const Header = ({ showMobmenu }) => {
             </DropdownMenu>
           </UncontrolledDropdown>
 
+          <NavItem>
+            <Link href="/ledgerEntry" className={`nav-link ${pathName === "/ledgerEntry" && "active"}`}>
+              Create Entry
+            </Link>
+          </NavItem>
           <NavItem>
             <Link href="/todos" className={`nav-link ${pathName === "/todos" && "active"}`}>
               Todos

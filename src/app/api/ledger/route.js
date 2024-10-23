@@ -2,7 +2,7 @@ import { connectToDB } from '@/dbConfig/dbConfig';
 import Ledger from '@/models/Ledger';
 import Account from '@/models/Account';
 
-// Create Ledger Entry
+// Create Ledger Entry for SaleItem
 export async function POST(request) {
   try {
     await connectToDB(); // Connect to the database

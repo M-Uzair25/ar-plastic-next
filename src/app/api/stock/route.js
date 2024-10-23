@@ -14,7 +14,8 @@ export async function GET(request) {
         if (category) query.category = category;
         if (description) query.description = description;
 
-        const stock = await Item.find(query);
+        // Sort by last updated first
+        const stock = await Item.find(query).sort({ updatedAt: -1 });
         return Response.json(stock);
     } catch (error) {
         console.error('Error fetching item stock:', error.message);

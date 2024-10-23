@@ -5,15 +5,38 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
 import Accounts from '@/components/Accounts';
 
-const singleReceivingandPayment = () => {
+const LedgerEntry = () => {
     const [selectedAccount, setSelectedAccount] = useState(null);
     const [description, setDescription] = useState('');
+    const [balance, setBalance] = useState('');
     const [amount, setAmount] = useState('');
     const [paymentType, setPaymentType] = useState('None');
     const [loading, setLoading] = useState(false);
 
     const handleAccountChange = async (selectedOption) => {
         setSelectedAccount(selectedOption);
+
+        if (!selectedOption) {
+            setBalance('');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`/api/accounts?accountName=${selectedOption.value}`);
+            const data = await response.json();
+
+            if (response.ok) {
+                setBalance(data.balance);
+            } else {
+                toast.error(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            toast.error('Error Fetching Balance.');
+            console.error('Error:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -25,7 +48,7 @@ const singleReceivingandPayment = () => {
         }
 
         setLoading(true);
-        const paymentData = {
+        const ledgerData = {
             account: selectedAccount.value,
             description,
             amount: parseInt(amount),
@@ -33,18 +56,18 @@ const singleReceivingandPayment = () => {
         };
 
         try {
-            const response = await fetch('/api/receivingandpayment/singleLedger', {
+            const response = await fetch('/api/ledger/ledgerEntry', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(paymentData),
+                body: JSON.stringify(ledgerData),
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                toast.success('Payment added successfully');
+                toast.success('Ledger Entry added successfully');
                 // Reset form after submission
                 setSelectedAccount(null);
                 setDescription('');
@@ -54,7 +77,7 @@ const singleReceivingandPayment = () => {
                 toast.error(`Error: ${result.message}`);
             }
         } catch (error) {
-            toast.error('Error submitting payment.');
+            toast.error('Error submitting Ledger Entry.');
             console.error('Error:', error);
         } finally {
             setLoading(false);
@@ -67,15 +90,27 @@ const singleReceivingandPayment = () => {
             <Card>
                 <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
                     <i className="me-2"> </i>
-                    Maintain One Ledgers (For Cheques)
+                    Create Ledger Entry
                 </CardTitle>
                 <CardBody>
                     <Form onSubmit={handleSubmit}>
                         <Row>
                             <Col md={6}>
                                 <FormGroup>
-                                    <Label for="account">Account</Label>
+                                    <Label for="account">Account Name</Label>
                                     <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} />
+                                </FormGroup>
+                            </Col>
+                            <Col md={2}>
+                                <FormGroup>
+                                    <Label for="balance">Balance</Label>
+                                    <Input
+                                        style={{ backgroundColor: 'rgb(246, 78, 96)', color: 'white' }}
+                                        id="balance"
+                                        type="number"
+                                        value={balance}
+                                        disabled
+                                    />
                                 </FormGroup>
                             </Col>
                         </Row>
@@ -138,4 +173,4 @@ const singleReceivingandPayment = () => {
     );
 };
 
-export default singleReceivingandPayment;
+export default LedgerEntry;

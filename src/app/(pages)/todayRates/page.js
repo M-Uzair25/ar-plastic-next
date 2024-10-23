@@ -155,6 +155,7 @@ function TodayRates() {
                       <th>Bag Rate (25Kg)</th>
                       <th>Kg Rate</th>
                       <th>Stock</th>
+                      <th>Purchased</th>
                       <th>Edit Rate</th>
                     </tr>
                   </thead>
@@ -173,6 +174,7 @@ function TodayRates() {
                           <span style={{ color: item.kgQuantity > 0 ? 'darkgreen' : 'red', fontWeight: 'bold' }}> {item.kgQuantity} </span>
                           Kg
                         </td>
+                        <td>{item.purchasedRate}</td>
                         <td>
                           <Button color="primary" size="sm" onClick={() => handleEdit(item._id, item.sellRate)}>
                             Edit
