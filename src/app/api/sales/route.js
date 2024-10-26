@@ -7,11 +7,11 @@ import Account from '@/models/Account';
 
 // Helper function to format quantities
 const formatQuantity = (bagQuantity, kgQuantity) => {
-    if (bagQuantity && kgQuantity) {
+    if (bagQuantity > 0 && kgQuantity > 0) {
         return `${bagQuantity} Bag, ${kgQuantity} Kg`;
-    } else if (bagQuantity) {
+    } else if (bagQuantity > 0) {
         return `${bagQuantity} Bag`;
-    } else if (kgQuantity) {
+    } else if (kgQuantity > 0) {
         return `${kgQuantity} Kg`;
     } else {
         return '';
@@ -29,7 +29,7 @@ export async function POST(request) {
             throw new Error('Cart is empty. Please add items to the cart before submitting.');
         }
 
-        // Fetch the account balance and accountType for the customer (party)
+        // Fetch the customer (party) account
         const dbAccount = await Account.findOne({ accountName: saleData.customerName });
         if (!dbAccount) {
             throw new Error('Account not found for the specified customer.');
@@ -55,7 +55,7 @@ export async function POST(request) {
             }
 
             let bagQty = parseInt(item.bagQuantity, 10) || 0;
-            let kgQty = parseInt(item.kgQuantity, 10) || 0;
+            let kgQty = parseFloat(item.kgQuantity).toFixed(3) || 0;
 
             // Adjust bag and kg stocks
             let newBagStock = dbItem.bagQuantity;
@@ -111,10 +111,16 @@ export async function POST(request) {
             }
             currentBalance += item.subTotal;
 
+            let ledgerDescription = `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`;
+
+            if (saleData.remarks) {
+                ledgerDescription = `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}, Remarks: ${saleData.remarks}`;
+            }
+
             // Create a Ledger entry for each sale item
             const newLedgerEntry = new Ledger({
                 party: saleData.customerName,
-                description: `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`,
+                description: ledgerDescription,
                 debit: debit,
                 credit: credit,
                 balance: currentBalance,
@@ -250,7 +256,7 @@ export async function DELETE(request) {
             const dbItem = await Item.findById(saleItem.itemId);  // Fetch the item by its ID
             if (dbItem) {
                 let newBagStock = dbItem.bagQuantity + parseInt(saleItem.bagQuantity, 10);
-                let newKgStock = dbItem.kgQuantity + parseInt(saleItem.kgQuantity, 10);
+                let newKgStock = dbItem.kgQuantity + saleItem.kgQuantity;
 
                 // Update the item with the restored quantities
                 await Item.updateOne(

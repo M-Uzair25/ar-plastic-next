@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Row, Col, Button, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table, Spinner } from 'reactstrap';
+import { Row, Col, Button, Badge, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table, Spinner } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
 import Accounts from '@/components/Accounts';
@@ -10,27 +10,29 @@ import ItemDescription from '@/components/ItemDescription';
 const SaleItem = () => {
   const defaultCustomerName = { value: 'Cash', label: 'Cash' };
   const [selectedName, setSelectedName] = useState(defaultCustomerName);
+  const [balance, setBalance] = useState(0);
+  const [remarks, setRemarks] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
-  const [remarks, setRemarks] = useState('');
+  const [purchasedRate, setPurchasedRate] = useState(0);
   const [bagRate, setBagRate] = useState(0);
   const [perKgRate, setPerKgRate] = useState(0);
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [cashPaid, setCashPaid] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [cashReceived, setCashReceived] = useState('');
+  const [cashPaid, setCashPaid] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [cashReceived, setCashReceived] = useState(0);
   const [cashReturned, setCashReturned] = useState(0);
-  const [bagQuantity, setBagQuantity] = useState('');
-  const [kgQuantity, setKgQuantity] = useState('');
+  const [bagQuantity, setBagQuantity] = useState(0);
+  const [kgQuantity, setKgQuantity] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false); // Add submitting state for form submission
 
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [accountDescription, setAccountDescription] = useState('');
-  const [accountAmount, setAccountAmount] = useState('');
+  const [accountAmount, setAccountAmount] = useState(0);
 
   // Fetch rate and stock data based on category and description
   const fetchRate = useCallback(async () => {
@@ -39,11 +41,14 @@ const SaleItem = () => {
       try {
         const response = await fetch(`/api/items?category=${selectedCategory}&description=${selectedDescription.value}`);
         const data = await response.json();
-        setBagRate(data.rate);
-        setPerKgRate(data.rate / 25);
-        setBagStock(data.bag);
-        setKgStock(data.kg);
-        toast.success('Rate fetched successfully!');
+        setBagRate(data.sellRate);
+        setPurchasedRate(data.purchasedRate);
+        setPerKgRate(data.sellRate / 25);
+        setBagStock(data.bagQuantity);
+        setKgStock(data.kgQuantity);
+        if (data.bagQuantity < data.stockLimit) {
+          toast.info(`Stock running out! Only ${data.bagQuantity} Bags remaining.`);
+        }
       } catch (error) {
         console.error('Error fetching rate:', error);
         toast.error('Error fetching rate.');
@@ -52,6 +57,7 @@ const SaleItem = () => {
       }
     } else {
       setBagRate(0);
+      setPurchasedRate(0)
       setPerKgRate(0);
       setBagStock(0);
       setKgStock(0);
@@ -64,6 +70,32 @@ const SaleItem = () => {
 
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
+
+    if (!selectedOption) {
+      setBalance(0);
+      return;
+    }
+    if (selectedOption.value === 'Cash') {
+      setBalance('');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/accounts?accountName=${selectedOption.value}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setBalance(data.balance);
+      } else {
+        toast.error(`Error: ${data.message}`);
+      }
+    } catch (error) {
+      toast.error('Error Fetching Balance.');
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCategoryChange = (selectedOption) => {
@@ -72,8 +104,8 @@ const SaleItem = () => {
 
   const handleDescriptionChange = (selectedOption) => {
     setSelectedDescription(selectedOption);
-    setBagQuantity('');
-    setKgQuantity('');
+    setBagQuantity(0);
+    setKgQuantity(0);
   };
 
   const handleRemarksChange = (e) => {
@@ -81,13 +113,13 @@ const SaleItem = () => {
   };
 
   const handleRateChange = (e) => {
-    const rate = parseFloat(e.target.value);
+    const rate = parseInt(e.target.value);
     setPerKgRate(rate / 25);
     setBagRate(rate);
   };
 
   const handlePerKgRateChange = (e) => {
-    const rate = parseFloat(e.target.value);
+    const rate = parseInt(e.target.value);
     setBagRate(rate * 25);
     setPerKgRate(rate);
   };
@@ -102,7 +134,7 @@ const SaleItem = () => {
 
   const handleAddToCart = () => {
     const bagQty = parseInt(bagQuantity) || 0;
-    const kgQty = parseInt(kgQuantity) || 0;
+    const kgQty = parseFloat(kgQuantity).toFixed(3) || 0;
 
     if (!selectedName) {
       toast.error("Please Select Customer Name");
@@ -112,17 +144,17 @@ const SaleItem = () => {
       toast.error("Please Select Item");
       return;
     }
-    else if (bagQty === 0 && kgQty === 0) {
+    else if (bagQty == 0 && kgQty == 0) {
       toast.error("Please enter a valid quantity (Bag or Kg) for the item.");
       return;
     }
     else if (bagQty > bagStock) {
-      setBagQuantity('');
+      setBagQuantity(0);
       toast.error("Bag stock is not enough.");
       return;
     }
     else if (bagStock === 0 && kgQty > kgStock) {
-      setKgQuantity('');
+      setKgQuantity(0);
       toast.error("Kg quantity is invalid | Not enough quantity in stock.");
       return;
     }
@@ -134,13 +166,13 @@ const SaleItem = () => {
       perKgRate: perKgRate,
       bagQuantity: bagQty,
       kgQuantity: kgQty,
-      subTotal: (bagRate * bagQty) + (perKgRate * kgQty),
+      subTotal: parseInt((bagRate * bagQty) + (perKgRate * kgQty)),
     };
 
     setCartItems((prevItems) => [...prevItems, newItem]);
     setSelectedDescription(null);
-    setBagQuantity('');
-    setKgQuantity('');
+    setBagQuantity(0);
+    setKgQuantity(0);
     toast.success("Item added to cart!");
   };
 
@@ -150,18 +182,19 @@ const SaleItem = () => {
 
   const handleDiscountChange = (e) => {
     setDiscount(e.target.value);
+    setCashPaid(total - e.target.value);
   };
 
   const handleCashReceivedChange = (e) => {
-    const received = parseFloat(e.target.value);
-    setCashReceived(received);
-    setCashReturned(received - total);
+    setCashReceived(e.target.value);
+    setCashReturned(e.target.value - total);
   };
 
   // Recalculate the total whenever the cartItems change
   useEffect(() => {
     const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
     setTotal(newTotal);
+    setCashPaid(newTotal);
   }, [cartItems]);
 
   const displayCartItems = useMemo(() => (
@@ -196,8 +229,8 @@ const SaleItem = () => {
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
-                setCashPaid('');
-                setCashReceived('');
+                setCashPaid(0);
+                setCashReceived(0);
                 setCashReturned(0);
                 toast.info("Item removed from cart");
               }}>
@@ -224,17 +257,14 @@ const SaleItem = () => {
 
     setSubmitting(true);
 
-    // Set cashPaid to total if it's empty
-    const finalCashPaid = cashPaid === '' ? total - discount : cashPaid;
-
     const saleData = {
       customerName: selectedName.value,
       remarks,
       cartItems,
       total,
-      cashPaid: finalCashPaid,
+      cashPaid,
       selectedAccount: selectedAccount ? selectedAccount.value : '',
-      accountAmount: accountAmount ? accountAmount : 0,
+      accountAmount,
     };
 
     try {
@@ -252,9 +282,9 @@ const SaleItem = () => {
         toast.success('Sale submitted successfully');
         setCartItems([]);
         setSelectedName(defaultCustomerName);
-        setCashPaid('');
-        setDiscount('');
-        setCashReceived('');
+        setCashPaid(0);
+        setDiscount(0);
+        setCashReceived(0);
         setCashReturned(0);
         setRemarks('');
       } else {
@@ -279,12 +309,16 @@ const SaleItem = () => {
       toast.error("Please Select Account");
       return;
     }
-    else if (!accountAmount || accountAmount.length === 0) {
+    if (!accountAmount) {
       toast.error("Please enter credit amount.");
       return;
     }
-    else if (!cartItems || cartItems.length === 0) {
+    if (!cartItems || cartItems.length === 0) {
       toast.error("Cart is empty. Please add items to the cart before submitting.");
+      return;
+    }
+    if (selectedName.value === selectedAccount.value) {
+      toast.error('Customer and Account name cannot be same.');
       return;
     }
 
@@ -318,7 +352,7 @@ const SaleItem = () => {
         toast.success('Account payment submitted successfully');
         setSelectedAccount(null);
         setAccountDescription('');
-        setAccountAmount('');
+        setAccountAmount(0);
       } else {
         toast.error(`Error submitting account payment: ${result.message}`);
       }
@@ -332,7 +366,7 @@ const SaleItem = () => {
 
   return (
     <>
-      <ToastContainer />
+      <ToastContainer newestOnTop />
       <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
         Sale Item
       </CardTitle>
@@ -343,13 +377,14 @@ const SaleItem = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
+                  <Badge color="primary" className='mx-4'> Balance  = {balance} Rs</Badge>
                   <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
                 </FormGroup>
               </Col>
               <Col md={5}>
                 <FormGroup>
                   <Label for="remarks">Remarks</Label>
-                  <Input id="remarks" name="remarks" value={remarks} onChange={handleRemarksChange} />
+                  <Input id="remarks" name="remarks" type="textarea" bsSize="sm" style={{ height: "38px" }} value={remarks} onChange={handleRemarksChange} />
                 </FormGroup>
               </Col>
             </Row>
@@ -363,14 +398,18 @@ const SaleItem = () => {
               <Col md={3}>
                 <FormGroup>
                   <Label for="description">Description</Label>
+                  <Badge className='mx-1 text-dark' color="light">(Purchased @ {purchasedRate} Rs)</Badge>
                   <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="rate">Bag Rate</Label>
-                  <span> </span>
-                  <i className="bi bi-arrow-clockwise" onClick={fetchRate} style={{ cursor: 'pointer' }}></i>
+                  {loading ?
+                    <Spinner color="primary" size="sm" className='mx-2' />
+                    :
+                    <i className="bi bi-arrow-clockwise mx-2" onClick={fetchRate} role="button"></i>
+                  }
                   <Input id="rate" name="rate" type="number" min="0" value={bagRate} onChange={handleRateChange} />
                 </FormGroup>
               </Col>
@@ -380,16 +419,18 @@ const SaleItem = () => {
                   <Input id="perKgRate" name="perKgRate" type="number" min="0" value={perKgRate} onChange={handlePerKgRateChange} />
                 </FormGroup>
               </Col>
+            </Row>
+            <Row>
               <Col md={2}>
                 <FormGroup>
                   <Label for="bagQuantity">Bags</Label>
-                  <Input id="bagQuantity" name="bagQuantity" placeholder={`Stock: ${bagStock}`} type="number" min="0" value={bagQuantity} onChange={handleBagQuantityChange} />
+                  <Input id="bagQuantity" name="bagQuantity" placeholder={`Stock: ${bagStock}`} type="number" min="0" value={bagQuantity === 0 ? '' : bagQuantity} onChange={handleBagQuantityChange} onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" placeholder={`Stock: ${kgStock}`} type="number" min="0" value={kgQuantity} onChange={handleKgQuantityChange} />
+                  <Input id="kgQuantity" name="kgQuantity" step="0.001" placeholder={`Stock: ${kgStock}`} type="number" min="0" value={kgQuantity === 0 ? '' : kgQuantity} onChange={handleKgQuantityChange} onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -411,7 +452,7 @@ const SaleItem = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="cashPaid">Cash Paid</Label>
-                  <Input id="cashPaid" name="cashPaid" type="number" min="0" value={cashPaid} onChange={handleCashPaidChange} />
+                  <Input id="cashPaid" name="cashPaid" type="number" min="0" value={cashPaid} onChange={handleCashPaidChange} onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col>
@@ -424,13 +465,13 @@ const SaleItem = () => {
               <Col md={1}>
                 <FormGroup>
                   <Label for="discount">Discount</Label>
-                  <Input id="discount" name="discount" placeholder='0' type="number" min="0" value={discount} onChange={handleDiscountChange} />
+                  <Input id="discount" name="discount" type="number" min="0" value={discount === 0 ? '' : discount} onChange={handleDiscountChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="cashReceived">Cash Received</Label>
-                  <Input id="cashReceived" name="cashReceived" type="number" min="0" value={cashReceived} onChange={handleCashReceivedChange} />
+                  <Input id="cashReceived" name="cashReceived" type="number" min="0" value={cashReceived === 0 ? '' : cashReceived} onChange={handleCashReceivedChange} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -462,14 +503,14 @@ const SaleItem = () => {
               </Col>
               <Col md={4}>
                 <FormGroup>
-                  <Label for="accountDescription">Description</Label>
-                  <Input id="accountDescription" name="accountDescription" value={accountDescription} onChange={(e) => setAccountDescription(e.target.value)} />
+                  <Label for="accountDescription">Narration</Label>
+                  <Input id="accountDescription" name="accountDescription" type="textarea" bsSize="sm" style={{ height: "38px" }} value={accountDescription} onChange={(e) => setAccountDescription(e.target.value)} />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="accountAmount">Amount Credit</Label>
-                  <Input id="accountAmount" name="accountAmount" type="number" min="0" value={accountAmount} onChange={(e) => setAccountAmount(e.target.value)} />
+                  <Input id="accountAmount" name="accountAmount" type="number" min="0" value={accountAmount === 0 ? '' : accountAmount} onChange={(e) => setAccountAmount(e.target.value)} onClick={(e) => e.target.select()} />
                 </FormGroup>
               </Col>
               <Col>

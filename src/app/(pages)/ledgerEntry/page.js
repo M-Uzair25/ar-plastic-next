@@ -123,6 +123,7 @@ const LedgerEntry = () => {
                                         name="description"
                                         placeholder="Description"
                                         type="textarea"
+                                        bsSize="sm"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                     />

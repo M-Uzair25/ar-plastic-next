@@ -57,7 +57,7 @@ export async function GET(request) {
       return Response.json({ message: 'Item not found' }, { status: 404 });
     }
 
-    return Response.json({ rate: item.sellRate, bag: item.bagQuantity, kg: item.kgQuantity });
+    return Response.json(item);
   } catch (error) {
     console.error('Error fetching item rate:', error.message);
     return Response.json({ message: 'Error fetching item rate' }, { status: 500 });
