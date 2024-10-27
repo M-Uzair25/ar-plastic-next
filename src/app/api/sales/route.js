@@ -37,10 +37,24 @@ export async function POST(request) {
 
         let currentBalance = dbAccount.balance; // Start with the current balance
 
+        let newRemarks = saleData.remarks;
+        if (saleData.selectedAccount) {
+            const otherAccount = await Account.findOne({ accountName: saleData.selectedAccount });
+            if (otherAccount.accountType === 'myAccount') {
+                if (saleData.remarks)
+                    newRemarks = `${saleData.remarks}, (Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount})`;
+                else
+                    newRemarks = `Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`;
+            }
+            else if (saleData.selectedAccount && !saleData.remarks) {
+                newRemarks = `Account Transfer: ${saleData.accountAmount}`;
+            }
+        }
+
         // Save Sale data
         const newSale = new Sale({
             customerName: saleData.customerName,
-            remarks: saleData.remarks,
+            remarks: newRemarks,
             total: saleData.total,
             cashPaid: saleData.cashPaid,
         });

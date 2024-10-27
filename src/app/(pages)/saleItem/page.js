@@ -1,6 +1,9 @@
 'use client'
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Row, Col, Button, Badge, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table, Spinner } from 'reactstrap';
+import {
+  Row, Col, Button, Badge, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table, Spinner,
+  Modal, ModalHeader, ModalBody, ModalFooter
+} from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
 import Accounts from '@/components/Accounts';
@@ -34,6 +37,23 @@ const SaleItem = () => {
   const [accountDescription, setAccountDescription] = useState('');
   const [accountAmount, setAccountAmount] = useState(0);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [amountAvailable, setAmountAvailable] = useState('');
+  const [kgQuantityAvailable, setKgQuantityAvailable] = useState(null);
+
+  const toggleModal = () => setIsModalOpen(!isModalOpen);
+
+  const handleCalculate = () => {
+    const amountAvailableValue = parseFloat(amountAvailable);
+
+    if (perKgRate > 0 && amountAvailableValue >= 0) {
+      const calculatedKgQuantity = amountAvailableValue / perKgRate;
+      setKgQuantityAvailable(parseFloat(calculatedKgQuantity).toFixed(3));
+    } else {
+      setKgQuantityAvailable('Invalid input');
+    }
+  };
+
   // Fetch rate and stock data based on category and description
   const fetchRate = useCallback(async () => {
     if (selectedCategory && selectedDescription) {
@@ -57,7 +77,7 @@ const SaleItem = () => {
       }
     } else {
       setBagRate(0);
-      setPurchasedRate(0)
+      setPurchasedRate(0);
       setPerKgRate(0);
       setBagStock(0);
       setKgStock(0);
@@ -139,21 +159,17 @@ const SaleItem = () => {
     if (!selectedName) {
       toast.error("Please Select Customer Name");
       return;
-    }
-    else if (!selectedCategory || !selectedDescription) {
+    } else if (!selectedCategory || !selectedDescription) {
       toast.error("Please Select Item");
       return;
-    }
-    else if (bagQty == 0 && kgQty == 0) {
+    } else if (bagQty == 0 && kgQty == 0) {
       toast.error("Please enter a valid quantity (Bag or Kg) for the item.");
       return;
-    }
-    else if (bagQty > bagStock) {
+    } else if (bagQty > bagStock) {
       setBagQuantity(0);
       toast.error("Bag stock is not enough.");
       return;
-    }
-    else if (bagStock === 0 && kgQty > kgStock) {
+    } else if (bagStock === 0 && kgQty > kgStock) {
       setKgQuantity(0);
       toast.error("Kg quantity is invalid | Not enough quantity in stock.");
       return;
@@ -194,14 +210,17 @@ const SaleItem = () => {
   useEffect(() => {
     const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
     setTotal(newTotal);
-    setCashPaid(newTotal);
+    if (selectedName.value === 'Cash')
+      setCashPaid(newTotal);
   }, [cartItems]);
 
   const displayCartItems = useMemo(() => (
     <Table bordered hover className="table-primary">
       <thead>
         <tr>
-          <th colSpan="7" className="table-dark text-center">{selectedName?.label ? selectedName.label : 'No Account Selected'}</th>
+          <th colSpan="7" className="table-dark text-center">
+            {selectedName?.label ? selectedName.label : 'No Account Selected'}
+          </th>
         </tr>
         <tr>
           <th>Sr.</th>
@@ -250,7 +269,7 @@ const SaleItem = () => {
       toast.error("Please Select Customer Name");
       return;
     }
-    else if (!cartItems || cartItems.length === 0) {
+    if (!cartItems || cartItems.length === 0) {
       toast.error("Cart is empty. Please add items to the cart before submitting.");
       return;
     }
@@ -273,7 +292,7 @@ const SaleItem = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(saleData)
+        body: JSON.stringify(saleData),
       });
 
       const result = await response.json();
@@ -343,7 +362,7 @@ const SaleItem = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(paymentData)
+        body: JSON.stringify(paymentData),
       });
 
       const result = await response.json();
@@ -384,7 +403,15 @@ const SaleItem = () => {
               <Col md={5}>
                 <FormGroup>
                   <Label for="remarks">Remarks</Label>
-                  <Input id="remarks" name="remarks" type="textarea" bsSize="sm" style={{ height: "38px" }} value={remarks} onChange={handleRemarksChange} />
+                  <Input
+                    id="remarks"
+                    name="remarks"
+                    type="textarea"
+                    bsSize="sm"
+                    style={{ height: "38px" }}
+                    value={remarks}
+                    onChange={handleRemarksChange}
+                  />
                 </FormGroup>
               </Col>
             </Row>
@@ -410,27 +437,67 @@ const SaleItem = () => {
                     :
                     <i className="bi bi-arrow-clockwise mx-2" onClick={fetchRate} role="button"></i>
                   }
-                  <Input id="rate" name="rate" type="number" min="0" value={bagRate} onChange={handleRateChange} />
+                  <Input
+                    id="rate"
+                    name="rate"
+                    type="number"
+                    min="0"
+                    value={bagRate}
+                    onChange={handleRateChange}
+                    onClick={(e) => e.target.select()}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="perKgRate">Kg Rate</Label>
-                  <Input id="perKgRate" name="perKgRate" type="number" min="0" value={perKgRate} onChange={handlePerKgRateChange} />
+                  <Input
+                    id="perKgRate"
+                    name="perKgRate"
+                    type="number"
+                    min="0"
+                    value={perKgRate}
+                    onChange={handlePerKgRateChange}
+                    onClick={(e) => e.target.select()}
+                  />
                 </FormGroup>
+              </Col>
+              <Col className='text-end'>
+                <Button color="dark" size="sm" style={{ marginTop: '32px' }} onClick={toggleModal}>
+                  Calculator
+                </Button>
               </Col>
             </Row>
             <Row>
               <Col md={2}>
                 <FormGroup>
                   <Label for="bagQuantity">Bags</Label>
-                  <Input id="bagQuantity" name="bagQuantity" placeholder={`Stock: ${bagStock}`} type="number" min="0" value={bagQuantity === 0 ? '' : bagQuantity} onChange={handleBagQuantityChange} onClick={(e) => e.target.select()} />
+                  <Input
+                    id="bagQuantity"
+                    name="bagQuantity"
+                    placeholder={`Stock: ${bagStock}`}
+                    type="number"
+                    min="0"
+                    value={bagQuantity === 0 ? '' : bagQuantity}
+                    onChange={handleBagQuantityChange}
+                    onClick={(e) => e.target.select()}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" step="0.001" placeholder={`Stock: ${kgStock}`} type="number" min="0" value={kgQuantity === 0 ? '' : kgQuantity} onChange={handleKgQuantityChange} onClick={(e) => e.target.select()} />
+                  <Input
+                    id="kgQuantity"
+                    name="kgQuantity"
+                    step="0.001"
+                    placeholder={`Stock: ${kgStock}`}
+                    type="number"
+                    min="0"
+                    value={kgQuantity === 0 ? '' : kgQuantity}
+                    onChange={handleKgQuantityChange}
+                    onClick={(e) => e.target.select()}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -445,14 +512,31 @@ const SaleItem = () => {
             <Row>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="total"><strong>Total</strong></Label>
-                  <Input className="bg-danger text-white" id="total" name="total" type="text" disabled value={total} />
+                  <Label for="total">
+                    <strong>Total</strong>
+                  </Label>
+                  <Input
+                    className="bg-danger text-white"
+                    id="total"
+                    name="total"
+                    type="text"
+                    disabled
+                    value={total}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="cashPaid">Cash Paid</Label>
-                  <Input id="cashPaid" name="cashPaid" type="number" min="0" value={cashPaid} onChange={handleCashPaidChange} onClick={(e) => e.target.select()} />
+                  <Input
+                    id="cashPaid"
+                    name="cashPaid"
+                    type="number"
+                    min="0"
+                    value={cashPaid}
+                    onChange={handleCashPaidChange}
+                    onClick={(e) => e.target.select()}
+                  />
                 </FormGroup>
               </Col>
               <Col>
@@ -465,24 +549,41 @@ const SaleItem = () => {
               <Col md={1}>
                 <FormGroup>
                   <Label for="discount">Discount</Label>
-                  <Input id="discount" name="discount" type="number" min="0" value={discount === 0 ? '' : discount} onChange={handleDiscountChange} />
+                  <Input
+                    id="discount"
+                    name="discount"
+                    type="number"
+                    min="0"
+                    value={discount === 0 ? '' : discount}
+                    onChange={handleDiscountChange}
+                    disabled={!cashPaid}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="cashReceived">Cash Received</Label>
-                  <Input id="cashReceived" name="cashReceived" type="number" min="0" value={cashReceived === 0 ? '' : cashReceived} onChange={handleCashReceivedChange} />
+                  <Input
+                    id="cashReceived"
+                    name="cashReceived"
+                    type="number"
+                    min="0"
+                    value={cashReceived === 0 ? '' : cashReceived}
+                    onChange={handleCashReceivedChange}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="cashReturned">Cash Returned</Label>
                   <Input
-                    style={{
-                      backgroundColor: cashReturned < 0 ? 'rgb(246 78 96)' : '#47bc47',
-                      color: 'white'
-                    }}
-                    id="cashReturned" name="cashReturned" type="number" disabled value={cashReturned} />
+                    style={{ backgroundColor: cashReturned < 0 ? 'rgb(246 78 96)' : '#47bc47', color: 'white' }}
+                    id="cashReturned"
+                    name="cashReturned"
+                    type="number"
+                    disabled
+                    value={cashReturned}
+                  />
                 </FormGroup>
               </Col>
             </Row>
@@ -504,13 +605,29 @@ const SaleItem = () => {
               <Col md={4}>
                 <FormGroup>
                   <Label for="accountDescription">Narration</Label>
-                  <Input id="accountDescription" name="accountDescription" type="textarea" bsSize="sm" style={{ height: "38px" }} value={accountDescription} onChange={(e) => setAccountDescription(e.target.value)} />
+                  <Input
+                    id="accountDescription"
+                    name="accountDescription"
+                    type="textarea"
+                    bsSize="sm"
+                    style={{ height: "38px" }}
+                    value={accountDescription}
+                    onChange={(e) => setAccountDescription(e.target.value)}
+                  />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="accountAmount">Amount Credit</Label>
-                  <Input id="accountAmount" name="accountAmount" type="number" min="0" value={accountAmount === 0 ? '' : accountAmount} onChange={(e) => setAccountAmount(e.target.value)} onClick={(e) => e.target.select()} />
+                  <Input
+                    id="accountAmount"
+                    name="accountAmount"
+                    type="number"
+                    min="0"
+                    value={accountAmount === 0 ? '' : accountAmount}
+                    onChange={(e) => setAccountAmount(e.target.value)}
+                    onClick={(e) => e.target.select()}
+                  />
                 </FormGroup>
               </Col>
               <Col>
@@ -522,6 +639,51 @@ const SaleItem = () => {
               </Col>
             </Row>
           </Form>
+
+          <Modal isOpen={isModalOpen} toggle={toggleModal}>
+            <ModalHeader toggle={toggleModal}>
+              Calculate Kg Quantity For Amount
+            </ModalHeader>
+
+            <ModalBody>
+              <Form>
+                <FormGroup>
+                  <Label for="perKgRate">Kg Rate</Label>
+                  <Input
+                    id="perKgRate"
+                    name="perKgRate"
+                    type="number"
+                    min="0"
+                    value={perKgRate}
+                    onChange={handlePerKgRateChange}
+                    onClick={(e) => e.target.select()}
+                  />
+                </FormGroup>
+                <FormGroup>
+                  <Label for="amountAvailable">Amount Available</Label>
+                  <Input
+                    type="number"
+                    id="amountAvailable"
+                    value={amountAvailable}
+                    onChange={(e) => setAmountAvailable(e.target.value)}
+                    placeholder="Enter amount available"
+                  />
+                </FormGroup>
+                {kgQuantityAvailable !== null && (
+                  <Label>Kg Quantity: {kgQuantityAvailable}</Label>
+                )}
+              </Form>
+            </ModalBody>
+
+            <ModalFooter>
+              <Button color="primary" onClick={handleCalculate}>
+                Calculate
+              </Button>
+              <Button color="secondary" onClick={toggleModal}>
+                Close
+              </Button>
+            </ModalFooter>
+          </Modal>
         </CardBody>
       </Card>
     </>
