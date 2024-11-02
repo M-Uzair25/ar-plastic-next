@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Row, Col, Card, CardBody, CardTitle, Button, Form, FormGroup, Label, Input, Spinner } from 'reactstrap';
 import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
@@ -31,7 +31,7 @@ const Purchase = () => {
     setSelectedDescription(selectedOption);
   };
 
-  const calculateRates = (rateType, value) => {
+  const calculateRates = useCallback((rateType, value) => {
     let newPoundRate = poundRate;
     let newBagRate = bagRate;
     let newPerKgRate = perKgRate;
@@ -53,17 +53,17 @@ const Purchase = () => {
     setPoundRate(newPoundRate);
     setBagRate(newBagRate);
     setPerKgRate(newPerKgRate);
-  };
+  }, []);
 
   const handlePoundRateChange = (e) => calculateRates('pound', parseFloat(e.target.value));
   const handleBagRateChange = (e) => calculateRates('bag', parseFloat(e.target.value));
   const handlePerKgRateChange = (e) => calculateRates('kg', parseFloat(e.target.value));
 
-  const calculateTotal = () => {
+  const calculateTotal = useMemo(() => {
     const bagTotal = bagQuantity * bagRate;
     const kgTotal = kgQuantity * perKgRate;
     return parseInt(bagTotal + kgTotal);
-  };
+  }, [bagQuantity, kgQuantity, poundRate, bagRate, perKgRate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,9 +81,9 @@ const Purchase = () => {
       bagQuantity: parseInt(bagQuantity) || 0,
       kgQuantity: kgQuantity || 0,
       poundRate: parseFloat(poundRate).toFixed(2) || 0,
-      bagRate: parseFloat(bagRate).toFixed(2) || 0,
+      bagRate: parseInt(bagRate) || 0,
       perKgRate: parseFloat(perKgRate).toFixed(2) || 0,
-      total: calculateTotal(),
+      total: calculateTotal,
     };
 
     setIsLoading(true); // Set loading to true when submitting
@@ -154,7 +154,7 @@ const Purchase = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.01" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
+                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
                 </FormGroup>
               </Col>
               <Col md={2}>
@@ -192,7 +192,7 @@ const Purchase = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="total"><strong>Total Amount</strong></Label>
-                  <Input className="bg-success text-white" id="total" name="total" type="text" value={calculateTotal()} readOnly />
+                  <Input className="bg-success text-white" id="total" name="total" type="text" value={calculateTotal} readOnly />
                 </FormGroup>
               </Col>
             </Row>

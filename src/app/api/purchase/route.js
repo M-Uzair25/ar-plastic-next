@@ -6,11 +6,11 @@ import Account from '@/models/Account';
 
 // Helper function to format quantities
 const formatQuantity = (bagQuantity, kgQuantity) => {
-    if (bagQuantity && kgQuantity) {
+    if (bagQuantity > 0 && kgQuantity > 0) {
         return `${bagQuantity} Bag, ${kgQuantity} Kg`;
-    } else if (bagQuantity) {
+    } else if (bagQuantity > 0) {
         return `${bagQuantity} Bag`;
-    } else if (kgQuantity) {
+    } else if (kgQuantity > 0) {
         return `${kgQuantity} Kg`;
     } else {
         return '';
@@ -35,11 +35,11 @@ export async function POST(request) {
             category,
             description,
             bagQuantity: parseInt(bagQuantity, 10) || 0, // Ensures number with base 10
-            kgQuantity: parseFloat(kgQuantity) || 0,
-            poundRate: parseFloat(poundRate) || 0,
-            bagRate: parseFloat(bagRate) || 0,
-            perKgRate: parseFloat(perKgRate) || 0,
-            total: parseFloat(total).toFixed(2),
+            kgQuantity: parseFloat(kgQuantity).toFixed(3) || 0,
+            poundRate: parseFloat(poundRate).toFixed(2) || 0,
+            bagRate: parseInt(bagRate) || 0,
+            perKgRate: parseFloat(perKgRate).toFixed(2) || 0,
+            total: parseInt(total),
         });
 
         await newPurchase.save();
