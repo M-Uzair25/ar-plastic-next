@@ -37,7 +37,7 @@ export async function POST(request) {
 }
 
 // Get Bookings
-export async function GET(request) {
+export async function GET() {
     try {
         await connectToDB();
 
@@ -47,5 +47,27 @@ export async function GET(request) {
     } catch (error) {
         console.error('Error fetching bookings:', error.message);
         return Response.json({ message: 'Error fetching bookings' }, { status: 500 });
+    }
+}
+
+// Delete booking by ID
+export async function DELETE(request) {
+    await connectToDB();
+
+    try {
+        // Get the booking ID from the request URL
+        const searchParams = request.nextUrl.searchParams;
+        const id = searchParams.get('id');
+
+        // Check if the booking exists and delete it
+        const deletedBooking = await Booking.findByIdAndDelete(id);
+        if (!deletedBooking) {
+            return Response.json({ message: 'Booking not found' }, { status: 404 });
+        }
+
+        return Response.json({ message: 'Booking deleted successfully' }, { status: 200 });
+    } catch (error) {
+        console.error('Error deleting booking:', error.message);
+        return Response.json({ message: 'Error deleting booking' }, { status: 500 });
     }
 }

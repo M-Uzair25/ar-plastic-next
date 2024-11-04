@@ -24,7 +24,7 @@ const Purchase = () => {
   };
 
   const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption ? selectedOption.value : null);
+    setSelectedCategory(selectedOption);
   };
 
   const handleDescriptionChange = (selectedOption) => {
@@ -76,7 +76,7 @@ const Purchase = () => {
     const purchaseData = {
       supplierName: selectedName.value,
       remarks,
-      category: selectedCategory,
+      category: selectedCategory.value,
       description: selectedDescription.value,
       bagQuantity: parseInt(bagQuantity) || 0,
       kgQuantity: kgQuantity || 0,

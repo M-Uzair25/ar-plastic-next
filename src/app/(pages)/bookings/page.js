@@ -22,12 +22,18 @@ const Bookings = () => {
   const [poundRate, setPoundRate] = useState('');
   const [bagRate, setBagRate] = useState('');
   const [perKgRate, setPerKgRate] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state
-
+  const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const toggleModal = () => setIsModalOpen(!isModalOpen);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [bookingToDelete, setBookingToDelete] = useState(null);
 
-  // Fetch bookings data
+  // Modal toggling functions
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+    if (isModalOpen) resetForm();  // Reset form on modal close
+  };
+  const toggleConfirmModal = () => setIsConfirmModalOpen(!isConfirmModalOpen);
+
   const fetchBookings = async () => {
     setLoading(true);
     try {
@@ -42,18 +48,6 @@ const Bookings = () => {
     }
   };
 
-  const formatQuantity = (bagQuantity, kgQuantity) => {
-    if (bagQuantity > 0 && kgQuantity > 0) {
-      return `${bagQuantity} Bag, ${kgQuantity} Kg`;
-    } else if (bagQuantity > 0) {
-      return `${bagQuantity} Bag`;
-    } else if (kgQuantity > 0) {
-      return `${kgQuantity} Kg`;
-    } else {
-      return '';
-    }
-  };
-
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -63,12 +57,16 @@ const Bookings = () => {
   };
 
   const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption ? selectedOption.value : null);
+    setSelectedCategory(selectedOption);
   };
 
   const handleDescriptionChange = (selectedOption) => {
     setSelectedDescription(selectedOption);
   };
+
+  const handlePoundRateChange = (e) => calculateRates('pound', parseFloat(e.target.value));
+  const handleBagRateChange = (e) => calculateRates('bag', parseFloat(e.target.value));
+  const handlePerKgRateChange = (e) => calculateRates('kg', parseFloat(e.target.value));
 
   const calculateRates = useCallback((rateType, value) => {
     let newPoundRate = poundRate;
@@ -92,11 +90,7 @@ const Bookings = () => {
     setPoundRate(newPoundRate);
     setBagRate(newBagRate);
     setPerKgRate(newPerKgRate);
-  }, []);
-
-  const handlePoundRateChange = (e) => calculateRates('pound', parseFloat(e.target.value));
-  const handleBagRateChange = (e) => calculateRates('bag', parseFloat(e.target.value));
-  const handlePerKgRateChange = (e) => calculateRates('kg', parseFloat(e.target.value));
+  }, [poundRate, bagRate, perKgRate]);
 
   const calculateTotal = useMemo(() => {
     const bagTotal = bagQuantity * bagRate;
@@ -115,7 +109,7 @@ const Bookings = () => {
     const bookingData = {
       supplierName: selectedName.value,
       remarks,
-      category: selectedCategory,
+      category: selectedCategory.value,
       description: selectedDescription.value,
       bagQuantity: parseInt(bagQuantity) || 0,
       kgQuantity: kgQuantity || 0,
@@ -125,14 +119,12 @@ const Bookings = () => {
       total: calculateTotal
     };
 
-    setLoading(true); // Set loading to true when submitting
+    setLoading(true);
 
     try {
       const response = await fetch('/api/bookings', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bookingData),
       });
 
@@ -141,25 +133,108 @@ const Bookings = () => {
         toast.success('Booking created successfully');
         toggleModal();
         fetchBookings();
-        // Reset the form
-        setSelectedName(null);
-        setRemarks('');
-        setSelectedCategory(null);
-        setSelectedDescription(null);
-        setBagQuantity('');
-        setKgQuantity('');
-        setPoundRate('');
-        setBagRate('');
-        setPerKgRate('');
+        resetForm();
       } else {
         toast.error(`Error creating booking: ${result.message}`);
       }
     } catch (error) {
       toast.error(`Error creating booking: ${error.message}`);
     } finally {
-      setLoading(false); // Set loading to false when request finishes
+      setLoading(false);
     }
   };
+
+  // Handler to mark booking as received (creates purchase and deletes booking)
+  const handleReceived = async (booking) => {
+    setLoading(true);
+    try {
+      // Send booking data to purchase API
+      const response = await fetch('/api/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          supplierName: booking.supplierName,
+          remarks: booking.remarks,
+          category: booking.category,
+          description: booking.description,
+          bagQuantity: booking.bagQuantity,
+          kgQuantity: booking.kgQuantity,
+          poundRate: booking.poundRate,
+          bagRate: booking.bagRate,
+          perKgRate: booking.perKgRate,
+          total: booking.total
+        }),
+      });
+
+      if (response.ok) {
+        // Delete booking after purchase is created
+        const deleteBooking = await fetch(`/api/bookings/?id=${booking._id}`, { method: 'DELETE' });
+        if (deleteBooking.ok) {
+          toast.success('Booking received successfully');
+          fetchBookings();
+        } else {
+          const errorData = await deleteBooking.json();
+          toast.error(`Error deleting booking: ${errorData.message}`);
+        }
+      } else {
+        const errorData = await response.json();
+        toast.error(`Error creating purchase: ${errorData.message}`);
+      }
+    } catch (error) {
+      toast.error(`Error processing booking: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (booking) => {
+    setBookingToDelete(booking);
+    toggleConfirmModal();
+  };
+
+  const handleDeleteConfirm = async (id) => {
+    try {
+      const response = await fetch(`/api/bookings/?id=${id}`, { method: 'DELETE' });
+      if (response.ok) {
+        toast.success('Booking deleted successfully');
+        fetchBookings();
+      } else {
+        const errorData = await response.json();
+        toast.error(`Error deleting booking: ${errorData.message}`);
+      }
+    } catch (error) {
+      toast.error(`Error deleting booking: ${error.message}`);
+    } finally {
+      toggleConfirmModal();
+    }
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setSelectedName(null);
+    setRemarks('');
+    setSelectedCategory(null);
+    setSelectedDescription(null);
+    setBagQuantity('');
+    setKgQuantity('');
+    setPoundRate('');
+    setBagRate('');
+    setPerKgRate('');
+  };
+
+  // Display Formatted Quantities
+  const formatQuantity = (bagQuantity, kgQuantity) => {
+    if (bagQuantity > 0 && kgQuantity > 0) {
+      return `${bagQuantity} Bag, ${kgQuantity} Kg`;
+    } else if (bagQuantity > 0) {
+      return `${bagQuantity} Bag`;
+    } else if (kgQuantity > 0) {
+      return `${kgQuantity} Kg`;
+    } else {
+      return '';
+    }
+  };
+
   return (
     <>
       <ToastContainer newestOnTop />
@@ -168,13 +243,9 @@ const Bookings = () => {
       </CardTitle>
       <Card>
         <CardBody>
-          <Button color="dark" className="mb-4" onClick={toggleModal}>
-            Create New Booking
-          </Button>
+          <Button color="dark" className="mb-4" onClick={toggleModal}>Create New Booking</Button>
           <Modal isOpen={isModalOpen} toggle={toggleModal} size='xl'>
-            <ModalHeader toggle={toggleModal}>
-              Create New Booking
-            </ModalHeader>
+            <ModalHeader toggle={toggleModal}>Create New Booking</ModalHeader>
             <ModalBody>
               <Form onSubmit={handleSubmit}>
                 <Row>
@@ -256,7 +327,35 @@ const Bookings = () => {
             </ModalFooter>
           </Modal>
 
-          {/* Stock Table */}
+          <Modal isOpen={isConfirmModalOpen} toggle={toggleConfirmModal}>
+            <ModalHeader toggle={toggleConfirmModal}>
+              Confirm Deletion
+            </ModalHeader>
+            <ModalBody>
+              {bookingToDelete && (
+                <>
+                  <p><strong>Supplier:</strong> {bookingToDelete.supplierName}</p>
+                  <p>
+                    <strong>Items:</strong> {formatQuantity(bookingToDelete.bagQuantity, bookingToDelete.kgQuantity)} {bookingToDelete.description}
+                  </p>
+                  <p>
+                    <strong>Total Amount:</strong> {bookingToDelete.total}
+                  </p>
+                  <p>Are you sure you want to delete this booking?</p>
+                </>
+              )}
+            </ModalBody>
+            <ModalFooter>
+              <Button color="danger" onClick={() => handleDeleteConfirm(bookingToDelete._id)}>
+                Delete
+              </Button>
+              <Button color="secondary" onClick={toggleConfirmModal}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </Modal>
+
+          {/* Booking Data Table */}
           {loading ? (
             <div className="text-center">
               <Spinner color="primary" /> {/* Loading spinner */}
@@ -291,9 +390,9 @@ const Bookings = () => {
                     <td>{formatQuantity(booking.bagQuantity, booking.kgQuantity)}</td>
                     <td>{booking.total}</td>
                     <td>
-                      <Button color="success" size="sm">Received</Button>
+                      <Button color="success" size="sm" onClick={() => handleReceived(booking)}>Received</Button>
                       <Button color="primary" className='mx-2' size="sm">Edit</Button>
-                      <Button color="danger" size="sm">Delete</Button>
+                      <Button color="danger" size="sm" onClick={() => handleDeleteClick(booking)}>Delete</Button>
                     </td>
                   </tr>
                 ))}
