@@ -71,3 +71,30 @@ export async function DELETE(request) {
         return Response.json({ message: 'Error deleting booking' }, { status: 500 });
     }
 }
+
+// PUT request to update booking
+export async function PUT(request) {
+    await connectToDB();
+
+    try {
+        // Get the booking ID from the request URL
+        const searchParams = request.nextUrl.searchParams;
+        const id = searchParams.get('id');
+        const updateData = await request.json();
+
+        // Update booking with new data and return updated document
+        const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, {
+            new: true, // Return the updated document
+            runValidators: true // Validate against schema
+        });
+
+        if (!updatedBooking) {
+            return Response.json({ message: 'Booking not found' }, { status: 404 });
+        }
+
+        return Response.json({ message: 'Booking updated successfully', booking: updatedBooking }, { status: 201 });
+    } catch (error) {
+        console.error(error);
+        return Response.json({ message: 'Failed to update booking' }, { status: 500 });
+    }
+}

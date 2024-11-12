@@ -13,7 +13,7 @@ const ItemDescription = ({ onDescriptionChange, selectedCategory }) => {
             setLoading(true);
 
             const apiUrl = selectedCategory
-                ? `/api/items/itemDescription?category=${selectedCategory}`
+                ? `/api/items/itemDescription?category=${selectedCategory.value}`
                 : `/api/items/itemDescription`;
 
             const response = await fetch(apiUrl);

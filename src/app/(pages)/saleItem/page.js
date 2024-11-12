@@ -119,7 +119,7 @@ const SaleItem = () => {
   };
 
   const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption ? selectedOption.value : null);
+    setSelectedCategory(selectedOption);
   };
 
   const handleDescriptionChange = (selectedOption) => {

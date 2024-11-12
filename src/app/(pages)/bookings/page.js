@@ -25,6 +25,7 @@ const Bookings = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [bookingToEdit, setBookingToEdit] = useState(null);
   const [bookingToDelete, setBookingToDelete] = useState(null);
 
   // Modal toggling functions
@@ -98,6 +99,20 @@ const Bookings = () => {
     return parseInt(bagTotal + kgTotal);
   }, [bagQuantity, kgQuantity, poundRate, bagRate, perKgRate]);
 
+  const handleEditClick = (booking) => {
+    setBookingToEdit(booking);
+    setSelectedName({ value: booking.supplierName, label: booking.supplierName });
+    setRemarks(booking.remarks);
+    setSelectedCategory({ value: booking.category, label: booking.category });
+    setSelectedDescription({ value: booking.description, label: booking.description });
+    setBagQuantity(booking.bagQuantity);
+    setKgQuantity(booking.kgQuantity);
+    setPoundRate(booking.poundRate);
+    setBagRate(booking.bagRate);
+    setPerKgRate(booking.perKgRate);
+    toggleModal();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -122,25 +137,37 @@ const Bookings = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData),
-      });
+      let response;
+      if (bookingToEdit) {
+        // Update booking if editing
+        response = await fetch(`/api/bookings/?id=${bookingToEdit._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingData),
+        });
+      } else {
+        // Create a new booking if not editing
+        response = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingData),
+        });
+      }
 
       const result = await response.json();
       if (response.ok) {
-        toast.success('Booking created successfully');
+        toast.success(bookingToEdit ? 'Booking updated successfully' : 'Booking created successfully');
         toggleModal();
         fetchBookings();
         resetForm();
       } else {
-        toast.error(`Error creating booking: ${result.message}`);
+        toast.error(`Error ${bookingToEdit ? 'updating' : 'creating'} booking: ${result.message}`);
       }
     } catch (error) {
-      toast.error(`Error creating booking: ${error.message}`);
+      toast.error(`Error ${bookingToEdit ? 'updating' : 'creating'} booking: ${error.message}`);
     } finally {
       setLoading(false);
+      setBookingToEdit(null);
     }
   };
 
@@ -220,6 +247,7 @@ const Bookings = () => {
     setPoundRate('');
     setBagRate('');
     setPerKgRate('');
+    setBookingToEdit(null);
   };
 
   // Display Formatted Quantities
@@ -245,7 +273,9 @@ const Bookings = () => {
         <CardBody>
           <Button color="dark" className="mb-4" onClick={toggleModal}>Create New Booking</Button>
           <Modal isOpen={isModalOpen} toggle={toggleModal} size='xl'>
-            <ModalHeader toggle={toggleModal}>Create New Booking</ModalHeader>
+            <ModalHeader toggle={toggleModal}>
+              {bookingToEdit ? 'Edit Booking' : 'Create New Booking'}
+            </ModalHeader>
             <ModalBody>
               <Form onSubmit={handleSubmit}>
                 <Row>
@@ -284,7 +314,14 @@ const Bookings = () => {
                   <Col md={3}>
                     <FormGroup>
                       <Label for="description">Item Description</Label>
-                      <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
+
+                      {bookingToEdit ? (
+                        <div className='mt-2'>
+                          {selectedDescription.value}
+                        </div>
+                      ) : (
+                        <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
+                      )}
                     </FormGroup>
                   </Col>
                 </Row>
@@ -319,7 +356,7 @@ const Bookings = () => {
 
             <ModalFooter>
               <Button type="submit" color="primary" onClick={handleSubmit} disabled={loading}>
-                {loading ? <Spinner size="sm" /> : 'Submit'}
+                {loading ? <Spinner size="sm" /> : (bookingToEdit ? 'Update' : 'Submit')}
               </Button>
               <Button color="secondary" onClick={toggleModal}>
                 Close
@@ -391,7 +428,7 @@ const Bookings = () => {
                     <td>{booking.total}</td>
                     <td>
                       <Button color="success" size="sm" onClick={() => handleReceived(booking)}>Received</Button>
-                      <Button color="primary" className='mx-2' size="sm">Edit</Button>
+                      <Button color="primary" className='mx-2' size="sm" onClick={() => handleEditClick(booking)}>Edit</Button>
                       <Button color="danger" size="sm" onClick={() => handleDeleteClick(booking)}>Delete</Button>
                     </td>
                   </tr>

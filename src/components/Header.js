@@ -77,12 +77,7 @@ const Header = ({ showMobmenu }) => {
 
           <NavItem>
             <Link href="/ledgerEntry" className={`nav-link ${pathName === "/ledgerEntry" && "active"}`}>
-              Create Entry
-            </Link>
-          </NavItem>
-          <NavItem>
-            <Link href="/todos" className={`nav-link ${pathName === "/todos" && "active"}`}>
-              Todos
+              Ledger Entry
             </Link>
           </NavItem>
           <NavItem>
