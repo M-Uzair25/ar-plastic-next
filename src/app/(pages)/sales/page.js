@@ -7,7 +7,7 @@ import ItemDescription from '@/components/ItemDescription';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
-import { generateSalesPDF } from '@/components/sales/generateSalesPDF';
+import { generateSalesPDF } from '@/components/pdfReports/generateSalesPDF';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

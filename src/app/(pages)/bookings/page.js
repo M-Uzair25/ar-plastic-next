@@ -408,8 +408,8 @@ const Bookings = () => {
                   <th>Description</th>
                   <th>Pound</th>
                   <th>Bag</th>
-                  <th>Stock</th>
-                  <th>Amount</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
                   <th>Actions</th>
                   <th>Remarks</th>
                 </tr>

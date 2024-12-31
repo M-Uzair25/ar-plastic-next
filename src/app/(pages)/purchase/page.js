@@ -1,9 +1,13 @@
 'use client'
-import React, { useState, useCallback, useMemo } from 'react';
-import { Row, Col, Card, CardBody, CardTitle, Button, Form, FormGroup, Label, Input, Spinner } from 'reactstrap';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Row, Col, Card, CardBody, CardTitle, Table, Button, Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Spinner } from 'reactstrap';
 import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format } from 'date-fns';
+import { generatePurchasePDF } from '@/components/pdfReports/generatePurchasePDF';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -18,9 +22,20 @@ const Purchase = () => {
   const [bagRate, setBagRate] = useState('');
   const [perKgRate, setPerKgRate] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Add loading state
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [supplierName, setSupplierName] = useState(null);
+  const [purchases, setPurchases] = useState([]);
+  const toggleModal = () => setModal(!modal);
 
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
+  };
+
+  const handleSupplierNameChange = async (selectedOption) => {
+    setSupplierName(selectedOption);
   };
 
   const handleCategoryChange = (selectedOption) => {
@@ -101,6 +116,7 @@ const Purchase = () => {
 
       if (response.ok) {
         toast.success('Purchase submitted successfully');
+        fetchPurchases(new Date());
         // Reset the form
         setSelectedName(null);
         setRemarks('');
@@ -118,6 +134,58 @@ const Purchase = () => {
       toast.error(`Error submitting purchase: ${error.message}`);
     } finally {
       setIsLoading(false); // Set loading to false when request finishes
+    }
+  };
+
+  const fetchPurchases = async (selectedDate = '', startDate = '', endDate = '', supplierName = '') => {
+    setIsLoading(true); // Show the loading spinner
+    try {
+      const queryParams = new URLSearchParams();
+
+      if (selectedDate) queryParams.append('selectedDate', format(selectedDate, 'yyyy-MM-dd'));
+      if (startDate) queryParams.append('startDate', format(startDate, 'yyyy-MM-dd'));
+      if (endDate) queryParams.append('endDate', format(endDate, 'yyyy-MM-dd'));
+      if (supplierName) queryParams.append('supplierName', supplierName);
+
+      const response = await fetch(`/api/purchase?${queryParams.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPurchases(data);
+      } else {
+        toast.error('Failed to fetch purchases');
+      }
+    } catch (error) {
+      toast.error(`Error fetching purchases: ${error.message}`);
+    } finally {
+      setModal(false);
+      setIsLoading(false); // Hide the loading spinner
+    }
+  };
+
+  const handleGenerateReport = () => {
+    setSelectedDate(null);
+    fetchPurchases(null, startDate, endDate, supplierName?.value || '');
+  };
+
+  // Handle print sales
+  const handleDownloadPDF = () => {
+    generatePurchasePDF(purchases);
+  };
+
+  useEffect(() => {
+    fetchPurchases(new Date());
+  }, []);
+
+  // Display Formatted Quantities
+  const formatQuantity = (bagQuantity, kgQuantity) => {
+    if (bagQuantity > 0 && kgQuantity > 0) {
+      return `${bagQuantity} Bag, ${kgQuantity} Kg`;
+    } else if (bagQuantity > 0) {
+      return `${bagQuantity} Bag`;
+    } else if (kgQuantity > 0) {
+      return `${kgQuantity} Kg`;
+    } else {
+      return '';
     }
   };
 
@@ -195,11 +263,137 @@ const Purchase = () => {
                   <Input className="bg-success text-white" id="total" name="total" type="text" value={calculateTotal} readOnly />
                 </FormGroup>
               </Col>
+              <Col>
+                <Button type="submit" color="primary" disabled={isLoading} style={{ marginTop: '32px' }}>
+                  {isLoading ? <Spinner size="sm" /> : 'Submit'}
+                </Button>
+              </Col>
             </Row>
-            <Button type="submit" color="primary" disabled={isLoading}>
-              {isLoading ? <Spinner size="sm" /> : 'Submit'}
-            </Button>
           </Form>
+
+          {/*Purchases */}
+          <Row>
+            <Col md={2}>
+              <h5 className="mt-4">Purchase History</h5>
+            </Col>
+            <Col className="mt-3" md={2}>
+              <DatePicker
+                selected={selectedDate}
+                placeholderText='dd/mm/yyyy'
+                onChange={(date) => {
+                  setSelectedDate(date);
+                  fetchPurchases(date); // Fetch data for the newly selected date
+                }}
+                dateFormat="dd/MM/yyyy"
+                className="form-control"
+              />
+            </Col>
+            <Col className='mt-3' md={2}>
+              <Button color="info" onClick={toggleModal} disabled={isLoading}>
+                {isLoading ? 'Loading...' : 'Generate Report'}
+              </Button>
+            </Col>
+            <Col className='mt-3'>
+              <Button color="info" onClick={handleDownloadPDF}>
+                Download PDF
+              </Button>
+            </Col>
+          </Row>
+
+          <Modal isOpen={modal} toggle={toggleModal}>
+            <ModalHeader toggle={toggleModal}>Generate Purchase Report</ModalHeader>
+            <ModalBody>
+              <FormGroup>
+                <Label for="startDate">Start Date</Label>
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date) => setStartDate(date)} // Set selected date
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="dd/MM/yyyy"
+                  className="form-control mx-2"
+                />
+                <Button
+                  color="secondary"
+                  size="sm"
+                  onClick={() => setStartDate(null)} // Clear the date
+                  className="mx-4"
+                >
+                  Clear
+                </Button>
+              </FormGroup>
+              <FormGroup>
+                <Label for="endDate">End Date</Label>
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date) => setEndDate(date)} // Set selected date
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="dd/MM/yyyy"
+                  className="form-control mx-2"
+                />
+                <Button
+                  color="secondary"
+                  size="sm"
+                  onClick={() => setEndDate(null)} // Clear the date
+                  className="mx-4"
+                >
+                  Clear
+                </Button>
+              </FormGroup>
+              <FormGroup>
+                <Label for="supplierName">Supplier Name</Label>
+                <Accounts onNameChange={handleSupplierNameChange} selectedName={supplierName} />
+              </FormGroup>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="primary" onClick={handleGenerateReport} disabled={isLoading}>
+                Generate
+              </Button>{' '}
+              <Button color="secondary" onClick={toggleModal}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </Modal>
+
+          {isLoading && (
+            <div className="text-center my-3">
+              <Spinner color="primary" />
+            </div>
+          )}
+
+          {purchases.length === 0 ? (
+            <p>No purchases found.</p>
+          ) : (
+            <Table bordered hover responsive className='mt-3'>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>Supplier</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Pound</th>
+                  <th>Bag</th>
+                  <th>Quantity</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {purchases.map((purchase, index) => (
+                  <tr key={purchase._id}>
+                    <td>{index + 1}</td>
+                    <td>{format(new Date(purchase.createdAt), 'dd/MM/yy')}</td>
+                    <td>{purchase.supplierName}</td>
+                    <td>{purchase.category}</td>
+                    <td>{purchase.description}</td>
+                    <td>{purchase.poundRate}</td>
+                    <td>{purchase.bagRate}</td>
+                    <td>{formatQuantity(purchase.bagQuantity, purchase.kgQuantity)}</td>
+                    <td>{purchase.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
         </CardBody>
       </Card>
     </>

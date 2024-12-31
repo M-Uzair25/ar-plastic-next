@@ -106,3 +106,50 @@ export async function POST(request) {
         return Response.json({ message: error.message }, { status: 500 });
     }
 }
+
+export async function GET(request) {
+    await connectToDB();
+
+    // Parse the URL to extract the date query parameter
+    const searchParams = request.nextUrl.searchParams;
+    const selectedDate = searchParams.get('selectedDate');
+
+    const supplierName = searchParams.get('supplierName');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    try {
+        let query = {};
+
+        // Add supplierName filter
+        if (supplierName) {
+            query.supplierName = supplierName;
+        }
+
+        if (selectedDate) {
+            query.createdAt = {
+                $gte: new Date(selectedDate),
+                $lt: new Date(new Date(selectedDate).setDate(new Date(selectedDate).getDate() + 1))
+            };
+        }
+        else if (startDate && endDate) {
+            query.createdAt = {
+                $gte: new Date(startDate),
+                $lt: new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)) // Include entire day
+            };
+        } else if (startDate) {
+            const today = new Date().toISOString().split('T')[0];
+            query.createdAt = {
+                $gte: new Date(startDate),
+                $lt: new Date(new Date(today).setDate(new Date(today).getDate() + 1))
+            };
+        }
+
+        const purchases = await Purchase.find(query);
+
+        return Response.json(purchases, { status: 200 });
+    } catch (error) {
+        console.error('Error fetching purchases:', error);
+        return Response.json({ message: 'Error fetching purchases' }, { status: 500 });
+    }
+}

@@ -4,7 +4,7 @@ import { Row, Col, Table, Card, CardTitle, CardBody, Label, Button, FormGroup, S
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
 import { format } from 'date-fns';
-import { generateStockPDF } from '@/components/stock/generateStockPDF';
+import { generateStockPDF } from '@/components/pdfReports/generateStockPDF';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
