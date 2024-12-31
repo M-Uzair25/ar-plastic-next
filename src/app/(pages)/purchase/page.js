@@ -145,7 +145,7 @@ const Purchase = () => {
       if (selectedDate) queryParams.append('selectedDate', format(selectedDate, 'yyyy-MM-dd'));
       if (startDate) queryParams.append('startDate', format(startDate, 'yyyy-MM-dd'));
       if (endDate) queryParams.append('endDate', format(endDate, 'yyyy-MM-dd'));
-      if (supplierName) queryParams.append('supplierName', supplierName);
+      if (supplierName) queryParams.append('supplierName', supplierName.value);
 
       const response = await fetch(`/api/purchase?${queryParams.toString()}`);
       if (response.ok) {
@@ -164,7 +164,7 @@ const Purchase = () => {
 
   const handleGenerateReport = () => {
     setSelectedDate(null);
-    fetchPurchases(null, startDate, endDate, supplierName?.value || '');
+    fetchPurchases(null, startDate, endDate, supplierName);
   };
 
   // Handle print sales

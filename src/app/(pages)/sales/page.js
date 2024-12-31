@@ -51,7 +51,7 @@ const Sales = () => {
       const queryParams = new URLSearchParams();
 
       if (customerName) queryParams.append('customerName', customerName.value);
-      if (selectedCategory) queryParams.append('category', selectedCategory);
+      if (selectedCategory) queryParams.append('category', selectedCategory.value);
       if (selectedDescription) queryParams.append('description', selectedDescription.value);
 
       if (startDate) queryParams.append('startDate', format(startDate, 'yyyy-MM-dd'));

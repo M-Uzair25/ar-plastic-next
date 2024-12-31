@@ -59,7 +59,7 @@ const SaleItem = () => {
     if (selectedCategory && selectedDescription) {
       setLoading(true); // Show loading spinner while fetching rates
       try {
-        const response = await fetch(`/api/items?category=${selectedCategory}&description=${selectedDescription.value}`);
+        const response = await fetch(`/api/items?category=${selectedCategory.value}&description=${selectedDescription.value}`);
         const data = await response.json();
         setBagRate(data.sellRate);
         setPurchasedRate(data.purchasedRate);
@@ -176,7 +176,7 @@ const SaleItem = () => {
     }
 
     const newItem = {
-      category: selectedCategory,
+      category: selectedCategory.value,
       description: selectedDescription.value,
       bagRate: bagRate,
       perKgRate: perKgRate,
