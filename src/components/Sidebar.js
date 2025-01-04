@@ -30,21 +30,6 @@ const navigation = [
     icon: "i bi-journal-bookmark",
   },
   {
-    title: "Customers",
-    href: "/customers",
-    icon: "bi bi-layout-split",
-  },
-  {
-    title: "Suppliers",
-    href: "/suppliers",
-    icon: "bi bi-layout-split",
-  },
-  {
-    title: "My Accounts",
-    href: "/myAccounts",
-    icon: "bi bi-layout-split",
-  },
-  {
     title: "About",
     href: "/about",
     icon: "bi bi-people",

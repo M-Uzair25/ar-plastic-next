@@ -167,7 +167,7 @@ const Purchase = () => {
     fetchPurchases(null, startDate, endDate, supplierName);
   };
 
-  // Handle print sales
+  // Handle print purchase report
   const handleDownloadPDF = () => {
     generatePurchasePDF(purchases);
   };
@@ -202,7 +202,7 @@ const Purchase = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="Accounts">Supplier Name</Label>
-                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} apiEndpoint="accountType=customer,supplier" />
                 </FormGroup>
               </Col>
               <Col md={5}>

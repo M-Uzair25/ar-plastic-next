@@ -1,15 +1,16 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Row, Col, Card, CardTitle, CardBody, Table, FormGroup, Label, Spinner, Badge, Button } from 'reactstrap';
+import { Card, CardTitle, CardBody, Row, Col, FormGroup, Button, Table, Label, Badge, Spinner } from 'reactstrap';
+import Accounts from '@/components/Accounts';
 import { format } from 'date-fns';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import Accounts from '@/components/Accounts';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const Ledger = () => {
-    const [selectedName, setSelectedName] = useState(null);
+    const [tableData, setTableData] = useState([]);
+    const [selectedAccount, setSelectedAccount] = useState(null);
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [ledgerData, setLedgerData] = useState([]); // Store fetched ledger entries
@@ -18,18 +19,31 @@ const Ledger = () => {
     const [closingBalance, setClosingBalance] = useState(0);
     const [loading, setLoading] = useState(false); // Loading state
 
-    // Handle name change for party and clear dates on party change
-    const handleNameChange = async (selectedOption) => {
-        setSelectedName(selectedOption);
+    const fetchAccounts = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('http://localhost:3000/api/accounts');
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const data = await response.json();
+            setTableData(data);
+        } catch (error) {
+            toast.error(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAccounts();
+    }, []);
+
+    const handleAccountChange = async (selectedOption) => {
+        setSelectedAccount(selectedOption);
 
         if (!selectedOption) {
-            // Clear data if party is cleared
-            setLedgerData([]);
-            setStartDate(null);
-            setEndDate(null);
-            setTotalDebit(0);
-            setTotalCredit(0);
-            setClosingBalance(0);
+            clearAllData()
         } else {
             setStartDate(null);
             setEndDate(null);
@@ -37,8 +51,13 @@ const Ledger = () => {
         }
     };
 
+    const handleRowClick = (account) => {
+        setSelectedAccount({ value: account.accountName, label: account.accountName });
+        toast.info(`Selected Account: ${account.accountName}`);
+    };
+
     // Fetch ledger data from backend
-    const fetchLedger = async (party = selectedName, fromDate = startDate, toDate = endDate) => {
+    const fetchLedger = async (party = selectedAccount, fromDate = startDate, toDate = endDate) => {
         if (!party?.value) {
             toast.error('Please select a party name.');
             return;
@@ -73,7 +92,7 @@ const Ledger = () => {
 
     // Clear all data
     const clearAllData = () => {
-        setSelectedName(null);
+        setSelectedAccount(null);
         setStartDate(null);
         setEndDate(null);
         setLedgerData([]);
@@ -84,10 +103,10 @@ const Ledger = () => {
 
     // Re-fetch ledger data when dates or party name change
     useEffect(() => {
-        if (selectedName) {
+        if (selectedAccount) {
             fetchLedger();
         }
-    }, [selectedName, startDate, endDate]);
+    }, [selectedAccount, startDate, endDate]);
 
     // Memoize ledger table to avoid unnecessary re-renders
     const ledgerTable = useMemo(() => (
@@ -122,80 +141,128 @@ const Ledger = () => {
     ), [ledgerData]);
 
     return (
-        <Row>
-            <Col lg="12">
-                <ToastContainer />
-                <Card>
-                    <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
-                        <i className="bi bi-journal-bookmark-fill"></i> Ledger
-                        <Badge color="danger" className="float-end" onClick={clearAllData} style={{ cursor: 'pointer' }}>
-                            <i className="bi bi-trash"></i> Clear Data
-                        </Badge>
-                    </CardTitle>
-                    <CardBody>
-                        <Row>
-                            <Col md={4}>
-                                <FormGroup>
-                                    <Label for="party">Party Name</Label>
-                                    <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
-                                </FormGroup>
-                            </Col>
-                            <Col md={3}>
-                                <FormGroup>
-                                    <Label for="startDate">Start Date</Label>
-                                    <DatePicker
-                                        showIcon
-                                        selected={startDate}
-                                        onChange={(date) => setStartDate(date)}
-                                        placeholderText="Click to select a date"
-                                        dateFormat="dd/MM/yyyy"
-                                        className="form-control"
-                                    />
-                                </FormGroup>
-                            </Col>
-                            <Col md={3}>
-                                <FormGroup>
-                                    <Label for="endDate">End Date</Label>
-                                    <DatePicker
-                                        showIcon
-                                        selected={endDate}
-                                        onChange={(date) => setEndDate(date)}
-                                        placeholderText="Click to select a date"
-                                        dateFormat="dd/MM/yyyy"
-                                        className="form-control"
-                                    />
-                                </FormGroup>
-                            </Col>
-                        </Row>
+        <>
+            <ToastContainer />
+            <Card>
+                <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#343a40', color: 'white' }}>
+                    <i className="bi bi-journal-bookmark-fill"></i> Ledger Accounts
+                </CardTitle>
+                <CardBody>
+                    <Label for="account">Search Account</Label>
+                    <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} />
 
-                        <CardTitle tag="h6" className="border-bottom p-3 mb-0" style={{ backgroundColor: '#1d7aa9', color: 'white' }}>
-                            {selectedName?.label ? selectedName.label : 'No Account Selected'}
-                        </CardTitle>
+                    {selectedAccount ? (
+                        <div className="mt-3">
+                            <Row>
+                                <Col md={3}>
+                                    <FormGroup>
+                                        <Label for="startDate">Start Date</Label>
+                                        <DatePicker
+                                            showIcon
+                                            selected={startDate}
+                                            onChange={(date) => setStartDate(date)}
+                                            placeholderText="Click to select a date"
+                                            dateFormat="dd/MM/yyyy"
+                                            className="form-control"
+                                        />
+                                    </FormGroup>
+                                </Col>
+                                <Col md={3}>
+                                    <FormGroup>
+                                        <Label for="endDate">End Date</Label>
+                                        <DatePicker
+                                            showIcon
+                                            selected={endDate}
+                                            onChange={(date) => setEndDate(date)}
+                                            placeholderText="Click to select a date"
+                                            dateFormat="dd/MM/yyyy"
+                                            className="form-control"
+                                        />
+                                    </FormGroup>
+                                </Col>
+                                <Col style={{ marginTop: '32px' }}>
+                                    <Button color="info">
+                                        Download PDF
+                                    </Button>
+                                    <Button color="danger" className='mx-2' onClick={clearAllData}>
+                                        <i className="bi bi-trash"></i> Clear All
+                                    </Button>
+                                </Col>
+                            </Row>
 
-                        {loading ? (
-                            <div className="text-center my-4">
-                                <Spinner color="primary" />
-                            </div>
-                        ) : ledgerTable}
+                            <CardTitle tag="h5" className="border-bottom p-2 mb-0" style={{ backgroundColor: '#1d7aa9', color: 'white' }}>
+                                {selectedAccount?.label ? selectedAccount.label : 'No Account Selected'}
+                            </CardTitle>
 
-                        {/* Summary */}
-                        <CardTitle tag="h6" className="border-bottom p-2" style={{ backgroundColor: '#1d7aa9', color: 'white' }}>
-                            <div className="d-flex justify-content-between align-items-center flex-wrap">
-                                <div>
-                                    From: {startDate ? format(startDate, 'dd MMM yyyy') : 'N/A'} - To: {endDate ? format(endDate, 'dd MMM yyyy') : 'N/A'}
+                            {loading ? (
+                                <div className="text-center my-4">
+                                    <Spinner color="primary" />
                                 </div>
-                                <div>
-                                    Total Amount Debited = {totalDebit} Rs | Total Amount Credited = {totalCredit} Rs
+                            ) : ledgerTable}
+
+                            {/* Summary */}
+                            <CardTitle tag="h6" className="border-bottom p-2" style={{ backgroundColor: '#1d7aa9', color: 'white' }}>
+                                <div className="d-flex justify-content-between align-items-center flex-wrap">
+                                    <div>
+                                        From: {startDate ? format(startDate, 'dd MMM yyyy') : 'N/A'} - To: {endDate ? format(endDate, 'dd MMM yyyy') : 'N/A'}
+                                    </div>
+                                    <div>
+                                        Total Amount Debited = {totalDebit} Rs | Total Amount Credited = {totalCredit} Rs
+                                    </div>
+                                    <Badge color="danger">
+                                        <h6 className="mt-1">Closing Balance = {closingBalance} Rs</h6>
+                                    </Badge>
                                 </div>
-                                <Badge color="danger">
-                                    <h6 className="mt-1">Closing Balance = {closingBalance} Rs</h6>
-                                </Badge>
-                            </div>
-                        </CardTitle>
-                    </CardBody>
-                </Card>
-            </Col>
-        </Row>
+                            </CardTitle>
+                        </div>
+                    ) : (
+                        <div className="table-responsive">
+                            <Table className="text-nowrap mt-4 align-middle" bordered hover>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Amount Due</th>
+                                        <th>Account Type</th>
+                                        <th>Last Entry</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="5" className="text-center">
+                                                <Spinner size="sm" /> Loading...
+                                            </td>
+                                        </tr>
+                                    ) : tableData.length > 0 ? (
+                                        tableData.map((tdata, index) => (
+                                            <tr key={index} className="border-top" style={{ cursor: 'pointer' }} onClick={() => handleRowClick(tdata)}>
+                                                <td>{index + 1}</td>
+                                                <td>
+                                                    <div className="d-flex align-items-center p-1">
+                                                        <div>
+                                                            <h6 className="mb-0">{tdata.accountName}</h6>
+                                                            <span className="text-muted"><i className="bi bi-telephone"></i> {tdata.accountNo}</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{tdata.balance}</td>
+                                                <td>{tdata.accountType}</td>
+                                                <td>{format(new Date(tdata.updatedAt), 'dd-MMM-yyyy')}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="text-center">No data available</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+                        </div>
+                    )}
+                </CardBody>
+            </Card>
+        </>
     );
 };
 

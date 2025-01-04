@@ -56,7 +56,7 @@ export async function GET(request) {
             return Response.json(accountData);
         } else {
             // Fetch all accounts
-            const accounts = await Account.find();
+            const accounts = await Account.find().sort({ accountName: 1 });;
             return Response.json(accounts);
         }
     } catch (error) {
