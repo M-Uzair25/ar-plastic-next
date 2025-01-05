@@ -50,15 +50,19 @@ export function generatePurchasePDF(purchases) {
   // Generate table
   doc.autoTable({
     head: [tableColumn],
+    headStyles: {
+      fillColor: [220, 220, 220],
+    },
     body: tableRows,
     startY: 35,
     styles: {
       lineColor: [0, 0, 0],
-      lineWidth: 0.5,
+      lineWidth: 0.1,
       textColor: [0, 0, 0],
       valign: 'middle',
       fontSize: 10  // Set font size for table content
     },
+    alternateRowStyles: { fillColor: [255, 255, 255] },
   });
 
   // Calculate summary data
@@ -86,8 +90,8 @@ export function generatePurchasePDF(purchases) {
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
     doc.setFontSize(10);
-    doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy')}`, 15, doc.internal.pageSize.height - 7);
-    doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 35, doc.internal.pageSize.height - 7);
+    doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy')}`, 15, doc.internal.pageSize.height - 10);
+    doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 35, doc.internal.pageSize.height - 10);
   }
 
   // Generate the PDF as a Blob and open it automatically in a new tab

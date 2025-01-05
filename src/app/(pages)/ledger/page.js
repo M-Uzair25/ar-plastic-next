@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardTitle, CardBody, Row, Col, FormGroup, Button, Table, Label, Badge, Spinner } from 'reactstrap';
 import Accounts from '@/components/Accounts';
 import { format } from 'date-fns';
+import { generateLedgerPDF } from '@/components/pdfReports/generateLedgerPDF';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { ToastContainer, toast } from 'react-toastify';
@@ -88,6 +89,11 @@ const Ledger = () => {
         } finally {
             setLoading(false); // Stop loading
         }
+    };
+
+    // Handle print ledger report
+    const handleDownloadPDF = () => {
+        generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, totalCredit, closingBalance);
     };
 
     // Clear all data
@@ -181,7 +187,7 @@ const Ledger = () => {
                                     </FormGroup>
                                 </Col>
                                 <Col style={{ marginTop: '32px' }}>
-                                    <Button color="info">
+                                    <Button color="info" onClick={handleDownloadPDF}>
                                         Download PDF
                                     </Button>
                                     <Button color="danger" className='mx-2' onClick={clearAllData}>

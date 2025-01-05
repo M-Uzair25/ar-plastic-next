@@ -26,7 +26,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
 
     // Prepare the sales data for the table
     const tableData = sortedSales.flatMap((sale) => {
-        const formattedDate = format(new Date(sale.createdAt), 'dd MMM yyyy');
+        const formattedDate = format(new Date(sale.createdAt), 'dd/MM/yy');
         const numberOfItems = sale.cartItems.length;
 
         return sale.cartItems.map((item, index) => ({
@@ -46,7 +46,6 @@ export function generateSalesPDF(sales, startDate, endDate) {
     // Calculate total quantities and amount
     const totalBags = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.bagQuantity, 0), 0);
     const totalKgs = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.kgQuantity, 0), 0);
-    const subTotal = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.subTotal, 0), 0);
     const totalAmount = sortedSales.reduce((sum, sale) => sum + sale.total, 0);
     const totalCashPaid = sortedSales.reduce((sum, sale) => sum + sale.cashPaid, 0);
 
@@ -68,28 +67,19 @@ export function generateSalesPDF(sales, startDate, endDate) {
     doc.autoTable({
         columns: columns,
         body: tableData,
-        startY: 40,
+        startY: 37,
         styles: {
             lineColor: [0, 0, 0],
-            lineWidth: 0.5,
+            lineWidth: 0.1,
             textColor: [0, 0, 0],
             valign: 'middle',
             fontSize: 10  // Set font size for table content
         },
         headStyles: {
-            fillColor: [230, 230, 230],  // Light gray for headers
-            textColor: [0, 51, 102],  // Dark blue for header text
+            fillColor: [220, 220, 220],  // Light gray for headers
             fontStyle: 'bold',
         },
-        foot: [[
-            `Total: ${sortedSales.length}`, '', totalBags, totalKgs, '', '', subTotal.toFixed(0), totalAmount.toFixed(0), totalCashPaid.toFixed(0), ''
-        ]],
-        footStyles: {
-            fillColor: [240, 240, 240],
-            textColor: [0, 0, 0],
-            fontStyle: 'bold',
-            fontSize: 10  // Set font size for footer
-        },
+        alternateRowStyles: { fillColor: [255, 255, 255] },
     });
 
     // Add sales summary at the end of the table
@@ -97,12 +87,20 @@ export function generateSalesPDF(sales, startDate, endDate) {
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
 
-    doc.text(`Total Sales: ${sortedSales.length}`, 14, finalYPosition);
-    doc.text(`Total Bag Quantity: ${totalBags}`, 14, finalYPosition + 7);
-    doc.text(`Total Kg Quantity: ${totalKgs}`, 14, finalYPosition + 14);
-    doc.text(`Sub-total: ${subTotal.toFixed(0)} Rs`, 14, finalYPosition + 21);
-    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 14, finalYPosition + 28);
-    doc.text(`Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 14, finalYPosition + 35);
+    doc.text(`Total Sales: ${sortedSales.length}`, 15, finalYPosition);
+    doc.text(`Total Bag Quantity: ${totalBags}`, 15, finalYPosition + 7);
+    doc.text(`Total Kg Quantity: ${totalKgs}`, 15, finalYPosition + 14);
+    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 15, finalYPosition + 21);
+    doc.text(`Total Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 15, finalYPosition + 28);
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.text(`Generated on: ${format(new Date(), 'dd/MM/yyyy')}`, 15, doc.internal.pageSize.height - 10);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 35, doc.internal.pageSize.height - 10);
+    }
 
     // Generate the PDF as a Blob and open it automatically in a new tab
     const pdfBlob = doc.output('blob'); // Generate PDF as a Blob
