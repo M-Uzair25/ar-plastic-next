@@ -125,7 +125,14 @@ export async function POST(request) {
             }
             currentBalance += item.subTotal;
 
-            let ledgerDescription = `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`;
+            bagQty = parseInt(item.bagQuantity, 10) || 0;
+            kgQty = parseFloat(item.kgQuantity).toFixed(3) || 0;
+
+            if (kgQty % 1 === 0) {
+                kgQty = parseInt(item.kgQuantity, 10);
+            }
+
+            let ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}`;
 
             if (saleData.remarks) {
                 ledgerDescription = `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}, Remarks: ${saleData.remarks}`;
@@ -180,7 +187,6 @@ export async function GET(request) {
     const searchParams = request.nextUrl.searchParams;
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
-    const searchQuery = searchParams.get('search');
 
     const customerName = searchParams.get('customerName');
     const category = searchParams.get('category');
@@ -212,15 +218,6 @@ export async function GET(request) {
                 $gte: new Date(today),
                 $lt: new Date(new Date(today).setDate(new Date(today).getDate() + 1))
             };
-        }
-
-        // General search filter
-        if (searchQuery) {
-            const regexQuery = new RegExp(searchQuery, 'i');
-            query.$or = [
-                { customerName: regexQuery },
-                { remarks: regexQuery }
-            ];
         }
 
         // Find sales matching the criteria and populate cartItems

@@ -42,7 +42,7 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, to
     // Prepare table data
     const tableColumn = ['Date', 'Description', 'Debit', 'Credit', 'Balance'];
     const tableRows = ledgerData.map((entry) => [
-        new Date(entry.createdAt).toLocaleDateString(),
+        format(new Date(entry.createdAt), 'dd/MM/yy'),
         entry.description,
         entry.debit || '-',
         entry.credit || '-',

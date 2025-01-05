@@ -35,7 +35,8 @@ export function generateSalesPDF(sales, startDate, endDate) {
             bagQuantity: item.bagQuantity || '',
             kgQuantity: item.kgQuantity || '',
             category: item.category || '',
-            description: item.description || '',
+            description: `${item.description}`,
+            rate: `${item.bagRate}`,
             subTotal: item.subTotal || '',
             total: index === 0 ? { content: sale.total, rowSpan: numberOfItems, valign: 'middle' } : '',
             cashPaid: index === 0 ? { content: sale.cashPaid, rowSpan: numberOfItems, valign: 'middle' } : '',
@@ -57,6 +58,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
         { header: 'Kg Qty', dataKey: 'kgQuantity' },
         { header: 'Category', dataKey: 'category' },
         { header: 'Description', dataKey: 'description' },
+        { header: 'Rate', dataKey: 'rate' },
         { header: 'Sub Total', dataKey: 'subTotal' },
         { header: 'Amount', dataKey: 'total' },
         { header: 'Cash Paid', dataKey: 'cashPaid' },
@@ -83,15 +85,20 @@ export function generateSalesPDF(sales, startDate, endDate) {
     });
 
     // Add sales summary at the end of the table
-    const finalYPosition = doc.autoTable.previous.finalY + 15; // Adjusted spacing after table
+    const finalYPosition = doc.autoTable.previous.finalY + 12;
+    doc.setFontSize(16);
+    doc.setTextColor(0, 51, 102);
+    doc.setFont("helvetica", "bold");
+    doc.text('Summary:', 28, finalYPosition, { align: 'center' });
+
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-
-    doc.text(`Total Sales: ${sortedSales.length}`, 15, finalYPosition);
-    doc.text(`Total Bag Quantity: ${totalBags}`, 15, finalYPosition + 7);
-    doc.text(`Total Kg Quantity: ${totalKgs}`, 15, finalYPosition + 14);
-    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 15, finalYPosition + 21);
-    doc.text(`Total Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 15, finalYPosition + 28);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Total Sales: ${sortedSales.length}`, 14, finalYPosition + 7);
+    doc.text(`Total Bag Quantity: ${totalBags}`, 14, finalYPosition + 14);
+    doc.text(`Total Kg Quantity: ${totalKgs}`, 14, finalYPosition + 21);
+    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 14, finalYPosition + 28);
+    doc.text(`Total Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 14, finalYPosition + 35);
 
     // Footer
     const pageCount = doc.internal.getNumberOfPages();

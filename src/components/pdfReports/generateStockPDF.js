@@ -28,7 +28,7 @@ export function generateStockPDF(stockData) {
                 textColor: (item.bagQuantity <= item.stockLimit) ? [255, 0, 0] : [0, 0, 0],  // Red for zero, Black otherwise
             }
         },
-        format(new Date(item.updatedAt), 'dd/MM/yyyy hh:mm a')
+        format(new Date(item.updatedAt), 'dd/MM/yy hh:mm a')
     ]);
 
     // Calculate total quantities for the summary

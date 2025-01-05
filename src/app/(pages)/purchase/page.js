@@ -192,10 +192,10 @@ const Purchase = () => {
   return (
     <>
       <ToastContainer />
-      <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
-        Purchase Item
-      </CardTitle>
       <Card>
+        <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
+          Purchase Item
+        </CardTitle>
         <CardBody>
           <Form onSubmit={handleSubmit}>
             <Row>

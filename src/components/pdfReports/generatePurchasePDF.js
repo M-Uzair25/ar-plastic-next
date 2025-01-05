@@ -17,29 +17,17 @@ export function generatePurchasePDF(purchases) {
   doc.setFont("helvetica", "normal");
   doc.text('Purchase Report', 105, 30, { align: 'center' });
 
-  // Function to format quantity
-  const formatQuantity = (bagQuantity, kgQuantity) => {
-    if (bagQuantity > 0 && kgQuantity > 0) {
-      return `${bagQuantity} Bag, ${kgQuantity} Kg`;
-    } else if (bagQuantity > 0) {
-      return `${bagQuantity} Bag`;
-    } else if (kgQuantity > 0) {
-      return `${kgQuantity} Kg`;
-    } else {
-      return '';
-    }
-  };
-
   // Table columns and data
   const tableColumn = [
-    '#', 'Date', 'Supplier', 'Quantity', 'Category', 'Description', 'Pound Rate', 'Bag Rate', 'Total Amount'
+    '#', 'Date', 'Supplier', 'Bag Qty', 'Kg Qty', 'Category', 'Description', 'Pound Rate', 'Bag Rate', 'Total Amount'
   ];
 
   const tableRows = purchases.map((purchase, index) => [
     index + 1,
-    new Date(purchase.createdAt).toLocaleDateString("en-GB"),
+    format(new Date(purchase.createdAt), 'dd/MM/yy'),
     purchase.supplierName,
-    formatQuantity(purchase.bagQuantity, purchase.kgQuantity),
+    purchase.bagQuantity || '',
+    purchase.kgQuantity || '',
     purchase.category,
     purchase.description,
     purchase.poundRate,
