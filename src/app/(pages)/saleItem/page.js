@@ -5,10 +5,12 @@ import {
   Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
+import 'react-toastify/dist/ReactToastify.css';
+import { format } from 'date-fns';
 import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
+import { generateSaleReceipt } from '@/components/pdfReports/generateSaleReceipt';
 
 const SaleItem = () => {
   const defaultCustomerName = { value: 'Cash', label: 'Cash' };
@@ -299,6 +301,11 @@ const SaleItem = () => {
 
       if (response.ok) {
         toast.success('Sale submitted successfully');
+        const date = format(new Date(), 'dd/MM/yyyy hh:mm a');
+        const userConfirmed = window.confirm("Do you want to generate a receipt?");
+        if (userConfirmed) {
+          generateSaleReceipt(saleData, date, discount);
+        }
         setCartItems([]);
         setSelectedName(defaultCustomerName);
         setCashPaid(0);
