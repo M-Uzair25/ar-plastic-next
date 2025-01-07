@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Navbar, Collapse, Nav, NavItem, NavbarBrand, DropdownToggle, DropdownMenu, DropdownItem, Dropdown, Button, UncontrolledDropdown
-} from "reactstrap";
-import LogoWhite from "public/images/logos/xtremelogowhite.svg";
-import user1 from "public/images/users/user1.jpg";
+import { Navbar, Collapse, Nav, NavItem, NavbarBrand, DropdownToggle, DropdownMenu, Button, UncontrolledDropdown } from "reactstrap";
 import { usePathname } from "next/navigation";
 
 const Header = ({ showMobmenu }) => {
@@ -20,7 +16,7 @@ const Header = ({ showMobmenu }) => {
     <Navbar color="primary" dark expand="md" style={{ marginBottom: '-17px' }}>
       <div className="d-flex align-items-center">
         <NavbarBrand href="/" className="d-lg-none">
-          <Image src={LogoWhite} alt="logo" />
+          Home
         </NavbarBrand>
         <Button color="primary" className="d-lg-none" onClick={showMobmenu}>
           <i className="bi bi-list"></i>
@@ -40,7 +36,7 @@ const Header = ({ showMobmenu }) => {
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/saleItem" className={`nav-link ${pathName === "/saleItem" && "active"}`}>
+            <Link href="/" className={`nav-link ${pathName === "/" && "active"}`}>
               Sale Item
             </Link>
           </NavItem>
@@ -101,22 +97,6 @@ const Header = ({ showMobmenu }) => {
             </DropdownMenu>
           </UncontrolledDropdown>
         </Nav>
-
-        {/* Profile Dropdown */}
-        <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-          <DropdownToggle nav caret className="rounded-circle">
-            <Image src={user1} alt="profile" className="rounded-circle" width="30" height="30" />
-          </DropdownToggle>
-          <DropdownMenu>
-            <DropdownItem header>Info</DropdownItem>
-            <DropdownItem>My Account</DropdownItem>
-            <DropdownItem>Edit Profile</DropdownItem>
-            <DropdownItem divider />
-            <DropdownItem>My Balance</DropdownItem>
-            <DropdownItem>Inbox</DropdownItem>
-            <DropdownItem>Logout</DropdownItem>
-          </DropdownMenu>
-        </Dropdown>
       </Collapse>
     </Navbar>
   );

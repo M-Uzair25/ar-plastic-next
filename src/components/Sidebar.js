@@ -5,11 +5,6 @@ import { usePathname } from "next/navigation";
 
 const navigation = [
   {
-    title: "Dashboard",
-    href: "/",
-    icon: "bi bi-speedometer2",
-  },
-  {
     title: "Sales",
     href: "/sales",
     icon: "bi bi-card-text",
@@ -42,17 +37,18 @@ const Sidebar = ({ showMobilemenu }) => {
 
   return (
     <div className="p-3">
-      <div className="d-flex align-items-center">
-        Abdul Razzaq Plastic
-        <span className="ms-auto d-lg-none">
+      <div className="d-flex align-items-center bg-dark p-3 text-white">
+        <Link href="/" className="text-white text-decoration-none">AR Plastic Store</Link>
+        <span className="ms-auto d-lg-none mx-1">
           <Button
+            variant="white"
             close
             size="sm"
             onClick={showMobilemenu}
           ></Button>
         </span>
       </div>
-      <div className="pt-4 mt-2">
+      <div className="pt-4">
         <Nav vertical className="sidebarNav">
           {navigation.map((navi, index) => (
             <NavItem key={index} className="sidenav-bg">
