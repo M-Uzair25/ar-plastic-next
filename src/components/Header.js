@@ -36,7 +36,7 @@ const Header = ({ showMobmenu }) => {
             </Link>
           </NavItem>
           <NavItem>
-            <Link href="/" className={`nav-link ${pathName === "/" && "active"}`}>
+            <Link href="/saleItem" className={`nav-link ${(pathName === "/saleItem" || pathName === "/") && "active"}`}>
               Sale Item
             </Link>
           </NavItem>

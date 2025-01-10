@@ -11,7 +11,7 @@ export function generateSaleReceipt(saleData, date, discount) {
     // Header
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text("ABDUL RAZZAQ PLASTIC TRADERS", 50, 10, { align: "center" });
+    doc.text("AR. PLASTIC TRADERS", 50, 10, { align: "center" });
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.text("We Deal in All Kinds Of Plastic Raw Materials, Chemicals & Colours.", 50, 15, { align: "center" });

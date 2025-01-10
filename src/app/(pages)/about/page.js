@@ -1,65 +1,78 @@
-'use client'
-import React from "react";
-import { Row, Col, CardTitle, CardBody, Card, CardSubtitle } from "reactstrap";
+import React from 'react';
+import { Container, Row, Col, Card, CardBody, CardImg, CardTitle, CardText } from 'reactstrap';
 
 const About = () => {
-  const features = [
-    {
-      title: "Create Nextjs App Based",
-      desc: "Create React App is a tool that gives you a massive head start when building React apps.",
-      icon: "bi-vinyl",
-    },
-    {
-      title: "React Hooks",
-      desc: "Hooks are functions that let you “hook into” React state and lifecycle features from function components.",
-      icon: "bi-umbrella",
-    },
-    {
-      title: "CASL",
-      desc: "It is isomorphic authorization JavaScript library which restricts what resources a given client is allowed to access.",
-      icon: "bi-lock",
-    },
-    {
-      title: "Dark & Light Layouts",
-      desc: "This theme comes with built-in light & dark layouts, select as per your preference.",
-      icon: "bi-brightness-high",
-    },
-    {
-      title: "Built-in Customizer",
-      desc: "Built-in customizer enables users to change their admin panel look & feel based on their preferences.",
-      icon: "bi-gear",
-    },
-    {
-      title: "Well Crafted Apps",
-      desc: "Creative & smart well crafted apps like email, chat, todo & calender allows you to create your apps faster.",
-      icon: "bi-star",
-    },
-  ];
   return (
-    <Row>
-      <Col>
-        <Card>
-          <CardBody>
-            <Row>
-              {features.map((feature) => (
-                <Col lg="4" className="mb-5 pb-3" key={feature.title}>
-                  <div>
-                    <i className={`bi ${feature.icon} text-primary fs-2`} />
+    <Card style={{
+      backgroundImage: "url('images/background.jpg')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      color: "white", // Ensure text is readable on the background
+      textShadow: "1px 1px 2px black", // Add a shadow to the text for better readability
+    }}>
+      <Container className="my-3">
+        <h1 className="text-center mb-3">About Us</h1>
 
-                    <CardTitle tag="h5" className="my-3">
-                      {feature.title}
-                    </CardTitle>
-                    <CardSubtitle className="text-muted col-10">
-                      {feature.desc}
-                    </CardSubtitle>
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          </CardBody>
-        </Card>
-      </Col>
-    </Row>
+        <p className="text-center">
+          Welcome to <strong>Abdul Razzaq Plastic Traders</strong>, a trusted name in the retail and wholesale business of
+          plastic raw materials, chemicals, and colors.
+          We aim to provide top-quality plastic raw materials to businesses of all sizes, ensuring consistent quality, competitive pricing,
+          and exceptional service. We pride ourselves on building strong relationships with our clients and being a cornerstone of the plastic industry in the region.
+        </p>
+
+        <h3 className="text-center mb-3">Our Team</h3>
+        <Row>
+          {/* CEO Section */}
+          <Col md={6}>
+            <Card className="text-center shadow" color="dark" inverse>
+              <CardImg
+                top
+                width="100%"
+                src="images/uzair.jpg"
+                alt="CEO Photo"
+                className="rounded-circle mx-auto mt-3"
+                style={{ width: "150px", height: "150px", objectFit: "cover" }}
+              />
+              <CardBody>
+                <CardTitle tag="h4">Abdul Razzaq</CardTitle>
+                <CardText>
+                  Founder and CEO of Abdul Razzaq Plastic Traders, Mr. Abdul Razzaq has over 25 years of experience
+                  in the plastic raw materials industry. His leadership and commitment have been the cornerstone
+                  of our success, shaping the business into a trusted name in the region.
+                </CardText>
+              </CardBody>
+            </Card>
+          </Col>
+          {/* Developer Section */}
+          <Col md={6}>
+            <Card className="text-center shadow" color="dark" inverse>
+              <CardImg
+                top
+                width="100%"
+                src="images/uzair.jpg"
+                alt="Developer Photo"
+                className="rounded-circle mx-auto mt-3"
+                style={{ width: "150px", height: "150px", objectFit: "cover" }}
+              />
+              <CardBody>
+                <CardTitle tag="h4">Muhammad Uzair</CardTitle>
+                <CardText>
+                  The COO, Muhammad Uzair is the visionary behind our cutting-edge POS application. As a
+                  skilled developer and future leader of Abdul Razzaq Plastic Traders, his innovation ensures the
+                  business remains at the forefront of technology and customer satisfaction.
+                </CardText>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+        <h3 className="text-center">Contact Us</h3>
+        <p className="text-center">
+          We are located at:<br />
+          <strong>Near Lakar Mandi Chowk, Railway Road, Multan</strong><br />
+          Phone: <strong>0300 6355827</strong><br />
+        </p>
+      </Container>
+    </Card>
   );
 };
 

@@ -38,7 +38,7 @@ const Sidebar = ({ showMobilemenu }) => {
   return (
     <div className="p-3">
       <div className="d-flex align-items-center bg-dark p-3 text-white">
-        <Link href="/" className="text-white text-decoration-none">AR Plastic Store</Link>
+        <Link href="/" className="text-white text-decoration-none">AR. Plastic Store</Link>
         <span className="ms-auto d-lg-none mx-1">
           <Button
             variant="white"
