@@ -81,6 +81,11 @@ const Header = ({ showMobmenu }) => {
               Bookings
             </Link>
           </NavItem>
+          <NavItem>
+            <Link href="/saleReturn" className={`nav-link ${pathName === "/saleReturn" && "active"}`}>
+              Sale Return
+            </Link>
+          </NavItem>
 
           {/* Dropdown for Create options */}
           <UncontrolledDropdown nav inNavbar>

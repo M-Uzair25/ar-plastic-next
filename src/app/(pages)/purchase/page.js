@@ -17,7 +17,7 @@ const Purchase = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedDescription, setSelectedDescription] = useState(null);
   const [bagQuantity, setBagQuantity] = useState('');
-  const [kgQuantity, setKgQuantity] = useState('');
+  const [kgQuantity, setKgQuantity] = useState(0);
   const [poundRate, setPoundRate] = useState('');
   const [bagRate, setBagRate] = useState('');
   const [perKgRate, setPerKgRate] = useState('');
@@ -94,7 +94,7 @@ const Purchase = () => {
       category: selectedCategory.value,
       description: selectedDescription.value,
       bagQuantity: parseInt(bagQuantity) || 0,
-      kgQuantity: kgQuantity || 0,
+      kgQuantity: parseFloat(kgQuantity).toFixed(3) || 0,
       poundRate: parseFloat(poundRate).toFixed(2) || 0,
       bagRate: parseInt(bagRate) || 0,
       perKgRate: parseFloat(perKgRate).toFixed(2) || 0,
@@ -222,7 +222,7 @@ const Purchase = () => {
               <Col md={2}>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
+                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity === 0 ? '' : kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
                 </FormGroup>
               </Col>
               <Col md={2}>
