@@ -135,7 +135,7 @@ export async function POST(request) {
             let ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}`;
 
             if (saleData.remarks) {
-                ledgerDescription = `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}, Remarks: ${saleData.remarks}`;
+                ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}, Remarks: ${saleData.remarks}`;
             }
 
             // Create a Ledger entry for each sale item
@@ -241,7 +241,8 @@ export async function GET(request) {
     }
 }
 
-export async function DELETE(request) {
+// Return Sale
+export async function PUT(request) {
     const searchParams = request.nextUrl.searchParams;
     const saleId = searchParams.get('id');
 
@@ -259,6 +260,11 @@ export async function DELETE(request) {
         if (!dbAccount) {
             return Response.json({ error: 'Customer account not found' }, { status: 404 });
         }
+
+        const returnDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        sale.remarks = `Sale Returned: ${returnDate}`;
+        // Save the updated item
+        await sale.save();
 
         let currentBalance = dbAccount.balance;
 
@@ -306,7 +312,7 @@ export async function DELETE(request) {
         // Create the reversal ledger entry
         const newLedgerEntry = new Ledger({
             party: sale.customerName,
-            description: `Sale Deleted: ${formattedSaleData}`,
+            description: `Sale Returned: ${formattedSaleData}`,
             debit: debit,
             credit: credit,
             balance: currentBalance,
@@ -318,21 +324,9 @@ export async function DELETE(request) {
         // Step 3: Update the customer's account balance
         await Account.updateOne({ _id: dbAccount._id }, { balance: currentBalance });
 
-        // Step 4: Delete the sale and its related sale items
-        const deleteSaleItemsPromises = sale.cartItems.map(async (saleItem) => {
-            await SaleItem.findByIdAndDelete(saleItem._id);
-        });
-
-        await Promise.all(deleteSaleItemsPromises);
-
-        const deletedSale = await Sale.findByIdAndDelete(saleId);
-        if (!deletedSale) {
-            return Response.json({ error: 'Sale not found' }, { status: 404 });
-        }
-
-        return Response.json({ message: 'Sale and related items deleted successfully, ledger updated', deletedSale }, { status: 201 });
+        return Response.json({ message: 'Sale returned, stock and ledger updated successfully' }, { status: 201 });
     } catch (error) {
-        console.error('Error deleting sale:', error);
+        console.error('Error returning sale:', error);
         return Response.json({ message: error.message }, { status: 500 });
     }
 }

@@ -28,17 +28,34 @@ export async function POST(request) {
         }
 
         // Update the item's stock (no transaction)
-        const item = await Item.findOne({ category, description });
+        const dbItem = await Item.findOne({ category, description });
 
-        if (!item) {
+        if (!dbItem) {
             return Response.json({ message: "Item not found." }, { status: 404 });
         }
 
-        // Update the stock
-        item.bagQuantity -= bagQuantity;
-        item.kgQuantity -= kgQuantity;
+        let bagQty = parseInt(bagQuantity, 10) || 0;
+        let kgQty = parseFloat(kgQuantity) || 0;
 
-        await item.save();
+        // if kgQty = x.000, then convert it to x
+        if (kgQty % 1 === 0) {
+            kgQty = parseInt(kgQuantity, 10);
+        }
+
+        // Update the stock
+        const newBagStock = dbItem.bagQuantity + bagQty;
+        const newKgStock = dbItem.kgQuantity + kgQty;
+
+        // Update the item with the restored quantities
+        await Item.updateOne(
+            { _id: dbItem._id },
+            {
+                $set: {
+                    bagQuantity: newBagStock,
+                    kgQuantity: newKgStock,
+                },
+            }
+        );
 
         const dbAccount = await Account.findOne({ accountName: accountName });
         if (!dbAccount) {
@@ -49,17 +66,17 @@ export async function POST(request) {
 
         let ledgerDescription;
         if (remarks) {
-            ledgerDescription = `[${formatQuantity(bagQuantity, kgQuantity)}] ${category} ${description} @ ${bagRate} (${remarks})`;
+            ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${category} ${description} @ ${bagRate} (${remarks})`;
         }
         else {
-            ledgerDescription = `[${formatQuantity(bagQuantity, kgQuantity)}] ${category} ${description} @ ${bagRate}`;
+            ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${category} ${description} @ ${bagRate}`;
         }
 
         // Prepare ledger entry data
         let debit = 0;
         let credit = 0;
 
-        if (accountName.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+        if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
             // For cash or My Account, create a debit entry to reverse the sale (since cash was credit)
             debit = total;
         } else {

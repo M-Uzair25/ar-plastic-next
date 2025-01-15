@@ -123,7 +123,7 @@ const SaleReturn = () => {
                             <Col md={6}>
                                 <FormGroup>
                                     <Label for="Accounts">Account Name</Label>
-                                    <Accounts onNameChange={handleNameChange} selectedName={selectedName} apiEndpoint="accountType=customer,supplier" />
+                                    <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
                                 </FormGroup>
                             </Col>
                             <Col md={5}>

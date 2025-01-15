@@ -8,6 +8,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 import { generateSalesPDF } from '@/components/pdfReports/generateSalesPDF';
+import { generateSaleReceipt } from '@/components/pdfReports/generateSaleReceipt';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -86,33 +87,39 @@ const Sales = () => {
     generateSalesPDF(sales, startDate, endDate);
   };
 
-  // Handle deletion of a sale
-  const handleDeleteSale = (sale) => {
+  const handleSaleReceipt = (sale) => {
+    const date = format(sale.createdAt, 'dd/MM/yyyy hh:mm a');
+    generateSaleReceipt(sale, date);
+  };
+
+  // Handle return sale
+  const handleReturnSale = (sale, event) => {
+    event.stopPropagation(); // Prevent the row click event from being triggered
+
     let itemList = sale.cartItems
       .map((item) => `${item.bagQuantity} Bag, ${item.kgQuantity} Kg ${item.category} ${item.description}`)
       .join(', '); // Create a comma-separated list of items
 
-    setMessage(`Delete: ${sale.customerName}\nItems: ${itemList}\nTotal Amount: ${sale.total}`);
+    setMessage(`Return: ${sale.customerName}\nItems: ${itemList}\nTotal Amount: ${sale.total}`);
     setSelectedSale(sale); // Store the selected sale
     setModalOpen(true); // Open the modal
   };
 
-  const confirmDeletion = async () => {
+  const confirmReturn = async () => {
     if (selectedSale) {
       try {
-        const response = await fetch(`/api/sales?id=${selectedSale._id}`, { method: 'DELETE' });
+        const response = await fetch(`/api/sales?id=${selectedSale._id}`, { method: 'PUT' });
 
         const result = await response.json();
         if (response.ok) {
-          // Update state to remove the deleted sale from the UI
-          setSales(sales.filter((sale) => sale._id !== result.deletedSale._id));
-          toast.success('Sale deleted successfully');
+          fetchSales(startDate, endDate); // Refetch sales data
+          toast.success('Sale returned successfully');
         } else {
-          toast.error(`Error deleting sale: ${result.message}`);
+          toast.error(`Error returning sale: ${result.message}`);
         }
       } catch (error) {
-        console.error('Error deleting sale:', error);
-        toast.error('Error deleting sale');
+        console.error('Error returning sale:', error);
+        toast.error('Error returning sale');
       } finally {
         setModalOpen(false); // Close the modal
         setSelectedSale(null); // Clear the selected sale
@@ -327,7 +334,7 @@ const Sales = () => {
                 ) : (
                   filteredSales.map((sale) =>
                     sale.cartItems.map((item, index) => (
-                      <tr key={`${sale._id}-${index}`}>
+                      <tr key={`${sale._id}-${index}`} style={{ cursor: 'pointer' }} onClick={() => handleSaleReceipt(sale)}>
                         {index === 0 && (
                           <>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
@@ -349,7 +356,7 @@ const Sales = () => {
                             <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashPaid}</td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.remarks}</td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
-                              <Button color="danger" size="sm" onClick={() => handleDeleteSale(sale)}>Delete</Button>
+                              <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)}>Return</Button>
                             </td>
                           </>
                         )}
@@ -374,12 +381,12 @@ const Sales = () => {
         </CardBody>
       </Card>
       <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)}>
-        <ModalHeader toggle={() => setModalOpen(false)}>Confirm Deletion</ModalHeader>
+        <ModalHeader toggle={() => setModalOpen(false)}>Confirm Return</ModalHeader>
         <ModalBody>
           <div style={{ whiteSpace: 'pre-wrap' }}>{message}</div>
         </ModalBody>
         <ModalFooter>
-          <Button color="danger" onClick={confirmDeletion}>Delete</Button>
+          <Button color="danger" onClick={confirmReturn}>Return</Button>
           <Button color="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
