@@ -23,7 +23,7 @@ const Ledger = () => {
     const fetchAccounts = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3000/api/accounts');
+            const response = await fetch('/api/accounts');
             if (!response.ok) {
                 throw new Error('Failed to fetch data');
             }

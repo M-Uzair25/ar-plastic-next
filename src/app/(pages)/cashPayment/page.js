@@ -74,7 +74,7 @@ const CashPayment = () => {
     };
 
     try {
-      const response = await fetch('/api/payments/cashPaid', {
+      const response = await fetch('/api/payments/cashPayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

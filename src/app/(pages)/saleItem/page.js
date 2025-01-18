@@ -26,10 +26,10 @@ const SaleItem = () => {
   const [kgStock, setKgStock] = useState(0);
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [cashPaid, setCashPaid] = useState(0);
-  const [discount, setDiscount] = useState(0);
   const [cashReceived, setCashReceived] = useState(0);
-  const [cashReturned, setCashReturned] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [received, setReceived] = useState(0);
+  const [returned, setReturned] = useState(0);
   const [bagQuantity, setBagQuantity] = useState(0);
   const [kgQuantity, setKgQuantity] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -40,20 +40,13 @@ const SaleItem = () => {
   const [accountAmount, setAccountAmount] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [amountAvailable, setAmountAvailable] = useState('');
-  const [kgQuantityAvailable, setKgQuantityAvailable] = useState(null);
-
   const toggleModal = () => setIsModalOpen(!isModalOpen);
+  const [saleReceiptData, setSaleReceiptData] = useState(null);
 
-  const handleCalculate = () => {
-    const amountAvailableValue = parseFloat(amountAvailable);
-
-    if (perKgRate > 0 && amountAvailableValue >= 0) {
-      const calculatedKgQuantity = amountAvailableValue / perKgRate;
-      setKgQuantityAvailable(parseFloat(calculatedKgQuantity).toFixed(3));
-    } else {
-      setKgQuantityAvailable('Invalid input');
-    }
+  const handleSaleReceipt = () => {
+    const date = format(new Date(), 'dd/MM/yyyy hh:mm a');
+    generateSaleReceipt(saleReceiptData, date);
+    toggleModal();
   };
 
   // Fetch rate and stock data based on category and description
@@ -194,18 +187,18 @@ const SaleItem = () => {
     toast.success("Item added to cart!");
   };
 
-  const handleCashPaidChange = (e) => {
-    setCashPaid(e.target.value);
+  const handleCashReceivedChange = (e) => {
+    setCashReceived(e.target.value);
   };
 
   const handleDiscountChange = (e) => {
     setDiscount(e.target.value);
-    setCashPaid(total - e.target.value);
+    setCashReceived(total - e.target.value);
   };
 
-  const handleCashReceivedChange = (e) => {
-    setCashReceived(e.target.value);
-    setCashReturned(e.target.value - total);
+  const handleReceivedChange = (e) => {
+    setReceived(e.target.value);
+    setReturned(e.target.value - total);
   };
 
   // Recalculate the total whenever the cartItems change
@@ -213,7 +206,7 @@ const SaleItem = () => {
     const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
     setTotal(newTotal);
     if (selectedName.value === 'Cash')
-      setCashPaid(newTotal);
+      setCashReceived(newTotal);
   }, [cartItems]);
 
   const displayCartItems = useMemo(() => (
@@ -250,9 +243,9 @@ const SaleItem = () => {
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
-                setCashPaid(0);
                 setCashReceived(0);
-                setCashReturned(0);
+                setReceived(0);
+                setReturned(0);
                 toast.info("Item removed from cart");
               }}>
                 <i className="bi bi-trash"></i>
@@ -283,7 +276,7 @@ const SaleItem = () => {
       remarks,
       cartItems,
       total,
-      cashPaid,
+      cashReceived,
       selectedAccount: selectedAccount ? selectedAccount.value : '',
       accountAmount,
     };
@@ -301,17 +294,14 @@ const SaleItem = () => {
 
       if (response.ok) {
         toast.success('Sale submitted successfully');
-        const date = format(new Date(), 'dd/MM/yyyy hh:mm a');
-        const userConfirmed = window.confirm("Do you want to generate a receipt?");
-        if (userConfirmed) {
-          generateSaleReceipt(saleData, date, discount);
-        }
+        setSaleReceiptData({ ...saleData, discount });
+        toggleModal();
         setCartItems([]);
         setSelectedName(defaultCustomerName);
-        setCashPaid(0);
-        setDiscount(0);
         setCashReceived(0);
-        setCashReturned(0);
+        setDiscount(0);
+        setReceived(0);
+        setReturned(0);
         setRemarks('');
       } else {
         toast.error(`Error submitting sale: ${result.message}`);
@@ -469,11 +459,6 @@ const SaleItem = () => {
                   />
                 </FormGroup>
               </Col>
-              <Col className='text-end'>
-                <Button color="dark" size="sm" style={{ marginTop: '32px' }} onClick={toggleModal}>
-                  Calculator
-                </Button>
-              </Col>
             </Row>
             <Row>
               <Col md={2}>
@@ -534,14 +519,14 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashPaid">Cash Paid</Label>
+                  <Label for="cashReceived">Cash Received</Label>
                   <Input
-                    id="cashPaid"
-                    name="cashPaid"
+                    id="cashReceived"
+                    name="cashReceived"
                     type="number"
                     min="0"
-                    value={cashPaid}
-                    onChange={handleCashPaidChange}
+                    value={cashReceived}
+                    onChange={handleCashReceivedChange}
                     onClick={(e) => e.target.select()}
                   />
                 </FormGroup>
@@ -563,33 +548,33 @@ const SaleItem = () => {
                     min="0"
                     value={discount === 0 ? '' : discount}
                     onChange={handleDiscountChange}
-                    disabled={!cashPaid}
+                    disabled={!cashReceived}
                   />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashReceived">Cash Received</Label>
+                  <Label for="received">Received</Label>
                   <Input
-                    id="cashReceived"
-                    name="cashReceived"
+                    id="received"
+                    name="received"
                     type="number"
                     min="0"
-                    value={cashReceived === 0 ? '' : cashReceived}
-                    onChange={handleCashReceivedChange}
+                    value={received === 0 ? '' : received}
+                    onChange={handleReceivedChange}
                   />
                 </FormGroup>
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashReturned">Cash Returned</Label>
+                  <Label for="returned">Cash Returned</Label>
                   <Input
-                    style={{ backgroundColor: cashReturned < 0 ? 'rgb(246 78 96)' : '#47bc47', color: 'white' }}
-                    id="cashReturned"
-                    name="cashReturned"
+                    style={{ backgroundColor: returned < 0 ? 'rgb(246 78 96)' : '#47bc47', color: 'white' }}
+                    id="returned"
+                    name="returned"
                     type="number"
                     disabled
-                    value={cashReturned}
+                    value={returned}
                   />
                 </FormGroup>
               </Col>
@@ -649,42 +634,11 @@ const SaleItem = () => {
 
           <Modal isOpen={isModalOpen} toggle={toggleModal}>
             <ModalHeader toggle={toggleModal}>
-              Calculate Kg Quantity For Amount
+              Do you want to print Sale Receipt?
             </ModalHeader>
-
-            <ModalBody>
-              <Form>
-                <FormGroup>
-                  <Label for="perKgRate">Kg Rate</Label>
-                  <Input
-                    id="perKgRate"
-                    name="perKgRate"
-                    type="number"
-                    min="0"
-                    value={perKgRate}
-                    onChange={handlePerKgRateChange}
-                    onClick={(e) => e.target.select()}
-                  />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="amountAvailable">Amount Available</Label>
-                  <Input
-                    type="number"
-                    id="amountAvailable"
-                    value={amountAvailable}
-                    onChange={(e) => setAmountAvailable(e.target.value)}
-                    placeholder="Enter amount available"
-                  />
-                </FormGroup>
-                {kgQuantityAvailable !== null && (
-                  <Label>Kg Quantity: {kgQuantityAvailable}</Label>
-                )}
-              </Form>
-            </ModalBody>
-
             <ModalFooter>
-              <Button color="primary" onClick={handleCalculate}>
-                Calculate
+              <Button color="primary" onClick={handleSaleReceipt}>
+                Yes, Print
               </Button>
               <Button color="secondary" onClick={toggleModal}>
                 Close

@@ -17,9 +17,13 @@ const saleSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  cashPaid: {
+  cashReceived: {
     type: Number,
     required: true,
+  },
+  returned: {
+    type: Boolean,
+    default: false,
   },
 }, { timestamps: true });
 

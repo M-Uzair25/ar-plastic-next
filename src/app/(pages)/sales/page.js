@@ -30,7 +30,7 @@ const Sales = () => {
   const [selectedDescription, setSelectedDescription] = useState(null);
   const [subTotalSearch, setSubTotalSearch] = useState('');
   const [amountSearch, setAmountSearch] = useState('');
-  const [paidSearch, setPaidSearch] = useState('');
+  const [cashReceivedSearch, setCashReceivedSearch] = useState('');
   const [remarksSearch, setRemarksSearch] = useState('');
 
   const handleNameChange = async (selectedOption) => {
@@ -96,6 +96,11 @@ const Sales = () => {
   const handleReturnSale = (sale, event) => {
     event.stopPropagation(); // Prevent the row click event from being triggered
 
+    if (sale.returned) {
+      toast.error('Sale already returned');
+      return;
+    }
+
     let itemList = sale.cartItems
       .map((item) => `${item.bagQuantity} Bag, ${item.kgQuantity} Kg ${item.category} ${item.description}`)
       .join(', '); // Create a comma-separated list of items
@@ -136,7 +141,7 @@ const Sales = () => {
       sale.customerName,
       sale.remarks,
       sale.total?.toString(),
-      sale.cashPaid?.toString(),
+      sale.cashReceived?.toString(),
       ...sale.cartItems.flatMap(item => [
         item.bagQuantity?.toString(),
         item.kgQuantity?.toString(),
@@ -152,7 +157,7 @@ const Sales = () => {
       (item.subTotal?.toString().includes(subTotalSearch) || !subTotalSearch)
     ) &&
       (sale.total?.toString().includes(amountSearch) || !amountSearch) &&
-      (sale.cashPaid?.toString().includes(paidSearch) || !paidSearch) &&
+      (sale.cashReceived?.toString().includes(cashReceivedSearch) || !cashReceivedSearch) &&
       (sale.remarks?.toLowerCase().includes(remarksSearch.toLowerCase()) || !remarksSearch);
 
     return matchesGlobalSearch && matchesColumnSpecificSearch;
@@ -171,11 +176,11 @@ const Sales = () => {
     { bags: 0, kgs: 0 }
   );
 
-  // New: Calculate total subtotal and total cashPaid
+  // New: Calculate total subtotal and total cashReceived
   const totalSubTotal = filteredSales.reduce((acc, sale) =>
     acc + sale.cartItems.reduce((cartAcc, item) => cartAcc + item.subTotal, 0), 0);
 
-  const totalCashPaid = filteredSales.reduce((acc, sale) => acc + sale.cashPaid, 0);
+  const totalCashReceived = filteredSales.reduce((acc, sale) => acc + sale.cashReceived, 0);
 
   const totalAmount = filteredSales.reduce((acc, sale) => acc + sale.total, 0);
 
@@ -293,12 +298,12 @@ const Sales = () => {
                   </th>
                   <th>
                     <Input
-                      id="cashPaid"
-                      name="cashPaid"
-                      placeholder="Paid"
+                      id="cashReceived"
+                      name="cashReceived"
+                      placeholder="Received"
                       type="search"
-                      value={paidSearch}
-                      onChange={(e) => setPaidSearch(e.target.value)}
+                      value={cashReceivedSearch}
+                      onChange={(e) => setCashReceivedSearch(e.target.value)}
                     />
                   </th>
                   <th>
@@ -321,7 +326,7 @@ const Sales = () => {
                   <th>Description</th>
                   <th>Subtotal</th>
                   <th>Total Amount</th>
-                  <th>Cash Paid</th>
+                  <th>Cash Received</th>
                   <th>Remarks</th>
                   <th>Actions</th>
                 </tr>
@@ -353,7 +358,7 @@ const Sales = () => {
                         {index === 0 && (
                           <>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashPaid}</td>
+                            <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashReceived}</td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.remarks}</td>
                             <td rowSpan={sale.cartItems.length} className="centered-cell">
                               <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)}>Return</Button>
@@ -375,7 +380,7 @@ const Sales = () => {
               <li><strong>Total Quantity Sold:</strong> {totalQuantity.bags} Bags, {totalQuantity.kgs} Kg</li>
               <li><strong>Total Subtotal:</strong> {totalSubTotal.toFixed(0)} Rs</li>
               <li><strong>Total Amount:</strong> {totalAmount.toFixed(0)} Rs</li>
-              <li><strong>Total Cash Paid:</strong> {totalCashPaid.toFixed(0)} Rs</li>
+              <li><strong>Total Cash Received:</strong> {totalCashReceived.toFixed(0)} Rs</li>
             </ul>
           </div>
         </CardBody>

@@ -56,7 +56,7 @@ export async function POST(request) {
             customerName: saleData.customerName,
             remarks: newRemarks,
             total: saleData.total,
-            cashPaid: saleData.cashPaid,
+            cashReceived: saleData.cashReceived,
         });
         const savedSale = await newSale.save();
 
@@ -154,9 +154,9 @@ export async function POST(request) {
         // Wait for all sale items to be processed
         await Promise.all(saleItemPromises);
 
-        // Adjust cash ledger in case less cash is paid
-        if (saleData.cashPaid != saleData.total && dbAccount.accountType === 'cash') {
-            const debit = saleData.total - saleData.cashPaid;
+        // Adjust cash ledger in case less cash is received
+        if (saleData.cashReceived != saleData.total && dbAccount.accountType === 'cash') {
+            const debit = saleData.total - saleData.cashReceived;
             currentBalance -= debit;
 
             const newLedgerEntry = new Ledger({
@@ -255,6 +255,10 @@ export async function PUT(request) {
             return Response.json({ error: 'Sale not found' }, { status: 404 });
         }
 
+        if (sale.returned) {
+            return Response.json({ error: 'Sale has already been returned' }, { status: 400 });
+        }
+
         // Find the customer's account based on customerName from the sale
         const dbAccount = await Account.findOne({ accountName: sale.customerName });
         if (!dbAccount) {
@@ -263,6 +267,7 @@ export async function PUT(request) {
 
         const returnDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
         sale.remarks = `Sale Returned: ${returnDate}`;
+        sale.returned = true;
         // Save the updated item
         await sale.save();
 

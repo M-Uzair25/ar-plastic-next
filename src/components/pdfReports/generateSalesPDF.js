@@ -39,7 +39,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
             rate: `${item.bagRate}`,
             subTotal: item.subTotal || '',
             total: index === 0 ? { content: sale.total, rowSpan: numberOfItems, valign: 'middle' } : '',
-            cashPaid: index === 0 ? { content: sale.cashPaid, rowSpan: numberOfItems, valign: 'middle' } : '',
+            cashReceived: index === 0 ? { content: sale.cashReceived, rowSpan: numberOfItems, valign: 'middle' } : '',
             remarks: index === 0 ? { content: sale.remarks || '', rowSpan: numberOfItems, valign: 'middle' } : ''
         }));
     });
@@ -48,7 +48,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
     const totalBags = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.bagQuantity, 0), 0);
     const totalKgs = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.kgQuantity, 0), 0);
     const totalAmount = sortedSales.reduce((sum, sale) => sum + sale.total, 0);
-    const totalCashPaid = sortedSales.reduce((sum, sale) => sum + sale.cashPaid, 0);
+    const totalCashReceived = sortedSales.reduce((sum, sale) => sum + sale.cashReceived, 0);
 
     // Define table columns
     const columns = [
@@ -61,7 +61,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
         { header: 'Rate', dataKey: 'rate' },
         { header: 'Sub Total', dataKey: 'subTotal' },
         { header: 'Amount', dataKey: 'total' },
-        { header: 'Cash Paid', dataKey: 'cashPaid' },
+        { header: 'Cash Received', dataKey: 'cashReceived' },
         { header: 'Remarks', dataKey: 'remarks' }
     ];
 
@@ -98,7 +98,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
     doc.text(`Total Bag Quantity: ${totalBags}`, 14, finalYPosition + 14);
     doc.text(`Total Kg Quantity: ${totalKgs}`, 14, finalYPosition + 21);
     doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 14, finalYPosition + 28);
-    doc.text(`Total Cash Paid: ${totalCashPaid.toFixed(0)} Rs`, 14, finalYPosition + 35);
+    doc.text(`Total Cash Received: ${totalCashReceived.toFixed(0)} Rs`, 14, finalYPosition + 35);
 
     // Footer
     const pageCount = doc.internal.getNumberOfPages();

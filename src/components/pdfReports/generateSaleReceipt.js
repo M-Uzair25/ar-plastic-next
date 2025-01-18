@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-export function generateSaleReceipt(saleData, date, discount) {
+export function generateSaleReceipt(saleData, date) {
     const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -62,11 +62,11 @@ export function generateSaleReceipt(saleData, date, discount) {
     doc.setFont("helvetica", "bold");
     doc.text(`Total: ${saleData.total} Rs`, 95, finalY, { align: "right" });
     doc.setFont("helvetica", "normal");
-    doc.text(`Cash Received: ${saleData.cashPaid} Rs`, 95, finalY + 5, { align: "right" });
+    doc.text(`Cash Received: ${saleData.cashReceived} Rs`, 95, finalY + 5, { align: "right" });
     let x = 5;
-    if (discount > 0) {
+    if (saleData.discount > 0) {
         x += 5;
-        doc.text(`Discount: ${discount} Rs`, 5, finalY + x);
+        doc.text(`Discount: ${saleData.discount} Rs`, 5, finalY + x);
     }
     if (saleData.accountAmount > 0) {
         x += 5;
