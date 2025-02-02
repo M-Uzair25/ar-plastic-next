@@ -14,12 +14,10 @@ const Stock = () => {
   const [selectedCategory, setSelectedCategory] = useState(null); // Selected category
   const [selectedDescription, setSelectedDescription] = useState(null); // Selected description
 
-  // Handle category change
   const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption ? selectedOption.value : null);
+    setSelectedCategory(selectedOption ? selectedOption : null);
   };
 
-  // Handle description change
   const handleDescriptionChange = (selectedOption) => {
     setSelectedDescription(selectedOption);
   };
@@ -30,7 +28,7 @@ const Stock = () => {
     try {
       const queryParams = new URLSearchParams();
 
-      if (selectedCategory) queryParams.append('category', selectedCategory);
+      if (selectedCategory) queryParams.append('category', selectedCategory.value);
       if (selectedDescription) queryParams.append('description', selectedDescription.value);
 
       const response = await fetch(`/api/stock?${queryParams.toString()}`);
@@ -110,12 +108,12 @@ const Stock = () => {
                   </thead>
                   <tbody>
                     {stockData.map((item, index) => (
-                      <tr key={item._id}>
+                      <tr key={item._id} className={item.bagQuantity < item.stockLimit ? 'table-danger' : ''}>
                         <td>{index + 1}</td>
                         <td>{item.category}</td>
                         <td>{item.description}</td>
                         <td>
-                          <span style={{ color: item.bagQuantity <= item.stockLimit ? 'red' : 'blue', fontWeight: 'bold' }}>
+                          <span style={{ color: item.bagQuantity === 0 ? 'red' : 'blue', fontWeight: 'bold' }}>
                             {item.bagQuantity} </span>
                           Bags,
                           <span style={{ color: 'blue', fontWeight: 'bold' }}> {item.kgQuantity} </span>

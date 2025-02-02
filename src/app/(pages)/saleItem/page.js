@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Row, Col, Button, Badge, Form, FormGroup, Label, Input, Card, CardTitle, CardBody, Table, Spinner,
-  Modal, ModalHeader, ModalBody, ModalFooter
+  Modal, ModalHeader, ModalFooter
 } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -148,26 +148,43 @@ const SaleItem = () => {
   };
 
   const handleAddToCart = () => {
+    if (bagQuantity % 1 !== 0) {
+      toast.error("Bag quantity should not be a decimal number.");
+      return;
+    }
+
     const bagQty = parseInt(bagQuantity) || 0;
-    const kgQty = parseFloat(kgQuantity).toFixed(3) || 0;
+    let kgQty = parseFloat(kgQuantity).toFixed(3) || 0;
 
     if (!selectedName) {
       toast.error("Please Select Customer Name");
       return;
-    } else if (!selectedCategory || !selectedDescription) {
+    }
+    if (!selectedCategory || !selectedDescription) {
       toast.error("Please Select Item");
       return;
-    } else if (bagQty == 0 && kgQty == 0) {
+    }
+    if (bagQty == 0 && kgQty == 0) {
       toast.error("Please enter a valid quantity (Bag or Kg) for the item.");
       return;
-    } else if (bagQty > bagStock) {
+    }
+    if (bagQty > bagStock) {
       setBagQuantity(0);
       toast.error("Bag stock is not enough.");
       return;
-    } else if (bagStock === 0 && kgQty > kgStock) {
+    }
+    if (bagStock === 0 && kgQty > kgStock) {
       setKgQuantity(0);
       toast.error("Kg quantity is invalid | Not enough quantity in stock.");
       return;
+    }
+    if (bagRate < purchasedRate) {
+      toast.error(`Selling rate is less than purchased rate (${purchasedRate}).`);
+      return;
+    }
+
+    if (kgQty % 1 === 0) {
+      kgQty = parseInt(kgQuantity, 10);
     }
 
     const newItem = {
@@ -268,6 +285,10 @@ const SaleItem = () => {
       toast.error("Cart is empty. Please add items to the cart before submitting.");
       return;
     }
+    if (selectedName.value === 'Cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+      toast.error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
+      return;
+    }
 
     setSubmitting(true);
 
@@ -279,6 +300,7 @@ const SaleItem = () => {
       cashReceived,
       selectedAccount: selectedAccount ? selectedAccount.value : '',
       accountAmount,
+      discount,
     };
 
     try {
@@ -292,9 +314,13 @@ const SaleItem = () => {
 
       const result = await response.json();
 
+      if (parseInt(cashReceived) > 0 && selectedName.value !== 'Cash') {
+        handleCashSubmit(e);
+      }
+
       if (response.ok) {
         toast.success('Sale submitted successfully');
-        setSaleReceiptData({ ...saleData, discount });
+        setSaleReceiptData(saleData);
         toggleModal();
         setCartItems([]);
         setSelectedName(defaultCustomerName);
@@ -311,6 +337,33 @@ const SaleItem = () => {
       toast.error(`Error submitting sale: ${error.message}`);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCashSubmit = async (e) => {
+    e.preventDefault();
+
+    const receivingData = {
+      account: selectedName.value,
+      description: 'Cash Received',
+      amount: parseInt(cashReceived),
+    };
+
+    try {
+      const response = await fetch('/api/receivings/cashReceiving', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(receivingData),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        toast.error(`Error: ${result.message}`);
+      }
+    } catch (error) {
+      toast.error('Error submitting cash.');
     }
   };
 
@@ -335,6 +388,11 @@ const SaleItem = () => {
     }
     if (selectedName.value === selectedAccount.value) {
       toast.error('Customer and Account name cannot be same.');
+      return;
+    }
+
+    if (selectedName.value === 'Cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+      toast.error('Cash received + Credit Amount is less than the total bill amount.');
       return;
     }
 
@@ -511,7 +569,7 @@ const SaleItem = () => {
                     className="bg-danger text-white"
                     id="total"
                     name="total"
-                    type="text"
+                    type="number"
                     disabled
                     value={total}
                   />
@@ -533,7 +591,11 @@ const SaleItem = () => {
               </Col>
               <Col>
                 <FormGroup>
-                  <Button style={{ marginTop: '32px' }} color="primary" type="submit" disabled={submitting}>
+                  <Button style={{ marginTop: '32px' }}
+                    color="primary"
+                    type="submit"
+                    disabled={submitting || selectedAccount || accountDescription || accountAmount}
+                  >
                     {submitting ? <Spinner size="sm" /> : 'Submit'} {/* Show spinner when submitting */}
                   </Button>
                 </FormGroup>
@@ -637,11 +699,11 @@ const SaleItem = () => {
               Do you want to print Sale Receipt?
             </ModalHeader>
             <ModalFooter>
-              <Button color="primary" onClick={handleSaleReceipt}>
-                Yes, Print
-              </Button>
               <Button color="secondary" onClick={toggleModal}>
                 Close
+              </Button>
+              <Button color="primary" onClick={handleSaleReceipt}>
+                Yes, Print
               </Button>
             </ModalFooter>
           </Modal>

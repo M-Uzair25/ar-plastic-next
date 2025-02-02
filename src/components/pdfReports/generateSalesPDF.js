@@ -6,7 +6,7 @@ export function generateSalesPDF(sales, startDate, endDate) {
     const doc = new jsPDF();
 
     // Format the dates using date-fns
-    const formattedStartDate = format(startDate, 'dd MMM yyyy');
+    const formattedStartDate = startDate ? format(startDate, 'dd MMM yyyy') : format(new Date(), 'dd MMM yyyy');
     const formattedEndDate = endDate ? format(endDate, 'dd MMM yyyy') : '';
 
     // Add the title with larger font size and bold

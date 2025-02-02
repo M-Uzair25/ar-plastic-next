@@ -29,16 +29,16 @@ export async function POST(request) {
         if (paymentType === 'Debit') {
             debit = amount;
             if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
-                dbAccount.balance -= amount;  // Debit decreases balance
+                currentBalance -= amount;  // Debit decreases balance
             } else {
-                dbAccount.balance += amount;  // Debit increases balance
+                currentBalance += amount;  // Debit increases balance
             }
         } else if (paymentType === 'Credit') {
             credit = amount;
             if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
-                dbAccount.balance += amount;  // Credit increases balance
+                currentBalance += amount;  // Credit increases balance
             } else {
-                dbAccount.balance -= amount;  // Credit decreases balance
+                currentBalance -= amount;  // Credit decreases balance
             }
         }
 

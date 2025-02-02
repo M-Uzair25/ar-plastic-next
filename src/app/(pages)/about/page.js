@@ -28,7 +28,7 @@ const About = () => {
               <CardImg
                 top
                 width="100%"
-                src="images/uzair.jpg"
+                src="images/AbdulRazzaq.jpg"
                 alt="CEO Photo"
                 className="rounded-circle mx-auto mt-3"
                 style={{ width: "150px", height: "150px", objectFit: "cover" }}
@@ -49,7 +49,7 @@ const About = () => {
               <CardImg
                 top
                 width="100%"
-                src="images/uzair.jpg"
+                src="images/Uzair.jpg"
                 alt="Developer Photo"
                 className="rounded-circle mx-auto mt-3"
                 style={{ width: "150px", height: "150px", objectFit: "cover" }}

@@ -21,21 +21,25 @@ export function generateSaleReceipt(saleData, date) {
     doc.setFontSize(8);
     doc.text(`Customer: ${saleData.customerName || "Walk-in"}`, 5, 27);
     doc.text(`Date: ${date}`, 5, 32);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Remarks:`, 5, 37);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${saleData.remarks}`, 20, 37);
 
     // Table content for items
     const tableData = saleData.cartItems.map((item, index) => {
-        const kgQuantity = item.kgQuantity % 1 === 0 ? parseInt(item.kgQuantity, 10) : item.kgQuantity;
+        const kgQuantity = item.kgQuantity % 1 === 0 ? parseInt(item.kgQuantity, 10) : parseFloat(item.kgQuantity).toFixed(3);
         return [
             index + 1,
             `${item.category} ${item.description}`,
-            `${item.bagQuantity} x${item.bagRate || 0}/-`,
-            `${kgQuantity} x${item.perKgRate || 0}/-`,
+            `${item.bagQuantity} x ${item.bagRate || 0}/-`,
+            `${kgQuantity} x ${item.perKgRate || 0}/-`,
             item.subTotal,
         ];
     });
 
     doc.autoTable({
-        startY: 37,
+        startY: 42,
         head: [["#", "Item", "Bags", "Kg", "Sub Total"]],
         body: tableData,
         styles: {

@@ -24,6 +24,10 @@ export async function POST(request) {
 
         const saleData = await request.json();
 
+        if (saleData.customerName === 'Cash' && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
+            throw new Error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
+        }
+
         // Check if the cart is empty
         if (!saleData.cartItems || saleData.cartItems.length === 0) {
             throw new Error('Cart is empty. Please add items to the cart before submitting.');
@@ -154,8 +158,25 @@ export async function POST(request) {
         // Wait for all sale items to be processed
         await Promise.all(saleItemPromises);
 
-        // Adjust cash ledger in case less cash is received
-        if (saleData.cashReceived != saleData.total && dbAccount.accountType === 'cash') {
+        // Adjust cash ledger in case of discount
+        if (saleData.discount && dbAccount.accountType === 'cash') {
+            const debit = saleData.total - saleData.cashReceived;
+            currentBalance -= debit;
+
+            const newLedgerEntry = new Ledger({
+                party: saleData.customerName,
+                description: `Sale Total: ${saleData.total} Rs, Discount: ${saleData.discount}`,
+                debit: debit,
+                credit: 0,
+                balance: currentBalance,  // Incrementally updated balance
+            });
+
+            // Save the Ledger entry
+            await newLedgerEntry.save();
+        }
+
+        // Adjust cash ledger in case less cash is received and amount is transferred to another account
+        if (saleData.cashReceived < saleData.total && dbAccount.accountType === 'cash' && saleData.selectedAccount && saleData.accountAmount) {
             const debit = saleData.total - saleData.cashReceived;
             currentBalance -= debit;
 
@@ -191,8 +212,18 @@ export async function GET(request) {
     const customerName = searchParams.get('customerName');
     const category = searchParams.get('category');
     const description = searchParams.get('description');
+    const id = searchParams.get('id');
 
     try {
+        // If id is provided, find sale by id and return complete sale including cartItems
+        if (id) {
+            const sale = await Sale.findById(id).populate('cartItems');
+            if (!sale) {
+                return Response.json({ error: 'Sale not found' }, { status: 404 });
+            }
+            return Response.json({ sale: sale }, { status: 200 });
+        }
+
         let query = {};
 
         // Add customerName filter

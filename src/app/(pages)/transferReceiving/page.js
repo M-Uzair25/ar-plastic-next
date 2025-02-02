@@ -123,7 +123,7 @@ const TransferReceiving = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="customer">Customer Name: (Transfered From)</Label>
+                  <Label for="customer">Customer Name: (Transfered from)</Label>
                   <Accounts onNameChange={handleCustomerChange} selectedName={selectedCustomer} apiEndpoint="accountType=customer" />
                 </FormGroup>
               </Col>
@@ -184,7 +184,7 @@ const TransferReceiving = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="account">Account Name: (Transfered To)</Label>
+                  <Label for="account">Account Name: (Deposited in)</Label>
                   <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} apiEndpoint="accountType=supplier,myAccount" />
                 </FormGroup>
               </Col>

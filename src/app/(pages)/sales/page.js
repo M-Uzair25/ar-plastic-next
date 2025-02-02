@@ -16,7 +16,6 @@ const Sales = () => {
   const [sales, setSales] = useState([]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [loading, setLoading] = useState(false); // State for loading spinner
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState(null);
   const [message, setMessage] = useState('');
@@ -38,7 +37,7 @@ const Sales = () => {
   };
 
   const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption ? selectedOption.value : null);
+    setSelectedCategory(selectedOption ? selectedOption : null);
   };
 
   const handleDescriptionChange = (selectedOption) => {
@@ -46,8 +45,7 @@ const Sales = () => {
   };
 
   // Function to fetch sales data with optional date range and search filters
-  const fetchSales = async (startDate = '', endDate = '') => {
-    setLoading(true); // Show the loading spinner
+  const fetchSales = async () => {
     try {
       const queryParams = new URLSearchParams();
 
@@ -64,22 +62,12 @@ const Sales = () => {
     } catch (error) {
       console.error('Error fetching sales data:', error);
       toast.error('Error fetching sales data');
-    } finally {
-      setLoading(false); // Hide the loading spinner
     }
   };
 
-  // Fetch default sales data on component mount
-  useEffect(() => {
-    const today = new Date();
-    setStartDate(today);
-    setEndDate(today);
-    fetchSales(today); // Fetch sales for today's date by default
-  }, []);
-
   // Trigger search whenever startDate, endDate, changes
   useEffect(() => {
-    fetchSales(startDate, endDate);
+    fetchSales();
   }, [startDate, endDate, customerName, selectedCategory]);
 
   // Handle print sales
@@ -87,9 +75,19 @@ const Sales = () => {
     generateSalesPDF(sales, startDate, endDate);
   };
 
-  const handleSaleReceipt = (sale) => {
-    const date = format(sale.createdAt, 'dd/MM/yyyy hh:mm a');
-    generateSaleReceipt(sale, date);
+  const handleSaleReceipt = async (sale) => {
+    try {
+      const response = await fetch(`/api/sales/?id=${sale._id}`);
+      const data = await response.json();
+      if (response.ok) {
+        generateSaleReceipt(data.sale);
+      } else {
+        toast.error(`Error fetching sale receipt: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('Error fetching sale receipt:', error);
+      toast.error('Error fetching sale receipt');
+    }
   };
 
   // Handle return sale
@@ -165,16 +163,10 @@ const Sales = () => {
 
   // Calculate sales statistics
   const totalSales = filteredSales.length;
-  const totalQuantity = filteredSales.reduce(
-    (acc, sale) => {
-      sale.cartItems.forEach((item) => {
-        acc.bags += item.bagQuantity ? parseInt(item.bagQuantity, 10) : 0;
-        acc.kgs += item.kgQuantity ? parseInt(item.kgQuantity, 10) : 0;
-      });
-      return acc;
-    },
-    { bags: 0, kgs: 0 }
-  );
+  const totalBags = filteredSales.reduce((sum, sale) =>
+    sum + sale.cartItems.reduce((subSum, item) => subSum + item.bagQuantity, 0), 0);
+  const totalKgs = filteredSales.reduce((sum, sale) =>
+    sum + sale.cartItems.reduce((subSum, item) => subSum + item.kgQuantity, 0), 0);
 
   // New: Calculate total subtotal and total cashReceived
   const totalSubTotal = filteredSales.reduce((acc, sale) =>
@@ -236,148 +228,143 @@ const Sales = () => {
             </Col>
           </Row>
 
-          {loading ? (
-            <div className="text-center my-3">
-              <Spinner color="primary" />
-            </div>
-          ) : (
-            <Table bordered hover responsive size="sm">
-              <thead>
-                <tr className="table-secondary">
-                  <th className='centered-cell'>
-                    Search
-                  </th>
-                  <th>
-                    <Accounts onNameChange={handleNameChange} customerName={customerName} />
-                  </th>
-                  <th>
-                    <Input
-                      id="bagQuantitySearch"
-                      name="bagQuantitySearch"
-                      placeholder="Bag"
-                      type="search"
-                      value={bagQuantitySearch}
-                      onChange={(e) => setBagQuantitySearch(e.target.value)}
-                    />
-                  </th>
-                  <th>
-                    <Input
-                      id="kgQuantitySearch"
-                      name="kgQuantitySearch"
-                      placeholder="Kg"
-                      type="search"
-                      value={kgQuantitySearch}
-                      onChange={(e) => setKgQuantitySearch(e.target.value)}
-                    />
-                  </th>
-                  <th>
-                    <ItemCategory onCategoryChange={handleCategoryChange} selectedDescription={selectedDescription} />
-                  </th>
-                  <th>
-                    <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
-                  </th>
-                  <th>
-                    <Input
-                      id="subTotalSearch"
-                      name="subTotalSearch"
-                      placeholder="SubTotal"
-                      type="search"
-                      value={subTotalSearch}
-                      onChange={(e) => setSubTotalSearch(e.target.value)}
-                    />
-                  </th>
-                  <th>
-                    <Input
-                      id="amountSearch"
-                      name="amountSearch"
-                      placeholder="Amount"
-                      type="search"
-                      value={amountSearch}
-                      onChange={(e) => setAmountSearch(e.target.value)}
-                    />
-                  </th>
-                  <th>
-                    <Input
-                      id="cashReceived"
-                      name="cashReceived"
-                      placeholder="Received"
-                      type="search"
-                      value={cashReceivedSearch}
-                      onChange={(e) => setCashReceivedSearch(e.target.value)}
-                    />
-                  </th>
-                  <th>
-                    <Input
-                      id="remarksSearch"
-                      name="remarksSearch"
-                      placeholder="Remarks"
-                      type="search"
-                      value={remarksSearch}
-                      onChange={(e) => setRemarksSearch(e.target.value)}
-                    />
-                  </th>
+          <Table bordered hover responsive size="sm">
+            <thead>
+              <tr className="table-secondary">
+                <th className='centered-cell'>
+                  Search
+                </th>
+                <th>
+                  <Accounts onNameChange={handleNameChange} selectedName={customerName} />
+                </th>
+                <th>
+                  <Input
+                    id="bagQuantitySearch"
+                    name="bagQuantitySearch"
+                    placeholder="Bag"
+                    type="search"
+                    value={bagQuantitySearch}
+                    onChange={(e) => setBagQuantitySearch(e.target.value)}
+                  />
+                </th>
+                <th>
+                  <Input
+                    id="kgQuantitySearch"
+                    name="kgQuantitySearch"
+                    placeholder="Kg"
+                    type="search"
+                    value={kgQuantitySearch}
+                    onChange={(e) => setKgQuantitySearch(e.target.value)}
+                  />
+                </th>
+                <th>
+                  <ItemCategory onCategoryChange={handleCategoryChange} selectedDescription={selectedDescription} />
+                </th>
+                <th>
+                  <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
+                </th>
+                <th>
+                  <Input
+                    id="subTotalSearch"
+                    name="subTotalSearch"
+                    placeholder="SubTotal"
+                    type="search"
+                    value={subTotalSearch}
+                    onChange={(e) => setSubTotalSearch(e.target.value)}
+                  />
+                </th>
+                <th>
+                  <Input
+                    id="amountSearch"
+                    name="amountSearch"
+                    placeholder="Amount"
+                    type="search"
+                    value={amountSearch}
+                    onChange={(e) => setAmountSearch(e.target.value)}
+                  />
+                </th>
+                <th>
+                  <Input
+                    id="cashReceived"
+                    name="cashReceived"
+                    placeholder="Received"
+                    type="search"
+                    value={cashReceivedSearch}
+                    onChange={(e) => setCashReceivedSearch(e.target.value)}
+                  />
+                </th>
+                <th>
+                  <Input
+                    id="remarksSearch"
+                    name="remarksSearch"
+                    placeholder="Remarks"
+                    type="search"
+                    value={remarksSearch}
+                    onChange={(e) => setRemarksSearch(e.target.value)}
+                  />
+                </th>
+              </tr>
+              <tr className="text-center">
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Bag Quantity</th>
+                <th>Kg Quantity</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Subtotal</th>
+                <th>Total Amount</th>
+                <th>Cash Received</th>
+                <th>Remarks</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSales.length === 0 ? (
+                <tr>
+                  <td colSpan="10" className="text-center">No Sales: {startDate ? format(startDate, 'dd/MMM/yyyy') : ''} {endDate ? '-' : ''}  {endDate ? format(endDate, 'dd/MMM/yyyy') : ''}</td>
                 </tr>
-                <tr className="text-center">
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>Bag Quantity</th>
-                  <th>Kg Quantity</th>
-                  <th>Category</th>
-                  <th>Description</th>
-                  <th>Subtotal</th>
-                  <th>Total Amount</th>
-                  <th>Cash Received</th>
-                  <th>Remarks</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSales.length === 0 ? (
-                  <tr>
-                    <td colSpan="10" className="text-center">No Sales: {startDate ? format(startDate, 'dd/MMM/yyyy') : ''} {endDate ? '-' : ''}  {endDate ? format(endDate, 'dd/MMM/yyyy') : ''}</td>
-                  </tr>
-                ) : (
-                  filteredSales.map((sale) =>
-                    sale.cartItems.map((item, index) => (
-                      <tr key={`${sale._id}-${index}`} style={{ cursor: 'pointer' }} onClick={() => handleSaleReceipt(sale)}>
-                        {index === 0 && (
-                          <>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">
-                              {format(sale.createdAt, 'dd/MM/yy hh:mm a')}
-                            </td>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">
-                              {sale.customerName}
-                            </td>
-                          </>
-                        )}
-                        <td className="centered-cell">{item.bagQuantity}</td>
-                        <td className="centered-cell">{item.kgQuantity}</td>
-                        <td className="centered-cell">{item.category}</td>
-                        <td className="centered-cell">{item.description} @ {item.bagRate}</td>
-                        <td className="centered-cell">{item.subTotal}</td>
-                        {index === 0 && (
-                          <>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashReceived}</td>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.remarks}</td>
-                            <td rowSpan={sale.cartItems.length} className="centered-cell">
-                              <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)}>Return</Button>
-                            </td>
-                          </>
-                        )}
-                      </tr>
-                    ))
-                  )
-                )}
-              </tbody>
-            </Table>
-          )}
+              ) : (
+                filteredSales.map((sale) =>
+                  sale.cartItems.map((item, index) => (
+                    <tr key={`${sale._id}-${index}`} style={{ cursor: 'pointer' }} onClick={() => handleSaleReceipt(sale)}>
+                      {index === 0 && (
+                        <>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {format(sale.createdAt, 'dd/MM/yy hh:mm a')}
+                          </td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {sale.customerName}
+                          </td>
+                        </>
+                      )}
+                      <td className="centered-cell">{item.bagQuantity}</td>
+                      <td className="centered-cell">{item.kgQuantity % 1 === 0 ? item.kgQuantity : parseFloat(item.kgQuantity).toFixed(3)}</td>
+                      <td className="centered-cell">{item.category}</td>
+                      <td className="centered-cell">{item.description} @ {item.bagRate}</td>
+                      <td className="centered-cell">{item.subTotal}</td>
+                      {index === 0 && (
+                        <>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashReceived}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.remarks}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)}>Return</Button>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))
+                )
+              )}
+            </tbody>
+          </Table>
+
           <div className="mt-4">
             <h6>Sales Report:<strong> {startDate ? format(startDate, 'dd/MMM/yyyy') : ''} {endDate ? '-' : ''}  {endDate ? format(endDate, 'dd/MMM/yyyy') : ''}</strong></h6>
 
             <ul>
               <li><strong>Total Sales:</strong> {totalSales}</li>
-              <li><strong>Total Quantity Sold:</strong> {totalQuantity.bags} Bags, {totalQuantity.kgs} Kg</li>
+              <li><strong>Total Quantity Sold:</strong> {totalBags} Bags, {totalKgs} Kg</li>
               <li><strong>Total Subtotal:</strong> {totalSubTotal.toFixed(0)} Rs</li>
               <li><strong>Total Amount:</strong> {totalAmount.toFixed(0)} Rs</li>
               <li><strong>Total Cash Received:</strong> {totalCashReceived.toFixed(0)} Rs</li>

@@ -123,7 +123,7 @@ const TransferPayment = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="account">Account Name: (Transfered From)</Label>
+                  <Label for="account">Account Name: (Transfered from)</Label>
                   <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} apiEndpoint="accountType=customer,myAccount" />
                 </FormGroup>
               </Col>
@@ -159,7 +159,7 @@ const TransferPayment = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="Supplier">Supplier/Customer Name: (Transfered/Deposited in)</Label>
+                  <Label for="Supplier">Supplier/Customer Name: (Deposited in)</Label>
                   <Accounts onNameChange={handleSupplierChange} selectedName={selectedSupplier} apiEndpoint="accountType=customer,supplier" />
                 </FormGroup>
               </Col>

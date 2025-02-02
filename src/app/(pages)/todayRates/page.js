@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Row, Col, Table, Card, CardTitle, CardBody, Button, FormGroup, Label, Input, Spinner, Progress,
   Modal, ModalHeader, ModalBody, ModalFooter
@@ -23,12 +23,10 @@ function TodayRates() {
   const [newRate, setNewRate] = useState(0); // State to store the new rate
   const [currentItemId, setCurrentItemId] = useState(null); // State to store the ID of the item being edited
 
-  // Handle category change
   const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption ? selectedOption.value : null);
+    setSelectedCategory(selectedOption ? selectedOption : null);
   };
 
-  // Handle description change
   const handleDescriptionChange = (selectedOption) => {
     setSelectedDescription(selectedOption);
   };
@@ -44,7 +42,7 @@ function TodayRates() {
     try {
       const queryParams = new URLSearchParams();
 
-      if (selectedCategory) queryParams.append('category', selectedCategory);
+      if (selectedCategory) queryParams.append('category', selectedCategory.value);
       if (selectedDescription) queryParams.append('description', selectedDescription.value);
 
       const response = await fetch(`/api/stock?${queryParams.toString()}`);
@@ -63,11 +61,13 @@ function TodayRates() {
   }, [selectedCategory, selectedDescription]);
 
   // Filter items based on the search rate for Bag or Kg
-  const filteredItems = items.filter((item) => {
-    const kgRate = item.sellRate / 25;  // Calculate the Kg rate
-    // Check if search rate is empty or if the item's sellRate or kgRate matches the search query
-    return searchRate === '' || item.sellRate.toString().includes(searchRate) || kgRate.toString().includes(searchRate);
-  });
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const kgRate = item.sellRate / 25;
+      return searchRate === '' || item.sellRate.toString().includes(searchRate) || kgRate.toString().includes(searchRate);
+    });
+  }, [items, searchRate]);
+
 
   const handleEdit = (itemId, currentSellRate) => {
     setIsEditModalOpen(true);
@@ -161,22 +161,22 @@ function TodayRates() {
                   </thead>
                   <tbody>
                     {filteredItems.map((item, index) => (
-                      <tr key={item._id}>
+                      <tr key={item._id} className={item.bagQuantity < item.stockLimit ? 'table-danger' : ''}>
                         <td>{index + 1}</td>
                         <td>{item.category}</td>
                         <td>{item.description}</td>
                         <td>{item.sellRate}</td>
                         <td>{item.sellRate / 25}</td>
                         <td>
-                          <span style={{ color: item.bagQuantity > 0 ? 'blue' : 'red', fontWeight: 'bold' }}>
+                          <span style={{ color: item.bagQuantity === 0 ? 'red' : 'blue', fontWeight: 'bold' }}>
                             {item.bagQuantity} </span>
                           Bags,
-                          <span style={{ color: item.kgQuantity > 0 ? 'darkgreen' : 'red', fontWeight: 'bold' }}> {item.kgQuantity} </span>
+                          <span style={{ color: 'blue', fontWeight: 'bold' }}> {item.kgQuantity} </span>
                           Kg
                         </td>
                         <td>{item.purchasedRate}</td>
                         <td>
-                          <Button color="primary" size="sm" onClick={() => handleEdit(item._id, item.sellRate)}>
+                          <Button color="primary" className='centered-cell' size="sm" onClick={() => handleEdit(item._id, item.sellRate)}>
                             Edit
                           </Button>
                         </td>

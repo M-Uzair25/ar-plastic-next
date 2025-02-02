@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardTitle, CardBody, Form, Row, Col, FormGroup, Label, Input, Button, Spinner } from 'reactstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import react-toastify styles
@@ -7,8 +7,9 @@ import Accounts from '@/components/Accounts';
 
 const LedgerEntry = () => {
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [accountType, setAccountType] = useState('');
     const [description, setDescription] = useState('');
-    const [balance, setBalance] = useState('');
+    const [previousBalance, setPreviousBalance] = useState('');
     const [amount, setAmount] = useState('');
     const [paymentType, setPaymentType] = useState('None');
     const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ const LedgerEntry = () => {
         setSelectedAccount(selectedOption);
 
         if (!selectedOption) {
-            setBalance('');
+            setPreviousBalance('');
             return;
         }
 
@@ -27,7 +28,8 @@ const LedgerEntry = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setBalance(data.balance);
+                setPreviousBalance(data.balance);
+                setAccountType(data.accountType);
             } else {
                 toast.error(`Error: ${data.message}`);
             }
@@ -38,6 +40,29 @@ const LedgerEntry = () => {
             setLoading(false);
         }
     };
+
+    const calculatedRemainingBalance = useMemo(() => {
+        let prevbalance = Number(previousBalance) || 0;
+        const cAmount = Number(amount) || 0;
+
+        if (!selectedAccount || !amount || !paymentType) return prevbalance;
+
+        // Update the new balance based on payment type
+        if (paymentType === 'Debit') {
+            if (accountType === 'cash' || accountType === 'myAccount') {
+                prevbalance -= cAmount;  // Debit decreases balance
+            } else {
+                prevbalance += cAmount;  // Debit increases balance
+            }
+        } else if (paymentType === 'Credit') {
+            if (accountType === 'cash' || accountType === 'myAccount') {
+                prevbalance += cAmount;  // Credit increases balance
+            } else {
+                prevbalance -= cAmount;  // Credit decreases balance
+            }
+        }
+        return prevbalance;
+    }, [selectedAccount, amount, paymentType, previousBalance]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -73,6 +98,7 @@ const LedgerEntry = () => {
                 setDescription('');
                 setAmount('');
                 setPaymentType('None');
+                setPreviousBalance('');
             } else {
                 toast.error(`Error: ${result.message}`);
             }
@@ -103,12 +129,13 @@ const LedgerEntry = () => {
                             </Col>
                             <Col md={2}>
                                 <FormGroup>
-                                    <Label for="balance">Balance</Label>
+                                    <Label for="previousBalance">Previous Balance</Label>
                                     <Input
-                                        style={{ backgroundColor: 'rgb(246, 78, 96)', color: 'white' }}
-                                        id="balance"
+                                        style={{ backgroundColor: '#343a40', color: 'white' }}
+                                        id="previousBalance"
+                                        name="previousBalance"
                                         type="number"
-                                        value={balance}
+                                        value={previousBalance}
                                         disabled
                                     />
                                 </FormGroup>
@@ -126,6 +153,18 @@ const LedgerEntry = () => {
                                         bsSize="sm"
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
+                                    />
+                                </FormGroup>
+                            </Col>
+                            <Col md={2}>
+                                <FormGroup>
+                                    <Label for="remainingBalance">New Remaining Balance</Label>
+                                    <Input
+                                        style={{ backgroundColor: 'rgb(246, 78, 96)', color: 'white' }}
+                                        id="remainingBalance"
+                                        type="number"
+                                        value={calculatedRemainingBalance}
+                                        disabled
                                     />
                                 </FormGroup>
                             </Col>
