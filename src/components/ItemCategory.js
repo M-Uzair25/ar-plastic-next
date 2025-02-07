@@ -69,10 +69,10 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
                     color: state.isDisabled ? '#aaa' : 'white',
                     borderColor: state.isDisabled ? 'red' : '#cccccc',
                 }),
-                singleValue:(provided) => ({
+                singleValue: (provided) => ({
                     ...provided,
-                    color:'blue',
-                  }),
+                    color: 'blue',
+                }),
             }}
             instanceId="category"
             id="itemCategory"

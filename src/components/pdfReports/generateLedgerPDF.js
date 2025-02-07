@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export function generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, totalCredit, closingBalance) {
+export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance) {
 
     if (!ledgerData.length) {
         toast.error('No data to download.');
@@ -35,10 +35,6 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, to
         30
     );
 
-    // Add summary
-    doc.text(`Total Debit: ${totalDebit} Rs | Total Credit: ${totalCredit} Rs`, 14, 40);
-    doc.text(`Closing Balance: ${closingBalance} Rs`, 140, 40);
-
     // Prepare table data
     const tableColumn = ['Date', 'Description', 'Debit', 'Credit', 'Balance'];
     const tableRows = ledgerData.map((entry) => [
@@ -56,7 +52,7 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, to
             fillColor: [220, 220, 220],
         },
         body: tableRows,
-        startY: 47,
+        startY: 37,
         styles: {
             lineColor: [0, 0, 0],
             textColor: [0, 0, 0],
@@ -65,7 +61,14 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, to
         alternateRowStyles: { fillColor: [255, 255, 255] },
     });
 
+    let finalY = doc.lastAutoTable.finalY + 7;
+    const pageWidth = doc.internal.pageSize.width;
+    const marginRight = 15;
+    doc.setFont("helvetica", "bold");
+    doc.text(`Closing Balance: ${closingBalance} Rs`, pageWidth - marginRight, finalY, { align: "right" });
+
     // Footer
+    doc.setFont("helvetica", "normal");
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);

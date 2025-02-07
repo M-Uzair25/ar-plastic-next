@@ -15,8 +15,6 @@ const Ledger = () => {
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [ledgerData, setLedgerData] = useState([]); // Store fetched ledger entries
-    const [totalDebit, setTotalDebit] = useState(0);
-    const [totalCredit, setTotalCredit] = useState(0);
     const [closingBalance, setClosingBalance] = useState(0);
     const [loading, setLoading] = useState(false); // Loading state
 
@@ -77,8 +75,6 @@ const Ledger = () => {
 
             if (response.ok) {
                 setLedgerData(data.ledgerEntries);
-                setTotalDebit(data.totalDebit);
-                setTotalCredit(data.totalCredit);
                 setClosingBalance(data.closingBalance);
             } else {
                 toast.error(`Error: ${data.message}`);
@@ -93,7 +89,7 @@ const Ledger = () => {
 
     // Handle print ledger report
     const handleDownloadPDF = () => {
-        generateLedgerPDF(ledgerData, startDate, endDate, totalDebit, totalCredit, closingBalance);
+        generateLedgerPDF(ledgerData, startDate, endDate, closingBalance);
     };
 
     // Clear all data
@@ -102,8 +98,6 @@ const Ledger = () => {
         setStartDate(null);
         setEndDate(null);
         setLedgerData([]);
-        setTotalDebit(0);
-        setTotalCredit(0);
         setClosingBalance(0);
     };
 
@@ -211,9 +205,6 @@ const Ledger = () => {
                                 <div className="d-flex justify-content-between align-items-center flex-wrap">
                                     <div>
                                         From: {startDate ? format(startDate, 'dd MMM yyyy') : 'N/A'} - To: {endDate ? format(endDate, 'dd MMM yyyy') : 'N/A'}
-                                    </div>
-                                    <div>
-                                        Total Amount Debited = {totalDebit} Rs | Total Amount Credited = {totalCredit} Rs
                                     </div>
                                     <Badge color="danger">
                                         <h6 className="mt-1">Closing Balance = {closingBalance} Rs</h6>

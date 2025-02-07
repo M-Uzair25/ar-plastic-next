@@ -98,12 +98,10 @@ export async function GET(request) {
     // Fetch ledger entries, sort by creation date
     const ledgerEntries = await Ledger.find(query).sort({ createdAt: 1 });
 
-    // Calculate total debit, credit, and closing balance
-    const totalDebit = ledgerEntries.reduce((sum, entry) => sum + entry.debit, 0);
-    const totalCredit = ledgerEntries.reduce((sum, entry) => sum + entry.credit, 0);
+    // Calculate closing balance
     const closingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
 
-    return Response.json({ ledgerEntries, totalDebit, totalCredit, closingBalance }, { status: 200 });
+    return Response.json({ ledgerEntries, closingBalance }, { status: 200 });
   } catch (error) {
     console.error('Error fetching ledger:', error.message);
     return Response.json({ message: 'Error fetching ledger' }, { status: 500 });
