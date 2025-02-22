@@ -304,7 +304,8 @@ const SaleItem = () => {
     };
 
     try {
-      const response = await fetch('/api/sales', {
+      const api = selectedName.value === 'Cash' ? '/api/sales/cashSale' : '/api/sales';
+      const response = await fetch(api, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -369,6 +370,7 @@ const SaleItem = () => {
 
   const handleAccountChange = async (selectedOption) => {
     setSelectedAccount(selectedOption);
+    setCashReceived(0);
   };
 
   const handleAccountPaymentSubmit = async (e) => {
@@ -452,7 +454,7 @@ const SaleItem = () => {
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
                   <Badge color="primary" className='mx-4'> Balance  = {balance} Rs</Badge>
-                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} apiEndpoint="accountType=cash,customer,supplier" />
                 </FormGroup>
               </Col>
               <Col md={5}>

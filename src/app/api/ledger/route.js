@@ -21,15 +21,25 @@ export async function POST(request) {
 
     let currentBalance = dbAccount.balance; // Start with the current balance
 
-    currentBalance -= debit;
-    currentBalance += credit;
+    if (dbAccount.accountType === 'supplier') {
+      currentBalance += debit;
+      currentBalance -= credit;
+    }
+    else if (dbAccount.accountType === 'customer') {
+      currentBalance -= debit;
+      currentBalance += credit;
+    }
+    else {
+      currentBalance -= debit;
+      currentBalance += credit;
+    }
 
     // Create a new ledger entry with the received data
     const newLedgerEntry = new Ledger({
       party,
       description,
-      debit: dbAccount.accountType === 'supplier' ? credit : debit,  // Make debit = credit for supplier
-      credit: dbAccount.accountType === 'supplier' ? debit : credit, // Make credit = 0 for supplier
+      debit: (dbAccount.accountType === 'supplier' || dbAccount.accountType === 'customer') ? credit : debit,  // Make debit = credit for supplier
+      credit: (dbAccount.accountType === 'supplier' || dbAccount.accountType === 'customer') ? debit : credit, // Make credit = 0 for supplier
       balance: currentBalance,
     });
 
@@ -101,7 +111,11 @@ export async function GET(request) {
     // Calculate closing balance
     const closingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
 
-    return Response.json({ ledgerEntries, closingBalance }, { status: 200 });
+    // Fetch account type
+    const account = await Account.findOne({ accountName: party }, { accountType: 1 });
+    const accountType = account ? account.accountType : null;
+
+    return Response.json({ ledgerEntries, closingBalance, accountType }, { status: 200 });
   } catch (error) {
     console.error('Error fetching ledger:', error.message);
     return Response.json({ message: 'Error fetching ledger' }, { status: 500 });

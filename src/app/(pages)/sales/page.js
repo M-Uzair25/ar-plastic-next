@@ -348,7 +348,7 @@ const Sales = () => {
                           <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashReceived}</td>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.remarks}</td>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">
-                            <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)}>Return</Button>
+                            <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)} disabled={sale.returned}>Return</Button>
                           </td>
                         </>
                       )}

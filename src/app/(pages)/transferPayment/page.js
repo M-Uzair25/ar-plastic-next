@@ -57,7 +57,7 @@ const TransferPayment = () => {
 
     if (!selectedSupplier || !cash) return balance;
 
-    return balance + cash;
+    return balance - cash;
   }, [previousBalance, cashPaid, selectedSupplier]);
 
   const handleSubmit = async (e) => {
@@ -159,8 +159,8 @@ const TransferPayment = () => {
             <Row>
               <Col md={6}>
                 <FormGroup>
-                  <Label for="Supplier">Supplier/Customer Name: (Deposited in)</Label>
-                  <Accounts onNameChange={handleSupplierChange} selectedName={selectedSupplier} apiEndpoint="accountType=customer,supplier" />
+                  <Label for="Supplier">Supplier Name: (Deposited in)</Label>
+                  <Accounts onNameChange={handleSupplierChange} selectedName={selectedSupplier} apiEndpoint="accountType=supplier" />
                 </FormGroup>
               </Col>
               <Col>

@@ -7,6 +7,7 @@ import Accounts from '@/components/Accounts';
 
 const CashReceiving = () => {
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [accountType, setAccountType] = useState('');
     const [description, setDescription] = useState('');
     const [previousBalance, setPreviousBalance] = useState('');
     const [cashReceived, setCashReceived] = useState('');
@@ -33,6 +34,7 @@ const CashReceiving = () => {
 
             if (response.ok) {
                 setPreviousBalance(data.balance);
+                setAccountType(data.accountType);
                 setCashReceived('');
             } else {
                 toast.error(`Error: ${data.message}`);
@@ -50,6 +52,10 @@ const CashReceiving = () => {
         const cash = Number(cashReceived) || 0;
 
         if (!selectedAccount || !cash) return balance;
+
+        if (accountType === 'supplier') {
+            return balance + cash;
+        }
 
         return balance - cash;
     }, [previousBalance, cashReceived, selectedAccount]);
@@ -98,6 +104,7 @@ const CashReceiving = () => {
 
     const resetForm = () => {
         setSelectedAccount(null);
+        setAccountType('');
         setPreviousBalance('');
         setCashReceived('');
         setDescription('');

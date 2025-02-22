@@ -37,7 +37,11 @@ export async function POST(request) {
         } else {
             credit = amount
         }
-        dbAccount.balance -= amount;  // Credit decreases balance
+        if (dbAccount.accountType === 'supplier') {
+            dbAccount.balance += amount; // Credit increases supplier balance
+        } else {
+            dbAccount.balance -= amount;  // Credit decreases balance
+        }
 
         // Create a new ledger entry
         const newLedgerEntry = new Ledger({

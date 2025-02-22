@@ -36,7 +36,7 @@ export async function POST(request) {
 
         if (otherAccount.accountType === 'supplier') {
             otherDebit = amount;
-            otherAccount.balance += amount;  // Debit decreases balance
+            otherAccount.balance -= amount;  // Debit decreases balance
         } else {
             otherCredit = amount;
             otherAccount.balance += amount;  // Credit increases balance

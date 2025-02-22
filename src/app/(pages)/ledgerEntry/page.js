@@ -49,13 +49,13 @@ const LedgerEntry = () => {
 
         // Update the new balance based on payment type
         if (paymentType === 'Debit') {
-            if (accountType === 'cash' || accountType === 'myAccount') {
+            if (accountType === 'cash' || accountType === 'myAccount' || accountType === 'supplier') {
                 prevbalance -= cAmount;  // Debit decreases balance
             } else {
                 prevbalance += cAmount;  // Debit increases balance
             }
         } else if (paymentType === 'Credit') {
-            if (accountType === 'cash' || accountType === 'myAccount') {
+            if (accountType === 'cash' || accountType === 'myAccount' || accountType === 'supplier') {
                 prevbalance += cAmount;  // Credit increases balance
             } else {
                 prevbalance -= cAmount;  // Credit decreases balance

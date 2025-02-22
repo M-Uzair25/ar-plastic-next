@@ -28,14 +28,14 @@ export async function POST(request) {
         // Update the balance based on payment type
         if (paymentType === 'Debit') {
             debit = amount;
-            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount' || dbAccount.accountType === 'supplier') {
                 currentBalance -= amount;  // Debit decreases balance
             } else {
                 currentBalance += amount;  // Debit increases balance
             }
         } else if (paymentType === 'Credit') {
             credit = amount;
-            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount' || dbAccount.accountType === 'supplier') {
                 currentBalance += amount;  // Credit increases balance
             } else {
                 currentBalance -= amount;  // Credit decreases balance

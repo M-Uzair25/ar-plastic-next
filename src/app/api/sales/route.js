@@ -127,7 +127,13 @@ export async function POST(request) {
                 // For debit customers, debit increases balance (debit transaction)
                 debit = item.subTotal;
             }
-            currentBalance += item.subTotal;
+
+            if (dbAccount.accountType === 'supplier') {
+                currentBalance -= item.subTotal;
+            }
+            else {
+                currentBalance += item.subTotal;
+            }
 
             bagQty = parseInt(item.bagQuantity, 10) || 0;
             kgQty = parseFloat(item.kgQuantity).toFixed(3) || 0;
@@ -160,7 +166,7 @@ export async function POST(request) {
 
         // Adjust cash ledger in case of discount
         if (saleData.discount && dbAccount.accountType === 'cash') {
-            const debit = saleData.total - saleData.cashReceived;
+            const debit = parseInt(saleData.discount);
             currentBalance -= debit;
 
             const newLedgerEntry = new Ledger({
@@ -175,16 +181,33 @@ export async function POST(request) {
             await newLedgerEntry.save();
         }
 
-        // Adjust cash ledger in case less cash is received and amount is transferred to another account
-        if (saleData.cashReceived < saleData.total && dbAccount.accountType === 'cash' && saleData.selectedAccount && saleData.accountAmount) {
-            const debit = saleData.total - saleData.cashReceived;
-            currentBalance -= debit;
+        // Adjust ledger in case amount is transferred to another account
+        if (saleData.selectedAccount && saleData.accountAmount) {
+            const accountAmount = parseInt(saleData.accountAmount);
+
+            let debit = 0;
+            let credit = 0;
+
+            if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+                // For cash or My Account, create a debit entry to reverse the sale (since cash was credit)
+                debit = accountAmount;
+            } else {
+                // For credit customers, create a credit entry to reverse the sale
+                credit = accountAmount;
+            }
+
+            if (dbAccount.accountType === 'supplier') {
+                currentBalance += accountAmount;
+            }
+            else {
+                currentBalance -= accountAmount;
+            }
 
             const newLedgerEntry = new Ledger({
                 party: saleData.customerName,
-                description: `Sale Total: ${saleData.total} Rs, Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`,
+                description: `Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`,
                 debit: debit,
-                credit: 0,
+                credit: credit,
                 balance: currentBalance,  // Incrementally updated balance
             });
 
@@ -338,7 +361,13 @@ export async function PUT(request) {
             // For credit customers, create a credit entry to reverse the sale
             credit = sale.total;
         }
-        currentBalance -= sale.total;
+
+        if (dbAccount.accountType === 'supplier') {
+            currentBalance += sale.total;
+        }
+        else {
+            currentBalance -= sale.total;
+        }
 
         // Format the sale data into a single string
         let formattedSaleData = sale.cartItems.map(item => {

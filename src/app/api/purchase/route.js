@@ -76,7 +76,7 @@ export async function POST(request) {
         let credit = 0;
 
         credit = total;
-        currentBalance -= total;
+        currentBalance += total;
 
         // Create a new ledger entry with the received data
         const newLedgerEntry = new Ledger({

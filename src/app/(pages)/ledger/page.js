@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const Ledger = () => {
     const [tableData, setTableData] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [accountType, setAccountType] = useState('');
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [ledgerData, setLedgerData] = useState([]); // Store fetched ledger entries
@@ -22,11 +23,12 @@ const Ledger = () => {
         setLoading(true);
         try {
             const response = await fetch('/api/accounts');
-            if (!response.ok) {
+            const data = await response.json();
+            if (response.ok) {
+                setTableData(data);
+            } else {
                 throw new Error('Failed to fetch data');
             }
-            const data = await response.json();
-            setTableData(data);
         } catch (error) {
             toast.error(error.message);
         } finally {
@@ -76,6 +78,7 @@ const Ledger = () => {
             if (response.ok) {
                 setLedgerData(data.ledgerEntries);
                 setClosingBalance(data.closingBalance);
+                setAccountType(data.accountType);
             } else {
                 toast.error(`Error: ${data.message}`);
             }
@@ -89,12 +92,13 @@ const Ledger = () => {
 
     // Handle print ledger report
     const handleDownloadPDF = () => {
-        generateLedgerPDF(ledgerData, startDate, endDate, closingBalance);
+        generateLedgerPDF(ledgerData, startDate, endDate, closingBalance, accountType);
     };
 
     // Clear all data
     const clearAllData = () => {
         setSelectedAccount(null);
+        setAccountType('');
         setStartDate(null);
         setEndDate(null);
         setLedgerData([]);
@@ -129,6 +133,13 @@ const Ledger = () => {
                             <td>{entry.debit}</td>
                             <td>{entry.credit}</td>
                             <td>{entry.balance}</td>
+                            <td>
+                                {accountType === 'customer' ? (
+                                    entry.balance > 0 ? 'DR' : 'CR'
+                                ) : accountType === 'supplier' ? (
+                                    entry.balance > 0 ? 'CR' : 'DR'
+                                ) : ''}
+                            </td>
                         </tr>
                     ))
                 ) : (
@@ -207,7 +218,13 @@ const Ledger = () => {
                                         From: {startDate ? format(startDate, 'dd MMM yyyy') : 'N/A'} - To: {endDate ? format(endDate, 'dd MMM yyyy') : 'N/A'}
                                     </div>
                                     <Badge color="danger">
-                                        <h6 className="mt-1">Closing Balance = {closingBalance} Rs</h6>
+                                        <h6 className="mt-1">
+                                            Closing Balance = {closingBalance} Rs | {accountType === 'customer' ? (
+                                                closingBalance > 0 ? 'Receivable' : 'Payable'
+                                            ) : accountType === 'supplier' ? (
+                                                closingBalance > 0 ? 'Payable' : 'Receivable'
+                                            ) : ''}
+                                        </h6>
                                     </Badge>
                                 </div>
                             </CardTitle>

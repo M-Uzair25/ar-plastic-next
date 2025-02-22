@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance) {
+export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance, accountType) {
 
     if (!ledgerData.length) {
         toast.error('No data to download.');
@@ -36,13 +36,18 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     );
 
     // Prepare table data
-    const tableColumn = ['Date', 'Description', 'Debit', 'Credit', 'Balance'];
+    const tableColumn = ['Date', 'Description', 'Debit', 'Credit', 'Balance', ''];
     const tableRows = ledgerData.map((entry) => [
         format(new Date(entry.createdAt), 'dd/MM/yy'),
         entry.description,
         entry.debit || '-',
         entry.credit || '-',
         entry.balance,
+        accountType === 'customer' ? (
+            entry.balance > 0 ? 'DR' : 'CR'
+        ) : accountType === 'supplier' ? (
+            entry.balance > 0 ? 'CR' : 'DR'
+        ) : '',
     ]);
 
     // Add table
@@ -65,7 +70,11 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     const pageWidth = doc.internal.pageSize.width;
     const marginRight = 15;
     doc.setFont("helvetica", "bold");
-    doc.text(`Closing Balance: ${closingBalance} Rs`, pageWidth - marginRight, finalY, { align: "right" });
+    doc.text(`Closing Balance: ${closingBalance} Rs | ${accountType === 'customer' ? (
+        closingBalance > 0 ? 'Receivable' : 'Payable'
+    ) : accountType === 'supplier' ? (
+        closingBalance > 0 ? 'Payable' : 'Receivable'
+    ) : ''}`, pageWidth - marginRight, finalY, { align: "right" });
 
     // Footer
     doc.setFont("helvetica", "normal");

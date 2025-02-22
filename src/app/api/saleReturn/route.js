@@ -76,7 +76,7 @@ export async function POST(request) {
         let debit = 0;
         let credit = 0;
 
-        if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount') {
+        if (dbAccount.accountType === 'cash' || dbAccount.accountType === 'myAccount' || dbAccount.accountType === 'supplier') {
             // For cash or My Account, create a debit entry to reverse the sale (since cash was credit)
             debit = total;
         } else {
