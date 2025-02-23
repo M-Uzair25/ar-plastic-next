@@ -13,7 +13,7 @@ import ItemDescription from '@/components/ItemDescription';
 import { generateSaleReceipt } from '@/components/pdfReports/generateSaleReceipt';
 
 const SaleItem = () => {
-  const defaultCustomerName = { value: 'Cash', label: 'Cash' };
+  const defaultCustomerName = { value: 'CASH', label: 'CASH' };
   const [selectedName, setSelectedName] = useState(defaultCustomerName);
   const [balance, setBalance] = useState(0);
   const [remarks, setRemarks] = useState('');
@@ -90,7 +90,7 @@ const SaleItem = () => {
       setBalance(0);
       return;
     }
-    if (selectedOption.value === 'Cash') {
+    if (selectedOption.value === 'CASH') {
       setBalance('');
       return;
     }
@@ -222,7 +222,7 @@ const SaleItem = () => {
   useEffect(() => {
     const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
     setTotal(newTotal);
-    if (selectedName.value === 'Cash')
+    if (selectedName.value === 'CASH')
       setCashReceived(newTotal);
   }, [cartItems]);
 
@@ -285,7 +285,7 @@ const SaleItem = () => {
       toast.error("Cart is empty. Please add items to the cart before submitting.");
       return;
     }
-    if (selectedName.value === 'Cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+    if (selectedName.value === 'CASH' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
       toast.error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
       return;
     }
@@ -304,7 +304,7 @@ const SaleItem = () => {
     };
 
     try {
-      const api = selectedName.value === 'Cash' ? '/api/sales/cashSale' : '/api/sales';
+      const api = selectedName.value === 'CASH' ? '/api/sales/cashSale' : '/api/sales';
       const response = await fetch(api, {
         method: 'POST',
         headers: {
@@ -315,7 +315,7 @@ const SaleItem = () => {
 
       const result = await response.json();
 
-      if (parseInt(cashReceived) > 0 && selectedName.value !== 'Cash') {
+      if (parseInt(cashReceived) > 0 && selectedName.value !== 'CASH') {
         handleCashSubmit(e);
       }
 
@@ -346,7 +346,7 @@ const SaleItem = () => {
 
     const receivingData = {
       account: selectedName.value,
-      description: 'Cash Received',
+      description: 'CASH RECEIVED',
       amount: parseInt(cashReceived),
     };
 
@@ -393,7 +393,7 @@ const SaleItem = () => {
       return;
     }
 
-    if (selectedName.value === 'Cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+    if (selectedName.value === 'CASH' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
       toast.error('Cash received + Credit Amount is less than the total bill amount.');
       return;
     }

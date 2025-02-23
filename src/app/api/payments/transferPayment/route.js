@@ -40,9 +40,9 @@ export async function POST(request) {
         let accountDescription = '';
         if (!description) {
             if (otherAccount.accountType === 'myAccount')
-                accountDescription = `Transfered to (${supplierName})`;
+                accountDescription = `TRANSFERRED TO (${supplierName})`;
             else
-                accountDescription = "Account Transfer";
+                accountDescription = "ACCOUNT TRANSFER";
         }
         else
             accountDescription = description;
@@ -60,7 +60,7 @@ export async function POST(request) {
         // Create ledger entry for supplier
         const supplierLedger = new Ledger({
             name: supplierName,
-            description: `${description} By (${account})`,
+            description: `${description} BY (${account})`,
             debit: supplierDebit,
             credit: supplierCredit,
             balance: supplierAccount.balance,

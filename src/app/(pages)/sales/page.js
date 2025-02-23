@@ -80,7 +80,8 @@ const Sales = () => {
       const response = await fetch(`/api/sales/?id=${sale._id}`);
       const data = await response.json();
       if (response.ok) {
-        generateSaleReceipt(data.sale);
+        const date = format(new Date(), 'dd/MM/yyyy hh:mm a');
+        generateSaleReceipt(data.sale, date);
       } else {
         toast.error(`Error fetching sale receipt: ${data.message}`);
       }

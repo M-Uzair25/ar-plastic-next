@@ -67,7 +67,7 @@ const CashPayment = () => {
       toast.error('Please fill in all required fields.');
       return;
     }
-    if (selectedAccount.value === 'Cash') {
+    if (selectedAccount.value === 'CASH') {
       toast.error('Party name cannot be "Cash". Kindly select another party!');
       return;
     }

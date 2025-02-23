@@ -67,7 +67,7 @@ const CashReceiving = () => {
             toast.error('Please fill in all required fields.');
             return;
         }
-        if (selectedAccount.value === 'Cash') {
+        if (selectedAccount.value === 'CASH') {
             toast.error('Customer name cannot be "Cash". Kindly select another customer!');
             return;
         }

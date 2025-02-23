@@ -8,7 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const SaleReturn = () => {
-    const defaultCAccountName = { value: 'Cash', label: 'Cash' };
+    const defaultCAccountName = { value: 'CASH', label: 'CASH' };
     const [selectedName, setSelectedName] = useState(defaultCAccountName);
     const [remarks, setRemarks] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(null);

@@ -88,7 +88,7 @@ export async function POST(request) {
         // Create the reversal ledger entry
         const newLedgerEntry = new Ledger({
             name: accountName,
-            description: `Sale Returned: ${ledgerDescription}`,
+            description: `SALE RETURNED: ${ledgerDescription}`,
             debit: debit,
             credit: credit,
             balance: currentBalance,

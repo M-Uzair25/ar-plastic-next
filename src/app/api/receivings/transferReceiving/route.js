@@ -45,9 +45,9 @@ export async function POST(request) {
         let customerDescription = '';
         if (!description) {
             if (otherAccount.accountType === 'myAccount')
-                customerDescription = `Transfered to (${account})`;
+                customerDescription = `TRANSFERRED TO (${account})`;
             else
-                customerDescription = "Account Transfer";
+                customerDescription = "ACCOUNT TRANSFER";
         }
         else
             customerDescription = description;
@@ -65,7 +65,7 @@ export async function POST(request) {
         // Create ledger entry for other account (like Cash or another account)
         const accountLedger = new Ledger({
             name: account,
-            description: `${description} By (${customerName})`,
+            description: `${description} BY (${customerName})`,
             debit: otherDebit,
             credit: otherCredit,
             balance: otherAccount.balance,

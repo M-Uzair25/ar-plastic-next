@@ -13,13 +13,13 @@ export async function POST(request) {
             return Response.json({ message: 'All fields are required' }, { status: 400 });
         }
         // Check if selected account is Payment
-        if (account === 'Cash') {
+        if (account === 'CASH') {
             return Response.json({ message: 'Ledger name cannot be "Cash". Kindly select another party!' }, { status: 400 });
         }
 
         // Find the account to update its balance
         const dbAccount = await Account.findOne({ accountName: account });
-        const cashAccount = await Account.findOne({ accountName: 'Cash' });
+        const cashAccount = await Account.findOne({ accountName: 'CASH' });
 
         if (!dbAccount || !cashAccount) {
             return Response.json({ message: 'Account not found' }, { status: 404 });
@@ -27,12 +27,12 @@ export async function POST(request) {
 
         let debit = 0;
         let credit = 0;
-        let ledgerDescription = "Cash Paid";
+        let ledgerDescription = "CASH PAID";
 
         if (dbAccount.accountType === 'myAccount') {
             credit = amount;
             if (!description) {
-                ledgerDescription = "Cash Deposited";
+                ledgerDescription = "CASH DEPOSITED";
             }
         } else {
             debit = amount
@@ -58,8 +58,8 @@ export async function POST(request) {
         cashAccount.balance -= amount;  // Credit decreases cash
         // Create Cash Ledger entry
         const cashLedger = new Ledger({
-            name: 'Cash',
-            description: `Cash Paid To (${account})`,
+            name: 'CASH',
+            description: `CASH PAID TO (${account})`,
             debit: amount,
             credit: 0,
             balance: cashAccount.balance,

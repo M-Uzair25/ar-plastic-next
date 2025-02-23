@@ -29,7 +29,7 @@ export async function POST(request) {
 
         const saleData = await request.json();
 
-        if (saleData.customerName === 'Cash' && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
+        if (saleData.customerName === 'CASH' && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
             throw new Error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
         }
 
@@ -51,12 +51,12 @@ export async function POST(request) {
             const otherAccount = await Account.findOne({ accountName: saleData.selectedAccount });
             if (otherAccount.accountType === 'myAccount') {
                 if (saleData.remarks)
-                    newRemarks = `${saleData.remarks}, (Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount})`;
+                    newRemarks = `${saleData.remarks}, (TRANSFERRED TO ${saleData.selectedAccount}: ${saleData.accountAmount})`;
                 else
-                    newRemarks = `Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`;
+                    newRemarks = `TRANSFERRED TO ${saleData.selectedAccount}: ${saleData.accountAmount}`;
             }
             else if (saleData.selectedAccount && !saleData.remarks) {
-                newRemarks = `Account Transfer: ${saleData.accountAmount}`;
+                newRemarks = `ACCOUNT TRANSFER: ${saleData.accountAmount}`;
             }
         }
 
@@ -142,20 +142,20 @@ export async function POST(request) {
             return `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`;
         }).join(', ');
 
-        ledgerDescription = `${ledgerDescription}, Total = ${saleData.total} Rs`;
+        ledgerDescription = `${ledgerDescription}, TOTAL = ${saleData.total} Rs`;
 
         if (saleData.remarks) {
-            ledgerDescription = `${ledgerDescription}, Remarks: ${saleData.remarks}`;
+            ledgerDescription = `${ledgerDescription}, REMARKS: ${saleData.remarks}`;
         }
 
         // Adjust cash ledger in case of discount
         if (saleData.discount && dbAccount.accountType === 'cash') {
-            ledgerDescription = `${ledgerDescription}, Discount: ${saleData.discount} Rs`;
+            ledgerDescription = `${ledgerDescription}, DISCOUNT: ${saleData.discount} Rs`;
         }
 
         // Adjust cash ledger in case less cash is received and amount is transferred to another account
         if (saleData.cashReceived < saleData.total && dbAccount.accountType === 'cash' && saleData.selectedAccount && saleData.accountAmount) {
-            ledgerDescription = `${ledgerDescription}, Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount} Rs`;
+            ledgerDescription = `${ledgerDescription}, TRANSFERRED TO ${saleData.selectedAccount}: ${saleData.accountAmount} Rs`;
         }
 
         if (dbAccount.accountType === 'supplier') {

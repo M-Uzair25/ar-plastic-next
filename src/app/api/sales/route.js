@@ -24,7 +24,7 @@ export async function POST(request) {
 
         const saleData = await request.json();
 
-        if (saleData.customerName === 'Cash' && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
+        if (saleData.customerName === 'CASH' && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
             throw new Error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
         }
 
@@ -46,12 +46,12 @@ export async function POST(request) {
             const otherAccount = await Account.findOne({ accountName: saleData.selectedAccount });
             if (otherAccount.accountType === 'myAccount') {
                 if (saleData.remarks)
-                    newRemarks = `${saleData.remarks}, (Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount})`;
+                    newRemarks = `${saleData.remarks}, (TRANSFERRED TO ${saleData.selectedAccount}: ${saleData.accountAmount})`;
                 else
-                    newRemarks = `Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`;
+                    newRemarks = `TRANSFERRED TO ${saleData.selectedAccount}: ${saleData.accountAmount}`;
             }
             else if (saleData.selectedAccount && !saleData.remarks) {
-                newRemarks = `Account Transfer: ${saleData.accountAmount}`;
+                newRemarks = `ACCOUNT TRANSFER: ${saleData.accountAmount}`;
             }
         }
 
@@ -145,7 +145,7 @@ export async function POST(request) {
             let ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}`;
 
             if (saleData.remarks) {
-                ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}, Remarks: ${saleData.remarks}`;
+                ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}, REMARKS: ${saleData.remarks}`;
             }
 
             // Create a Ledger entry for each sale item
@@ -171,7 +171,7 @@ export async function POST(request) {
 
             const newLedgerEntry = new Ledger({
                 name: saleData.customerName,
-                description: `Sale Total: ${saleData.total} Rs, Discount: ${saleData.discount}`,
+                description: `SALE TOTAL: ${saleData.total} Rs, DISCOUNT: ${saleData.discount}`,
                 debit: debit,
                 credit: 0,
                 balance: currentBalance,  // Incrementally updated balance
@@ -205,7 +205,7 @@ export async function POST(request) {
 
             const newLedgerEntry = new Ledger({
                 name: saleData.customerName,
-                description: `Transferred to ${saleData.selectedAccount}: ${saleData.accountAmount}`,
+                description: `TRANSFERRED TO ${saleData.selectedAccount}: ${saleData.accountAmount}`,
                 debit: debit,
                 credit: credit,
                 balance: currentBalance,  // Incrementally updated balance
@@ -320,7 +320,7 @@ export async function PUT(request) {
         }
 
         const returnDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
-        sale.remarks = `Sale Returned: ${returnDate}`;
+        sale.remarks = `SALE RETURNED: ${returnDate}`;
         sale.returned = true;
         // Save the updated item
         await sale.save();
@@ -377,7 +377,7 @@ export async function PUT(request) {
         // Create the reversal ledger entry
         const newLedgerEntry = new Ledger({
             name: sale.customerName,
-            description: `Sale Returned: ${formattedSaleData}`,
+            description: `SALE RETURNED: ${formattedSaleData}`,
             debit: debit,
             credit: credit,
             balance: currentBalance,
