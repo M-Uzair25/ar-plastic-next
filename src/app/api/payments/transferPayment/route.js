@@ -49,7 +49,7 @@ export async function POST(request) {
 
         // Create ledger entry for other account (like myAccount or another account)
         const accountLedger = new Ledger({
-            party: account,
+            name: account,
             description: accountDescription,
             debit: otherDebit,
             credit: otherCredit,
@@ -59,7 +59,7 @@ export async function POST(request) {
 
         // Create ledger entry for supplier
         const supplierLedger = new Ledger({
-            party: supplierName,
+            name: supplierName,
             description: `${description} By (${account})`,
             debit: supplierDebit,
             credit: supplierCredit,

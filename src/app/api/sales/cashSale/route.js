@@ -38,7 +38,7 @@ export async function POST(request) {
             throw new Error('Cart is empty. Please add items to the cart before submitting.');
         }
 
-        // Fetch the customer (party) account
+        // Fetch the customer ledger account
         const dbAccount = await Account.findOne({ accountName: saleData.customerName });
         if (!dbAccount) {
             throw new Error('Account not found for the specified customer.');
@@ -167,7 +167,7 @@ export async function POST(request) {
 
         // Create a Ledger entry for sale
         const newLedgerEntry = new Ledger({
-            party: saleData.customerName,
+            name: saleData.customerName,
             description: ledgerDescription,
             debit: debit,
             credit: credit,

@@ -80,7 +80,7 @@ export async function POST(request) {
 
         // Create a new ledger entry with the received data
         const newLedgerEntry = new Ledger({
-            party: supplierName,
+            name: supplierName,
             description: ledgerDescription,
             debit: debit,
             credit: credit,

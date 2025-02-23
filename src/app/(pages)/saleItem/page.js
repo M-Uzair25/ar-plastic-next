@@ -406,7 +406,7 @@ const SaleItem = () => {
     const creditAmount = parseInt(accountAmount);
 
     const paymentData = {
-      party: selectedAccount.value,
+      name: selectedAccount.value,
       description: accountDescription ? accountDescription : `${cartItems[0].category} Sale`,
       debit: 0,
       credit: creditAmount,

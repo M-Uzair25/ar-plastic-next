@@ -47,7 +47,7 @@ export async function POST(request) {
 
         // Create a new ledger entry
         const newLedgerEntry = new Ledger({
-            party: account,
+            name: account,
             description,
             debit,
             credit,

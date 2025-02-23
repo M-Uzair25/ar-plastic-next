@@ -45,7 +45,7 @@ export async function POST(request) {
 
         // Create a new ledger entry
         const newLedgerEntry = new Ledger({
-            party: account,
+            name: account,
             description: description ? description : ledgerDescription,
             debit,
             credit,
@@ -57,7 +57,7 @@ export async function POST(request) {
         cashAccount.balance += amount;  // Credit increases cash
         // Create Cash Ledger entry
         const cashLedger = new Ledger({
-            party: 'Cash',
+            name: 'Cash',
             description: `Cash Received By (${account})`,
             debit: 0,
             credit: amount,

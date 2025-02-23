@@ -7,14 +7,14 @@ export async function POST(request) {
   try {
     await connectToDB(); // Connect to the database
 
-    const { party, description, debit, credit, balance } = await request.json(); // Get input data from request
+    const { name, description, debit, credit, balance } = await request.json(); // Get input data from request
 
     // Validate input fields
-    if (!party || !description || balance === undefined) {
-      return Response.json({ message: "Party, description, and balance are required" }, { status: 400 });
+    if (!name || !description || balance === undefined) {
+      return Response.json({ message: "Name, description, and balance are required" }, { status: 400 });
     }
 
-    const dbAccount = await Account.findOne({ accountName: party });
+    const dbAccount = await Account.findOne({ accountName: name });
     if (!dbAccount) {
       throw new Error('Account not found for the specified customer.');
     }
@@ -36,7 +36,7 @@ export async function POST(request) {
 
     // Create a new ledger entry with the received data
     const newLedgerEntry = new Ledger({
-      party,
+      name,
       description,
       debit: (dbAccount.accountType === 'supplier' || dbAccount.accountType === 'customer') ? credit : debit,  // Make debit = credit for supplier
       credit: (dbAccount.accountType === 'supplier' || dbAccount.accountType === 'customer') ? debit : credit, // Make credit = 0 for supplier
@@ -69,17 +69,17 @@ export async function GET(request) {
     await connectToDB();
 
     const searchParams = request.nextUrl.searchParams;
-    const party = searchParams.get('party');
+    const name = searchParams.get('name');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    // Validate that party is provided
-    if (!party) {
-      return Response.json({ message: 'Party name is required' }, { status: 400 });
+    // Validate that ledger name is provided
+    if (!name) {
+      return Response.json({ message: 'Ledger name is required' }, { status: 400 });
     }
 
-    // Base query for party
-    const query = { party };
+    // Base query for ledger name
+    const query = { name };
 
     // Handle the case when only startDate or endDate is selected
     if (startDate && !endDate) {
@@ -90,7 +90,7 @@ export async function GET(request) {
     } else if (!startDate && endDate) {
       // If only endDate is selected, return entries from the first ledger entry to endDate
       // Find the earliest ledger entry
-      const firstEntry = await Ledger.findOne({ party }).sort({ createdAt: 1 });
+      const firstEntry = await Ledger.findOne({ name }).sort({ createdAt: 1 });
       if (firstEntry) {
         query.createdAt = {
           $gte: firstEntry.createdAt, // Start from the first entry
@@ -112,7 +112,7 @@ export async function GET(request) {
     const closingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
 
     // Fetch account type
-    const account = await Account.findOne({ accountName: party }, { accountType: 1 });
+    const account = await Account.findOne({ accountName: name }, { accountType: 1 });
     const accountType = account ? account.accountType : null;
 
     return Response.json({ ledgerEntries, closingBalance, accountType }, { status: 200 });

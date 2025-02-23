@@ -14,7 +14,7 @@ export async function POST(request) {
         }
         // Check if selected account is Payment
         if (account === 'Cash') {
-            return Response.json({ message: 'Party name cannot be "Cash". Kindly select another party!' }, { status: 400 });
+            return Response.json({ message: 'Ledger name cannot be "Cash". Kindly select another party!' }, { status: 400 });
         }
 
         // Find the account to update its balance
@@ -46,7 +46,7 @@ export async function POST(request) {
 
         // Create a new ledger entry
         const newLedgerEntry = new Ledger({
-            party: account,
+            name: account,
             description: description ? description : ledgerDescription,
             debit,
             credit,
@@ -58,7 +58,7 @@ export async function POST(request) {
         cashAccount.balance -= amount;  // Credit decreases cash
         // Create Cash Ledger entry
         const cashLedger = new Ledger({
-            party: 'Cash',
+            name: 'Cash',
             description: `Cash Paid To (${account})`,
             debit: amount,
             credit: 0,

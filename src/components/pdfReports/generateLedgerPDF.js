@@ -19,13 +19,13 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     doc.setFontSize(22);
     doc.setTextColor(0, 51, 102);  // Dark Blue for title
     doc.setFont("helvetica", "bold");
-    doc.text('Abdul Razzaq Plastic', 105, 20, { align: 'center' });
+    doc.text('Abdul Razzaq Plastic Traders', 105, 20, { align: 'center' });
 
     // Add subtitle
     doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
-    doc.text(`Ledger Report: ${ledgerData[0].party}`, 14, 30);
+    doc.text(`Ledger Report: ${ledgerData[0].name}`, 14, 30);
 
     // Add date range
     doc.setFontSize(12);

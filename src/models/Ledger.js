@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const LedgerSchema = new mongoose.Schema({
-    party: { type: String, required: true },
+    name: { type: String, required: true },
     description: { type: String, required: true },
     debit: { type: Number, default: 0 },
     credit: { type: Number, default: 0 },

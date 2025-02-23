@@ -48,7 +48,7 @@ const Ledger = () => {
         } else {
             setStartDate(null);
             setEndDate(null);
-            fetchLedger(selectedOption, null, null); // Automatically fetch ledger data when party changes
+            fetchLedger(selectedOption, null, null); // Automatically fetch ledger data when ledger name changes
         }
     };
 
@@ -58,16 +58,16 @@ const Ledger = () => {
     };
 
     // Fetch ledger data from backend
-    const fetchLedger = async (party = selectedAccount, fromDate = startDate, toDate = endDate) => {
-        if (!party?.value) {
-            toast.error('Please select a party name.');
+    const fetchLedger = async (name = selectedAccount, fromDate = startDate, toDate = endDate) => {
+        if (!name?.value) {
+            toast.error('Please select a ledger name.');
             return;
         }
 
         try {
             setLoading(true); // Start loading
             const queryParams = new URLSearchParams({
-                party: party.value,
+                name: name.value,
                 ...(fromDate && { startDate: format(fromDate, 'yyyy-MM-dd') }),
                 ...(toDate && { endDate: format(toDate, 'yyyy-MM-dd') })
             });
@@ -105,7 +105,7 @@ const Ledger = () => {
         setClosingBalance(0);
     };
 
-    // Re-fetch ledger data when dates or party name change
+    // Re-fetch ledger data when dates or ledger name change
     useEffect(() => {
         if (selectedAccount) {
             fetchLedger();
