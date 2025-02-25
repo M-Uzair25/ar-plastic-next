@@ -124,7 +124,7 @@ const TransferPayment = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="account">Account Name: (Transfered from)</Label>
-                  <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} apiEndpoint="accountType=customer,myAccount" />
+                  <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} apiEndpoint="accountType=customer,myAccount,other" />
                 </FormGroup>
               </Col>
             </Row>

@@ -124,7 +124,7 @@ const TransferReceiving = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="customer">Customer Name: (Transfered from)</Label>
-                  <Accounts onNameChange={handleCustomerChange} selectedName={selectedCustomer} apiEndpoint="accountType=customer" />
+                  <Accounts onNameChange={handleCustomerChange} selectedName={selectedCustomer} apiEndpoint="accountType=customer,other" />
                 </FormGroup>
               </Col>
               <Col md={2}>

@@ -11,8 +11,6 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
         return;
     }
 
-    console.log(ledgerData)
-
     const doc = new jsPDF();
 
     // Add the title with larger font size and bold
@@ -43,7 +41,7 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
         entry.debit || '-',
         entry.credit || '-',
         entry.balance,
-        accountType === 'customer' ? (
+        (accountType === 'customer' || accountType === 'other') ? (
             entry.balance > 0 ? 'DR' : 'CR'
         ) : accountType === 'supplier' ? (
             entry.balance > 0 ? 'CR' : 'DR'
@@ -70,7 +68,7 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     const pageWidth = doc.internal.pageSize.width;
     const marginRight = 15;
     doc.setFont("helvetica", "bold");
-    doc.text(`Closing Balance: ${closingBalance} Rs | ${accountType === 'customer' ? (
+    doc.text(`Closing Balance: ${closingBalance} Rs | ${(accountType === 'customer' || accountType === 'other') ? (
         closingBalance > 0 ? 'Receivable' : 'Payable'
     ) : accountType === 'supplier' ? (
         closingBalance > 0 ? 'Payable' : 'Receivable'

@@ -13,7 +13,7 @@ export async function POST(request) {
             return Response.json({ message: 'All fields are required' }, { status: 400 });
         }
         // Check if selected account is Payment
-        if (account === 'CASH') {
+        if (account === 'CASH' || account === 'Cash') {
             return Response.json({ message: 'Ledger name cannot be "Cash". Kindly select another party!' }, { status: 400 });
         }
 

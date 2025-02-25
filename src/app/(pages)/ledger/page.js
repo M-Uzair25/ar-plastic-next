@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Card, CardTitle, CardBody, Row, Col, FormGroup, Button, Table, Label, Badge, Spinner } from 'reactstrap';
+import { Card, CardTitle, CardBody, Row, Col, FormGroup, Button, Table, Label, Badge, Spinner, Input } from 'reactstrap';
 import Accounts from '@/components/Accounts';
 import { format } from 'date-fns';
 import { generateLedgerPDF } from '@/components/pdfReports/generateLedgerPDF';
@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const Ledger = () => {
     const [tableData, setTableData] = useState([]);
     const [selectedAccount, setSelectedAccount] = useState(null);
+    const [selectedAccountType, setSelectedAccountType] = useState(''); // State for selected account type
     const [accountType, setAccountType] = useState('');
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
@@ -22,7 +23,11 @@ const Ledger = () => {
     const fetchAccounts = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/accounts');
+            const queryParams = new URLSearchParams({
+                ...(selectedAccountType && { accountType: selectedAccountType })
+            });
+
+            const response = await fetch(`/api/accounts?${queryParams.toString()}`);
             const data = await response.json();
             if (response.ok) {
                 setTableData(data);
@@ -38,7 +43,7 @@ const Ledger = () => {
 
     useEffect(() => {
         fetchAccounts();
-    }, []);
+    }, [selectedAccountType]);
 
     const handleAccountChange = async (selectedOption) => {
         setSelectedAccount(selectedOption);
@@ -134,7 +139,7 @@ const Ledger = () => {
                             <td>{entry.credit}</td>
                             <td>{entry.balance}</td>
                             <td>
-                                {accountType === 'customer' ? (
+                                {(accountType === 'customer' || accountType === 'other') ? (
                                     entry.balance > 0 ? 'DR' : 'CR'
                                 ) : accountType === 'supplier' ? (
                                     entry.balance > 0 ? 'CR' : 'DR'
@@ -159,8 +164,30 @@ const Ledger = () => {
                     <i className="bi bi-journal-bookmark-fill"></i> Ledger Accounts
                 </CardTitle>
                 <CardBody>
-                    <Label for="account">Search Account</Label>
-                    <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} />
+                    <Row>
+                        <Col md={8}>
+                            <Label for="account">Search Account</Label>
+                            <Accounts onNameChange={handleAccountChange} selectedName={selectedAccount} />
+                        </Col>
+                        <Col md={2}>
+                            <FormGroup>
+                                <Label for="accountType">Filter by Account Type</Label>
+                                <Input
+                                    type="select"
+                                    name="accountType"
+                                    id="accountType"
+                                    value={selectedAccountType}
+                                    onChange={(e) => setSelectedAccountType(e.target.value)}
+                                >
+                                    <option value="">All</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="customer">Customer</option>
+                                    <option value="supplier">Supplier</option>
+                                    <option value="other">Other</option>
+                                </Input>
+                            </FormGroup>
+                        </Col>
+                    </Row>
 
                     {selectedAccount ? (
                         <div className="mt-3">
@@ -219,7 +246,7 @@ const Ledger = () => {
                                     </div>
                                     <Badge color="danger">
                                         <h6 className="mt-1">
-                                            Closing Balance = {closingBalance} Rs | {accountType === 'customer' ? (
+                                            Closing Balance = {closingBalance} Rs | {(accountType === 'customer' || accountType === 'other') ? (
                                                 closingBalance > 0 ? 'Receivable' : 'Payable'
                                             ) : accountType === 'supplier' ? (
                                                 closingBalance > 0 ? 'Payable' : 'Receivable'

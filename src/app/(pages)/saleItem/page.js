@@ -15,6 +15,7 @@ import { generateSaleReceipt } from '@/components/pdfReports/generateSaleReceipt
 const SaleItem = () => {
   const defaultCustomerName = { value: 'CASH', label: 'CASH' };
   const [selectedName, setSelectedName] = useState(defaultCustomerName);
+  const [accountType, setAccountType] = useState('cash');
   const [balance, setBalance] = useState(0);
   const [remarks, setRemarks] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -24,14 +25,14 @@ const SaleItem = () => {
   const [perKgRate, setPerKgRate] = useState(0);
   const [bagStock, setBagStock] = useState(0);
   const [kgStock, setKgStock] = useState(0);
+  const [bagQuantity, setBagQuantity] = useState(0);
+  const [kgQuantity, setKgQuantity] = useState(0);
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [cashReceived, setCashReceived] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [received, setReceived] = useState(0);
   const [returned, setReturned] = useState(0);
-  const [bagQuantity, setBagQuantity] = useState(0);
-  const [kgQuantity, setKgQuantity] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false); // Add submitting state for form submission
 
@@ -90,7 +91,7 @@ const SaleItem = () => {
       setBalance(0);
       return;
     }
-    if (selectedOption.value === 'CASH') {
+    if (accountType === 'cash' || accountType === 'myAccount') {
       setBalance('');
       return;
     }
@@ -102,6 +103,7 @@ const SaleItem = () => {
 
       if (response.ok) {
         setBalance(data.balance);
+        setAccountType(data.accountType);
       } else {
         toast.error(`Error: ${data.message}`);
       }
@@ -222,7 +224,7 @@ const SaleItem = () => {
   useEffect(() => {
     const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
     setTotal(newTotal);
-    if (selectedName.value === 'CASH')
+    if (accountType === 'cash')
       setCashReceived(newTotal);
   }, [cartItems]);
 
@@ -231,7 +233,7 @@ const SaleItem = () => {
       <thead>
         <tr>
           <th colSpan="7" className="table-dark text-center">
-            {selectedName?.label ? selectedName.label : 'No Account Selected'}
+            {selectedName?.value ? selectedName.value : 'No Account Selected'}
           </th>
         </tr>
         <tr>
@@ -272,7 +274,7 @@ const SaleItem = () => {
         ))}
       </tbody>
     </Table>
-  ), [cartItems]);
+  ), [cartItems, selectedName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -285,7 +287,7 @@ const SaleItem = () => {
       toast.error("Cart is empty. Please add items to the cart before submitting.");
       return;
     }
-    if (selectedName.value === 'CASH' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+    if (accountType === 'cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
       toast.error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
       return;
     }
@@ -304,7 +306,7 @@ const SaleItem = () => {
     };
 
     try {
-      const api = selectedName.value === 'CASH' ? '/api/sales/cashSale' : '/api/sales';
+      const api = accountType === 'cash' ? '/api/sales/cashSale' : '/api/sales';
       const response = await fetch(api, {
         method: 'POST',
         headers: {
@@ -315,7 +317,7 @@ const SaleItem = () => {
 
       const result = await response.json();
 
-      if (parseInt(cashReceived) > 0 && selectedName.value !== 'CASH') {
+      if (parseInt(cashReceived) > 0 && accountType !== 'cash') {
         handleCashSubmit(e);
       }
 
@@ -323,13 +325,28 @@ const SaleItem = () => {
         toast.success('Sale submitted successfully');
         setSaleReceiptData(saleData);
         toggleModal();
-        setCartItems([]);
         setSelectedName(defaultCustomerName);
+        setAccountType('cash');
+        setBalance(0);
+        setRemarks('');
+        setSelectedCategory(null);
+        setSelectedDescription(null);
+        setPurchasedRate(0);
+        setBagRate(0);
+        setPerKgRate(0);
+        setBagStock(0);
+        setKgStock(0);
+        setBagQuantity(0);
+        setKgQuantity(0);
+        setCartItems([]);
+        setTotal(0);
         setCashReceived(0);
         setDiscount(0);
         setReceived(0);
         setReturned(0);
-        setRemarks('');
+        setSelectedAccount(null);
+        setAccountDescription('');
+        setAccountAmount(0);
       } else {
         toast.error(`Error submitting sale: ${result.message}`);
       }
@@ -393,7 +410,7 @@ const SaleItem = () => {
       return;
     }
 
-    if (selectedName.value === 'CASH' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+    if (accountType === 'cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
       toast.error('Cash received + Credit Amount is less than the total bill amount.');
       return;
     }
@@ -439,6 +456,9 @@ const SaleItem = () => {
       setSubmitting(false);
     }
   };
+  useEffect(() => {
+    setCashReceived(0);
+  }, [selectedName]);
 
   return (
     <>
@@ -454,7 +474,7 @@ const SaleItem = () => {
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
                   <Badge color="primary" className='mx-4'> Balance  = {balance} Rs</Badge>
-                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} apiEndpoint="accountType=cash,customer,supplier" />
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
                 </FormGroup>
               </Col>
               <Col md={5}>

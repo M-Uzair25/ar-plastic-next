@@ -31,11 +31,16 @@ export async function POST(request) {
         let otherDebit = 0;
         let otherCredit = 0;
 
-        otherDebit = amount;
-        otherAccount.balance -= amount;  // Debit decreases balance
-
         supplierDebit = amount;
         supplierAccount.balance -= amount;  // Debit decreases balance
+
+        if (otherAccount.accountType === 'myAccount') {
+            otherDebit = amount;
+        } else {
+            otherCredit = amount;
+        }
+        otherAccount.balance -= amount;  // Debit decreases balance
+
 
         let accountDescription = '';
         if (!description) {
