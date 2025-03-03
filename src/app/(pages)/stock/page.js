@@ -46,13 +46,26 @@ const Stock = () => {
   const calculateTotalQuantities = () => {
     const totalBags = stockData.reduce((acc, item) => acc + item.bagQuantity, 0);
     const totalKg = stockData.reduce((acc, item) => acc + item.kgQuantity, 0);
-    return { totalBags, totalKg };
+
+    const totalPurchasedValue = stockData.reduce(
+      (acc, item) => acc + (item.bagQuantity * item.purchasedRate) + (item.kgQuantity * item.purchasedRate),
+      0
+    );
+
+    const totalSellValue = stockData.reduce(
+      (acc, item) => acc + (item.bagQuantity * item.sellRate) + (item.kgQuantity * item.sellRate),
+      0
+    );
+
+    return { totalBags, totalKg, totalPurchasedValue, totalSellValue };
   };
-  const { totalBags, totalKg } = calculateTotalQuantities();
+
+  const { totalBags, totalKg, totalPurchasedValue, totalSellValue } = calculateTotalQuantities();
+
 
   // Generate PDF
   const handleDownloadStockPDF = () => {
-    generateStockPDF(stockData);
+    generateStockPDF(stockData, totalBags, totalKg, totalPurchasedValue, totalSellValue);
     toast.success('PDF downloaded successfully'); // Show success toast
   };
 
@@ -133,8 +146,10 @@ const Stock = () => {
               <div className="mt-4">
                 <h6>Stock Report:<strong> {format(new Date(), 'dd/MMM/yyyy')}</strong></h6>
                 <ul>
-                  <li><strong>Total Items:</strong> {stockData.length}</li>
-                  <li><strong>Total Quantity:</strong> {totalBags} Bags, {totalKg} Kg</li>
+                  <li>Total Items: <strong>{stockData.length}</strong></li>
+                  <li>Total Quantity: <strong>{totalBags} Bags, {totalKg} Kg</strong></li>
+                  <li>Total Amount of Stock in terms of Purchased Rate: <strong>{totalPurchasedValue.toLocaleString()} Rs</strong></li>
+                  <li>Total Amount of Stock in terms of Sell Rate: <strong>{totalSellValue.toLocaleString()} Rs</strong></li>
                 </ul>
               </div>
             </CardBody>

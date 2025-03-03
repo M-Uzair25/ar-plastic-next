@@ -108,12 +108,11 @@ export async function GET(request) {
     // Fetch ledger entries, sort by creation date
     const ledgerEntries = await Ledger.find(query).sort({ createdAt: 1 });
 
-    // Calculate closing balance
-    const closingBalance = ledgerEntries.length > 0 ? ledgerEntries[ledgerEntries.length - 1].balance : 0;
-
     // Fetch account type
-    const account = await Account.findOne({ accountName: name }, { accountType: 1 });
+    const account = await Account.findOne({ accountName: name }, { accountType: 1, balance: 1 });
     const accountType = account ? account.accountType : null;
+    // Calculate closing balance
+    const closingBalance = account.balance;
 
     return Response.json({ ledgerEntries, closingBalance, accountType }, { status: 200 });
   } catch (error) {

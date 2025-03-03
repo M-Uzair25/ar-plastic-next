@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
 
-export function generateSalesPDF(sales, startDate, endDate) {
+export function generateSalesPDF(sales, startDate, endDate, totalBags, totalKgs, totalAmount, totalCashSale, totalCashReceived) {
     const doc = new jsPDF();
 
     // Format the dates using date-fns
@@ -30,32 +30,28 @@ export function generateSalesPDF(sales, startDate, endDate) {
         const numberOfItems = sale.cartItems.length;
 
         return sale.cartItems.map((item, index) => ({
-            date: index === 0 ? { content: formattedDate, rowSpan: numberOfItems, valign: 'middle' } : '',
-            customer: index === 0 ? { content: sale.customerName, rowSpan: numberOfItems, valign: 'middle' } : '',
+            date: index === 0 ? { content: formattedDate, rowSpan: numberOfItems } : '',
+            billNo: index === 0 ? { content: sale.billNo, rowSpan: numberOfItems } : '',
+            customer: index === 0 ? { content: sale.customerName, rowSpan: numberOfItems } : '',
             bagQuantity: item.bagQuantity || '',
             kgQuantity: item.kgQuantity || '',
             category: item.category || '',
             description: `${item.description}`,
-            rate: `${item.bagRate}`,
-            subTotal: item.subTotal || '',
-            total: index === 0 ? { content: sale.total, rowSpan: numberOfItems, valign: 'middle' } : '',
-            cashReceived: index === 0 ? { content: sale.cashReceived, rowSpan: numberOfItems, valign: 'middle' } : '',
-            remarks: index === 0 ? { content: sale.remarks || '', rowSpan: numberOfItems, valign: 'middle' } : ''
+            rate: `${item.bagRate.toLocaleString()}`,
+            subTotal: item.subTotal.toLocaleString() || '',
+            total: index === 0 ? { content: sale.total.toLocaleString(), rowSpan: numberOfItems } : '',
+            cashReceived: index === 0 ? { content: sale.cashReceived.toLocaleString(), rowSpan: numberOfItems } : '',
+            remarks: index === 0 ? { content: sale.remarks || '', rowSpan: numberOfItems } : ''
         }));
     });
-
-    // Calculate total quantities and amount
-    const totalBags = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.bagQuantity, 0), 0);
-    const totalKgs = sortedSales.reduce((sum, sale) => sum + sale.cartItems.reduce((subSum, item) => subSum + item.kgQuantity, 0), 0);
-    const totalAmount = sortedSales.reduce((sum, sale) => sum + sale.total, 0);
-    const totalCashReceived = sortedSales.reduce((sum, sale) => sum + sale.cashReceived, 0);
 
     // Define table columns
     const columns = [
         { header: 'Date', dataKey: 'date' },
+        { header: 'Bill', dataKey: 'billNo' },
         { header: 'Customer', dataKey: 'customer' },
-        { header: 'Bag Qty', dataKey: 'bagQuantity' },
-        { header: 'Kg Qty', dataKey: 'kgQuantity' },
+        { header: 'Bag', dataKey: 'bagQuantity' },
+        { header: 'Kg', dataKey: 'kgQuantity' },
         { header: 'Category', dataKey: 'category' },
         { header: 'Description', dataKey: 'description' },
         { header: 'Rate', dataKey: 'rate' },
@@ -75,7 +71,8 @@ export function generateSalesPDF(sales, startDate, endDate) {
             lineWidth: 0.1,
             textColor: [0, 0, 0],
             valign: 'middle',
-            fontSize: 10  // Set font size for table content
+            halign: 'center',
+            fontSize: 7  // Set font size for table content
         },
         headStyles: {
             fillColor: [220, 220, 220],  // Light gray for headers
@@ -97,8 +94,9 @@ export function generateSalesPDF(sales, startDate, endDate) {
     doc.text(`Total Sales: ${sortedSales.length}`, 14, finalYPosition + 7);
     doc.text(`Total Bag Quantity: ${totalBags}`, 14, finalYPosition + 14);
     doc.text(`Total Kg Quantity: ${totalKgs}`, 14, finalYPosition + 21);
-    doc.text(`Total Amount: ${totalAmount.toFixed(0)} Rs`, 14, finalYPosition + 28);
-    doc.text(`Total Cash Received: ${totalCashReceived.toFixed(0)} Rs`, 14, finalYPosition + 35);
+    doc.text(`Total Sale Amount: ${totalAmount.toLocaleString()} Rs`, 14, finalYPosition + 28);
+    doc.text(`Total Cash Sale: ${totalCashSale.toLocaleString()} Rs`, 14, finalYPosition + 35);
+    doc.text(`Total Cash Received: ${totalCashReceived.toLocaleString()} Rs`, 14, finalYPosition + 42);
 
     // Footer
     const pageCount = doc.internal.getNumberOfPages();

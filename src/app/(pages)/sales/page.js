@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Row, Col, Table, Card, CardTitle, CardBody, Button, Input, Label, Spinner, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Row, Col, Table, Card, CardTitle, CardBody, Button, Input, Label, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import Accounts from '@/components/Accounts';
 import ItemCategory from '@/components/ItemCategory';
 import ItemDescription from '@/components/ItemDescription';
@@ -72,7 +72,7 @@ const Sales = () => {
 
   // Handle print sales
   const handleDownloadPDF = () => {
-    generateSalesPDF(sales, startDate, endDate);
+    generateSalesPDF(sales, startDate, endDate, totalBags, totalKgs, totalAmount, totalCashSale, totalCashReceived);
   };
 
   const handleSaleReceipt = async (sale) => {
@@ -173,6 +173,9 @@ const Sales = () => {
   const totalSubTotal = filteredSales.reduce((acc, sale) =>
     acc + sale.cartItems.reduce((cartAcc, item) => cartAcc + item.subTotal, 0), 0);
 
+  const totalCashSale = filteredSales.reduce((acc, sale) =>
+    sale.customerName === 'CASH' ? acc + sale.total : acc, 0
+  );
   const totalCashReceived = filteredSales.reduce((acc, sale) => acc + sale.cashReceived, 0);
 
   const totalAmount = filteredSales.reduce((acc, sale) => acc + sale.total, 0);
@@ -235,6 +238,7 @@ const Sales = () => {
                 <th className='centered-cell'>
                   Search
                 </th>
+                <th></th>
                 <th>
                   <Accounts onNameChange={handleNameChange} selectedName={customerName} />
                 </th>
@@ -307,6 +311,7 @@ const Sales = () => {
               </tr>
               <tr className="text-center">
                 <th>Date</th>
+                <th>BillNo</th>
                 <th>Customer</th>
                 <th>Bag Quantity</th>
                 <th>Kg Quantity</th>
@@ -334,6 +339,9 @@ const Sales = () => {
                             {format(sale.createdAt, 'dd/MM/yy hh:mm a')}
                           </td>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">
+                            {sale.billNo}
+                          </td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">
                             {sale.customerName}
                           </td>
                         </>
@@ -341,12 +349,12 @@ const Sales = () => {
                       <td className="centered-cell">{item.bagQuantity}</td>
                       <td className="centered-cell">{item.kgQuantity % 1 === 0 ? item.kgQuantity : parseFloat(item.kgQuantity).toFixed(3)}</td>
                       <td className="centered-cell">{item.category}</td>
-                      <td className="centered-cell">{item.description} @ {item.bagRate}</td>
-                      <td className="centered-cell">{item.subTotal}</td>
+                      <td className="centered-cell">{item.description}</td>
+                      <td className="centered-cell">{item.subTotal.toLocaleString()}</td>
                       {index === 0 && (
                         <>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total}</td>
-                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashReceived}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.total.toLocaleString()}</td>
+                          <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.cashReceived.toLocaleString()}</td>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">{sale.remarks}</td>
                           <td rowSpan={sale.cartItems.length} className="centered-cell">
                             <Button color="info" size="sm" onClick={(event) => handleReturnSale(sale, event)} disabled={sale.returned}>Return</Button>
@@ -366,9 +374,10 @@ const Sales = () => {
             <ul>
               <li><strong>Total Sales:</strong> {totalSales}</li>
               <li><strong>Total Quantity Sold:</strong> {totalBags} Bags, {totalKgs} Kg</li>
-              <li><strong>Total Subtotal:</strong> {totalSubTotal.toFixed(0)} Rs</li>
-              <li><strong>Total Amount:</strong> {totalAmount.toFixed(0)} Rs</li>
-              <li><strong>Total Cash Received:</strong> {totalCashReceived.toFixed(0)} Rs</li>
+              <li><strong>Total Subtotal:</strong> {totalSubTotal.toLocaleString()} Rs</li>
+              <li><strong>Total Sale Amount:</strong> {totalAmount.toLocaleString()} Rs</li>
+              <li><strong>Total Cash Sale:</strong> {totalCashSale.toLocaleString()} Rs</li>
+              <li><strong>Total Cash Received:</strong> {totalCashReceived.toLocaleString()} Rs</li>
             </ul>
           </div>
         </CardBody>

@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
 
-export function generateStockPDF(stockData) {
+export function generateStockPDF(stockData, totalBags, totalKg, totalPurchasedValue, totalSellValue) {
     const doc = new jsPDF();
 
     // Add title
@@ -30,10 +30,6 @@ export function generateStockPDF(stockData) {
         },
         format(new Date(item.updatedAt), 'dd/MM/yy hh:mm a')
     ]);
-
-    // Calculate total quantities for the summary
-    const totalBags = stockData.reduce((sum, item) => sum + (item.bagQuantity || 0), 0);
-    const totalKg = stockData.reduce((sum, item) => sum + (item.kgQuantity || 0), 0);
 
     // Define table columns
     const columns = [
@@ -69,6 +65,8 @@ export function generateStockPDF(stockData) {
 
     doc.text(`Total Items: ${stockData.length}`, 14, finalYPosition);
     doc.text(`Total Quantity: ${totalBags} Bags, ${totalKg} Kg`, 14, finalYPosition + 7);
+    doc.text(`Total Amount of Stock in terms of Purchased Rate: ${totalPurchasedValue.toLocaleString()} Rs`, 14, finalYPosition + 14);
+    doc.text(`Total Amount of Stock in terms of Sell Rate: ${totalSellValue.toLocaleString()} Rs`, 14, finalYPosition + 21);
 
     // Footer
     const pageCount = doc.internal.getNumberOfPages();

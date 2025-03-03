@@ -22,6 +22,7 @@ export function generateSaleReceipt(saleData, date) {
     doc.text(`Customer: ${saleData.customerName || "Walk-in"}`, 5, 27);
     doc.text(`Date: ${date}`, 5, 32);
     doc.setFont("helvetica", "bold");
+    doc.text(`Bill No: ${saleData.billNo}`, 70, 30);
     doc.text(`Remarks:`, 5, 37);
     doc.setFont("helvetica", "normal");
     doc.text(`${saleData.remarks}`, 20, 37);
@@ -34,7 +35,7 @@ export function generateSaleReceipt(saleData, date) {
             `${item.category} ${item.description}`,
             `${item.bagQuantity} x ${item.bagRate || 0}/-`,
             `${kgQuantity} x ${item.perKgRate || 0}/-`,
-            item.subTotal,
+            item.subTotal.toLocaleString(),
         ];
     });
 
@@ -64,9 +65,9 @@ export function generateSaleReceipt(saleData, date) {
     let finalY = doc.lastAutoTable.finalY + 5;
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
-    doc.text(`Total: ${saleData.total} Rs`, 95, finalY, { align: "right" });
+    doc.text(`Total: ${saleData.total.toLocaleString()} Rs`, 95, finalY, { align: "right" });
     doc.setFont("helvetica", "normal");
-    doc.text(`Cash Received: ${saleData.cashReceived} Rs`, 95, finalY + 5, { align: "right" });
+    doc.text(`Cash Received: ${saleData.cashReceived.toLocaleString()} Rs`, 95, finalY + 5, { align: "right" });
     let x = 5;
     if (saleData.discount > 0) {
         x += 5;
@@ -74,7 +75,7 @@ export function generateSaleReceipt(saleData, date) {
     }
     if (saleData.accountAmount > 0) {
         x += 5;
-        doc.text(`Account Transfer: ${saleData.accountAmount} Rs`, 5, finalY + x);
+        doc.text(`Account Transfer: ${saleData.accountAmount.toLocaleString()} Rs`, 5, finalY + x);
     }
 
     // Footer

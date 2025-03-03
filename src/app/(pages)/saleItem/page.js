@@ -14,6 +14,7 @@ import { generateSaleReceipt } from '@/components/pdfReports/generateSaleReceipt
 
 const SaleItem = () => {
   const defaultCustomerName = { value: 'CASH', label: 'CASH' };
+  const [billNo, setBillNo] = useState(0);
   const [selectedName, setSelectedName] = useState(defaultCustomerName);
   const [accountType, setAccountType] = useState('cash');
   const [balance, setBalance] = useState(0);
@@ -83,6 +84,21 @@ const SaleItem = () => {
   useEffect(() => {
     fetchRate();
   }, [fetchRate]);
+
+  const fetchBillNo = async () => {
+    try {
+      const response = await fetch('/api/sales/billNo');
+      const data = await response.json();
+      setBillNo(data + 1);
+    } catch (error) {
+      console.error("Error fetching Bill No:", error);
+      toast.error('Error fetching Bill No'); // Show error toast
+    }
+  };
+
+  useEffect(() => {
+    fetchBillNo();
+  }, []);
 
   const handleNameChange = async (selectedOption) => {
     setSelectedName(selectedOption);
@@ -256,9 +272,9 @@ const SaleItem = () => {
               {item.bagQuantity && item.kgQuantity > 0 ? `, ` : ''}
               {item.kgQuantity > 0 ? `${item.kgQuantity} Kg` : ''}
             </td>
-            <td>{item.bagRate}</td>
+            <td>{item.bagRate.toLocaleString()}</td>
             <td>{item.perKgRate}</td>
-            <td>{item.subTotal}</td>
+            <td>{item.subTotal.toLocaleString()}</td>
             <td>
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
@@ -323,7 +339,7 @@ const SaleItem = () => {
 
       if (response.ok) {
         toast.success('Sale submitted successfully');
-        setSaleReceiptData(saleData);
+        setSaleReceiptData({ ...saleData, billNo });
         toggleModal();
         setSelectedName(defaultCustomerName);
         setAccountType('cash');
@@ -354,6 +370,7 @@ const SaleItem = () => {
       console.error('Error submitting sale:', error);
       toast.error(`Error submitting sale: ${error.message}`);
     } finally {
+      fetchBillNo();
       setSubmitting(false);
     }
   };
@@ -424,7 +441,7 @@ const SaleItem = () => {
 
     const paymentData = {
       name: selectedAccount.value,
-      description: accountDescription ? accountDescription : `${cartItems[0].category} Sale`,
+      description: accountDescription ? accountDescription : `${cartItems[0].category} Sale Bill No: ${billNo}`,
       debit: 0,
       credit: creditAmount,
       balance: 0,
@@ -466,6 +483,7 @@ const SaleItem = () => {
       <Card>
         <CardTitle tag="h6" className="border-bottom p-3 mb-2" style={{ backgroundColor: '#343a40', color: 'white' }}>
           Sale Item
+          <Badge color="primary" className='mx-4'> Bill No: {billNo}</Badge>
         </CardTitle>
         <CardBody>
           <Form onSubmit={handleSubmit}>
@@ -473,8 +491,8 @@ const SaleItem = () => {
               <Col md={6}>
                 <FormGroup>
                   <Label for="customerName">Customer Name</Label>
-                  <Badge color="primary" className='mx-4'> Balance  = {balance} Rs</Badge>
-                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} />
+                  <Badge color="primary" className='mx-4'> Balance = {balance} Rs</Badge>
+                  <Accounts onNameChange={handleNameChange} selectedName={selectedName} apiEndpoint="accountType=cash,customer,supplier" />
                 </FormGroup>
               </Col>
               <Col md={5}>
@@ -591,9 +609,8 @@ const SaleItem = () => {
                     className="bg-danger text-white"
                     id="total"
                     name="total"
-                    type="number"
                     disabled
-                    value={total}
+                    value={total.toLocaleString()}
                   />
                 </FormGroup>
               </Col>

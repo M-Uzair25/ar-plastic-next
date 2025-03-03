@@ -135,9 +135,9 @@ const Ledger = () => {
                         <tr key={index}>
                             <td>{format(new Date(entry.createdAt), 'dd/MM/yyyy')}</td>
                             <td>{entry.description}</td>
-                            <td>{entry.debit}</td>
-                            <td>{entry.credit}</td>
-                            <td>{entry.balance}</td>
+                            <td>{entry.debit.toLocaleString()}</td>
+                            <td>{entry.credit.toLocaleString()}</td>
+                            <td>{entry.balance.toLocaleString()}</td>
                             <td>
                                 {(accountType === 'customer' || accountType === 'other') ? (
                                     entry.balance > 0 ? 'DR' : 'CR'
@@ -246,7 +246,7 @@ const Ledger = () => {
                                     </div>
                                     <Badge color="danger">
                                         <h6 className="mt-1">
-                                            Closing Balance = {closingBalance} Rs | {(accountType === 'customer' || accountType === 'other') ? (
+                                            Closing Balance = {closingBalance.toLocaleString()} Rs | {(accountType === 'customer' || accountType === 'other') ? (
                                                 closingBalance > 0 ? 'Receivable' : 'Payable'
                                             ) : accountType === 'supplier' ? (
                                                 closingBalance > 0 ? 'Payable' : 'Receivable'

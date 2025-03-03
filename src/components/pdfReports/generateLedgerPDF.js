@@ -38,9 +38,9 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     const tableRows = ledgerData.map((entry) => [
         format(new Date(entry.createdAt), 'dd/MM/yy'),
         entry.description,
-        entry.debit || '-',
-        entry.credit || '-',
-        entry.balance,
+        entry.debit.toLocaleString() || '-',
+        entry.credit.toLocaleString() || '-',
+        entry.balance.toLocaleString(),
         (accountType === 'customer' || accountType === 'other') ? (
             entry.balance > 0 ? 'DR' : 'CR'
         ) : accountType === 'supplier' ? (
@@ -68,7 +68,7 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     const pageWidth = doc.internal.pageSize.width;
     const marginRight = 15;
     doc.setFont("helvetica", "bold");
-    doc.text(`Closing Balance: ${closingBalance} Rs | ${(accountType === 'customer' || accountType === 'other') ? (
+    doc.text(`Closing Balance: ${closingBalance.toLocaleString()} Rs | ${(accountType === 'customer' || accountType === 'other') ? (
         closingBalance > 0 ? 'Receivable' : 'Payable'
     ) : accountType === 'supplier' ? (
         closingBalance > 0 ? 'Payable' : 'Receivable'

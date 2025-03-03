@@ -295,18 +295,6 @@ const Bookings = () => {
                 <Row>
                   <Col md={2}>
                     <FormGroup>
-                      <Label for="bagQuantity">Bags</Label>
-                      <Input id="bagQuantity" name="bagQuantity" type="number" min="0" value={bagQuantity} onChange={(e) => setBagQuantity(e.target.value)} />
-                    </FormGroup>
-                  </Col>
-                  <Col md={2}>
-                    <FormGroup>
-                      <Label for="kgQuantity">Kg</Label>
-                      <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
-                    </FormGroup>
-                  </Col>
-                  <Col md={2}>
-                    <FormGroup>
                       <Label for="category">Item Category</Label>
                       <ItemCategory onCategoryChange={handleCategoryChange} selectedDescription={selectedDescription} />
                     </FormGroup>
@@ -322,6 +310,18 @@ const Bookings = () => {
                       ) : (
                         <ItemDescription onDescriptionChange={handleDescriptionChange} selectedCategory={selectedCategory} />
                       )}
+                    </FormGroup>
+                  </Col>
+                  <Col md={2}>
+                    <FormGroup>
+                      <Label for="bagQuantity">Bags</Label>
+                      <Input id="bagQuantity" name="bagQuantity" type="number" min="0" value={bagQuantity} onChange={(e) => setBagQuantity(e.target.value)} />
+                    </FormGroup>
+                  </Col>
+                  <Col md={2}>
+                    <FormGroup>
+                      <Label for="kgQuantity">Kg</Label>
+                      <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
                     </FormGroup>
                   </Col>
                 </Row>
