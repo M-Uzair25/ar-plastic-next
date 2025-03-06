@@ -103,6 +103,7 @@ const Ledger = () => {
     // Clear all data
     const clearAllData = () => {
         setSelectedAccount(null);
+        setSelectedAccountType('');
         setAccountType('');
         setStartDate(null);
         setEndDate(null);
@@ -116,6 +117,9 @@ const Ledger = () => {
             fetchLedger();
         }
     }, [selectedAccount, startDate, endDate]);
+
+    // Calculate total balance
+    const totalBalance = tableData.reduce((total, tdata) => total + tdata.balance, 0);
 
     // Memoize ledger table to avoid unnecessary re-renders
     const ledgerTable = useMemo(() => (
@@ -280,13 +284,12 @@ const Ledger = () => {
                                             <tr key={index} className="border-top" style={{ cursor: 'pointer' }} onClick={() => handleRowClick(tdata)}>
                                                 <td>{index + 1}</td>
                                                 <td>
-                                                    <div className="d-flex align-items-center p-1">
-                                                        <div>
-                                                            <h6 className="mb-0">{tdata.accountName}</h6>
-                                                            <span className="text-muted"><i className="bi bi-telephone"></i> {tdata.accountNo}</span>
-                                                        </div>
-                                                    </div>
+                                                    {tdata.accountName}
+                                                    <span className="text-muted" style={{ marginLeft: '15px' }}>
+                                                        <i className="bi bi-telephone"></i> {tdata.accountNo}
+                                                    </span>
                                                 </td>
+
                                                 <td>{tdata.balance}</td>
                                                 <td>{tdata.accountType}</td>
                                                 <td>{format(new Date(tdata.updatedAt), 'dd-MMM-yyyy')}</td>
@@ -299,6 +302,17 @@ const Ledger = () => {
                                     )}
                                 </tbody>
                             </Table>
+                            <div className="text-right mt-4">
+                                <h6>
+                                    <strong>
+                                        Total Balance: {totalBalance.toLocaleString()}Rs | {(selectedAccountType === 'customer' || selectedAccountType === 'other') ? (
+                                            totalBalance > 0 ? 'Receivable' : 'Payable'
+                                        ) : selectedAccountType === 'supplier' ? (
+                                            totalBalance > 0 ? 'Payable' : 'Receivable'
+                                        ) : ''}
+                                    </strong>
+                                </h6>
+                            </div>
                         </div>
                     )}
                 </CardBody>

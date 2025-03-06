@@ -107,10 +107,6 @@ const SaleItem = () => {
       setBalance(0);
       return;
     }
-    if (accountType === 'cash' || accountType === 'myAccount') {
-      setBalance('');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -118,7 +114,11 @@ const SaleItem = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setBalance(data.balance);
+        if (data.accountType === 'cash' || data.accountType === 'myAccount') {
+          setBalance('');
+        } else {
+          setBalance(data.balance);
+        }
         setAccountType(data.accountType);
       } else {
         toast.error(`Error: ${data.message}`);
@@ -649,7 +649,7 @@ const SaleItem = () => {
                     min="0"
                     value={discount === 0 ? '' : discount}
                     onChange={handleDiscountChange}
-                    disabled={!cashReceived}
+                    disabled={accountType !== 'cash'}
                   />
                 </FormGroup>
               </Col>
