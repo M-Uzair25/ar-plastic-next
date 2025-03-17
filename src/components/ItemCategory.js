@@ -12,9 +12,17 @@ const ItemCategory = ({ onCategoryChange, selectedDescription }) => {
         try {
             setLoading(true);
 
-            const apiUrl = selectedDescription
-                ? `/api/items/itemCategory?description=${selectedDescription.value}`
-                : `/api/items/itemCategory`;
+            let apiUrl;
+
+            if (selectedDescription && !selectedCategory) {
+                apiUrl = `/api/items/itemCategory?description=${selectedDescription.value}`;
+            }
+            else if (selectedCategory && selectedDescription) {
+                return;
+            }
+            else {
+                apiUrl = `/api/items/itemCategory`;
+            }
 
             const response = await fetch(apiUrl);
             const data = await response.json();

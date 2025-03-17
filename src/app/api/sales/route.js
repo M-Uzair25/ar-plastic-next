@@ -24,7 +24,7 @@ export async function POST(request) {
 
         const saleData = await request.json();
 
-        if ((saleData.customerName === 'CASH' || saleData.customerName === 'cash') && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
+        if ((saleData.customerName === 'CASH' || saleData.customerName === 'cash') && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < (parseInt(saleData.total) - parseInt(saleData.discount) + parseInt(saleData.freightCharges)))) {
             throw new Error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
         }
 
@@ -175,6 +175,23 @@ export async function POST(request) {
                 debit: debit,
                 credit: 0,
                 balance: currentBalance,  // Incrementally updated balance
+            });
+
+            // Save the Ledger entry
+            await newLedgerEntry.save();
+        }
+
+        // In case of Freight Charges, add freight charges to the ledger
+        if (saleData.freightCharges) {
+            const debit = parseInt(saleData.freightCharges);
+            currentBalance += debit;
+
+            const newLedgerEntry = new Ledger({
+                name: saleData.customerName,
+                description: 'Freight Charges',
+                debit: debit,
+                credit: 0,
+                balance: currentBalance,
             });
 
             // Save the Ledger entry

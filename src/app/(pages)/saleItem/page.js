@@ -31,9 +31,8 @@ const SaleItem = () => {
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [cashReceived, setCashReceived] = useState(0);
+  const [freightCharges, setFreightCharges] = useState(0);
   const [discount, setDiscount] = useState(0);
-  const [received, setReceived] = useState(0);
-  const [returned, setReturned] = useState(0);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false); // Add submitting state for form submission
 
@@ -231,11 +230,6 @@ const SaleItem = () => {
     setCashReceived(total - e.target.value);
   };
 
-  const handleReceivedChange = (e) => {
-    setReceived(e.target.value);
-    setReturned(e.target.value - total);
-  };
-
   // Recalculate the total whenever the cartItems change
   useEffect(() => {
     const newTotal = cartItems.reduce((acc, item) => acc + item.subTotal, 0);
@@ -279,8 +273,6 @@ const SaleItem = () => {
               <button type="button" className="btn btn-danger btn-sm" onClick={() => {
                 setCartItems((prevCart) => prevCart.filter((_, i) => i !== index));
                 setCashReceived(0);
-                setReceived(0);
-                setReturned(0);
                 toast.info("Item removed from cart");
               }}>
                 <i className="bi bi-trash"></i>
@@ -319,6 +311,7 @@ const SaleItem = () => {
       selectedAccount: selectedAccount ? selectedAccount.value : '',
       accountAmount,
       discount,
+      freightCharges,
     };
 
     try {
@@ -358,8 +351,7 @@ const SaleItem = () => {
         setTotal(0);
         setCashReceived(0);
         setDiscount(0);
-        setReceived(0);
-        setReturned(0);
+        setFreightCharges(0);
         setSelectedAccount(null);
         setAccountDescription('');
         setAccountAmount(0);
@@ -404,7 +396,6 @@ const SaleItem = () => {
 
   const handleAccountChange = async (selectedOption) => {
     setSelectedAccount(selectedOption);
-    setCashReceived(0);
   };
 
   const handleAccountPaymentSubmit = async (e) => {
@@ -414,7 +405,7 @@ const SaleItem = () => {
       toast.error("Please Select Account");
       return;
     }
-    if (!accountAmount) {
+    if (!accountAmount || parseInt(accountAmount) === 0 || accountAmount === '') {
       toast.error("Please enter credit amount.");
       return;
     }
@@ -427,7 +418,7 @@ const SaleItem = () => {
       return;
     }
 
-    if (accountType === 'cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+    if (accountType === 'cash' && (parseInt(cashReceived) + parseInt(accountAmount) < (total - parseInt(discount) + parseInt(freightCharges)))) {
       toast.error('Cash received + Credit Amount is less than the total bill amount.');
       return;
     }
@@ -600,6 +591,20 @@ const SaleItem = () => {
               {cartItems.length > 0 && displayCartItems}
             </Row>
             <Row>
+              <Col md={1}>
+                <FormGroup>
+                  <Label for="discount">Discount</Label>
+                  <Input
+                    id="discount"
+                    name="discount"
+                    type="number"
+                    min="0"
+                    value={discount === 0 ? '' : discount}
+                    onChange={handleDiscountChange}
+                    disabled={accountType !== 'cash' || total === 0}
+                  />
+                </FormGroup>
+              </Col>
               <Col md={2}>
                 <FormGroup>
                   <Label for="total">
@@ -616,8 +621,9 @@ const SaleItem = () => {
               </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="cashReceived">Cash Received</Label>
+                  <Label for="cashReceived"><strong>Cash Received</strong></Label>
                   <Input
+                    className="bg-info text-white"
                     id="cashReceived"
                     name="cashReceived"
                     type="number"
@@ -633,49 +639,23 @@ const SaleItem = () => {
                   <Button style={{ marginTop: '32px' }}
                     color="primary"
                     type="submit"
-                    disabled={submitting || selectedAccount || accountDescription || accountAmount}
+                    disabled={submitting || selectedAccount || accountDescription || accountAmount || (discount > (total * 0.02))}
                   >
                     {submitting ? <Spinner size="sm" /> : 'Submit'} {/* Show spinner when submitting */}
                   </Button>
                 </FormGroup>
               </Col>
-              <Col md={1}>
-                <FormGroup>
-                  <Label for="discount">Discount</Label>
-                  <Input
-                    id="discount"
-                    name="discount"
-                    type="number"
-                    min="0"
-                    value={discount === 0 ? '' : discount}
-                    onChange={handleDiscountChange}
-                    disabled={accountType !== 'cash'}
-                  />
-                </FormGroup>
-              </Col>
               <Col md={2}>
                 <FormGroup>
-                  <Label for="received">Received</Label>
+                  <Label for="freightCharges">Freight Charges</Label>
                   <Input
-                    id="received"
-                    name="received"
+                    className="bg-secondary text-white"
+                    id="freightCharges"
+                    name="freightCharges"
                     type="number"
                     min="0"
-                    value={received === 0 ? '' : received}
-                    onChange={handleReceivedChange}
-                  />
-                </FormGroup>
-              </Col>
-              <Col md={2}>
-                <FormGroup>
-                  <Label for="returned">Cash Returned</Label>
-                  <Input
-                    style={{ backgroundColor: returned < 0 ? 'rgb(246 78 96)' : '#47bc47', color: 'white' }}
-                    id="returned"
-                    name="returned"
-                    type="number"
-                    disabled
-                    value={returned}
+                    value={freightCharges === 0 ? '' : freightCharges}
+                    onChange={(e) => setFreightCharges(e.target.value)}
                   />
                 </FormGroup>
               </Col>
@@ -686,6 +666,9 @@ const SaleItem = () => {
 
       {/* Account Payment Form */}
       <Card>
+        <CardTitle tag="h6" className="border-bottom p-3">
+          Account Transfer Payment
+        </CardTitle>
         <CardBody>
           <Form onSubmit={handleAccountPaymentSubmit}>
             <Row>
@@ -725,7 +708,7 @@ const SaleItem = () => {
               </Col>
               <Col>
                 <FormGroup>
-                  <Button style={{ marginTop: '32px' }} color="primary" type="submit" disabled={submitting}>
+                  <Button style={{ marginTop: '32px' }} color="primary" type="submit" disabled={submitting || (discount > (total * 0.02))}>
                     {submitting ? <Spinner size="sm" /> : 'Submit Payment'} {/* Show spinner when submitting */}
                   </Button>
                 </FormGroup>

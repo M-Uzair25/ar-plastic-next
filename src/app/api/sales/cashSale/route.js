@@ -29,7 +29,7 @@ export async function POST(request) {
 
         const saleData = await request.json();
 
-        if ((saleData.customerName === 'CASH' || saleData.customerName === 'cash') && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < saleData.total) && saleData.discount === 0) {
+        if ((saleData.customerName === 'CASH' || saleData.customerName === 'cash') && (parseInt(saleData.cashReceived) + parseInt(saleData.accountAmount) < (parseInt(saleData.total) - parseInt(saleData.discount) + parseInt(saleData.freightCharges)))) {
             throw new Error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
         }
 

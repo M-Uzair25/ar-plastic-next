@@ -144,11 +144,10 @@ const LedgerEntry = () => {
                         <Row>
                             <Col md={6}>
                                 <FormGroup>
-                                    <Label for="description">Description</Label>
+                                    <Label for="description">Narration</Label>
                                     <Input
                                         id="description"
                                         name="description"
-                                        placeholder="Description"
                                         type="textarea"
                                         bsSize="sm"
                                         value={description}

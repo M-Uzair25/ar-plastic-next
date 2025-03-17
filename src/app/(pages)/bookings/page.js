@@ -431,6 +431,7 @@ const Bookings = () => {
                       <Button color="primary" className='mx-2' size="sm" onClick={() => handleEditClick(booking)}>Edit</Button>
                       <Button color="danger" size="sm" onClick={() => handleDeleteClick(booking)}>Delete</Button>
                     </td>
+                    <td>{booking.remarks}</td>
                   </tr>
                 ))}
               </tbody>

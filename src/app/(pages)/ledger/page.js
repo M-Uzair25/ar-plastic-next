@@ -139,8 +139,8 @@ const Ledger = () => {
                         <tr key={index}>
                             <td>{format(new Date(entry.createdAt), 'dd/MM/yyyy')}</td>
                             <td>{entry.description}</td>
-                            <td>{entry.debit.toLocaleString()}</td>
-                            <td>{entry.credit.toLocaleString()}</td>
+                            <td>{entry.debit === 0 ? '-' : entry.debit.toLocaleString()}</td>
+                            <td>{entry.credit === 0 ? '-' : entry.credit.toLocaleString()}</td>
                             <td>{entry.balance.toLocaleString()}</td>
                             <td>
                                 {(accountType === 'customer' || accountType === 'other') ? (

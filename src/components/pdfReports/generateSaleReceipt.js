@@ -67,23 +67,36 @@ export function generateSaleReceipt(saleData, date) {
     doc.setFont("helvetica", "bold");
     doc.text(`Total: ${saleData.total.toLocaleString()} Rs`, 95, finalY, { align: "right" });
     doc.setFont("helvetica", "normal");
-    doc.text(`Cash Received: ${saleData.cashReceived.toLocaleString()} Rs`, 95, finalY + 5, { align: "right" });
-    let x = 5;
+
     if (saleData.discount > 0) {
-        x += 5;
-        doc.text(`Discount: ${saleData.discount} Rs`, 5, finalY + x);
+        finalY += 5;
+        doc.text(`Discount: ${saleData.discount} Rs`, 95, finalY, { align: "right" });
+    }
+    if (saleData.freightCharges > 0) {
+        finalY += 5;
+        doc.text(`Freight Charges: ${saleData.freightCharges} Rs`, 95, finalY, { align: "right" });
+    }
+    if (saleData.discount > 0 || saleData.freightCharges > 0) {
+        finalY += 5;
+        doc.setFont("helvetica", "bold");
+        doc.text(`Gross Total: ${(parseInt(saleData.total) - parseInt(saleData.discount) + parseInt(saleData.freightCharges)).toLocaleString()} Rs`, 95, finalY, { align: "right" });
+    }
+    doc.setFont("helvetica", "normal");
+    if (saleData.cashReceived > 0) {
+        finalY += 5;
+        doc.text(`Cash Received: ${saleData.cashReceived.toLocaleString()} Rs`, 95, finalY, { align: "right" });
     }
     if (saleData.accountAmount > 0) {
-        x += 5;
-        doc.text(`Account Transfer: ${saleData.accountAmount.toLocaleString()} Rs`, 5, finalY + x);
+        finalY += 5;
+        doc.text(`Account Transfer: ${saleData.accountAmount.toLocaleString()} Rs`, 95, finalY, { align: "right" });
     }
 
     // Footer
     doc.setFontSize(7);
-    doc.text("Thank you for shopping with us!", 50, finalY + 25, { align: "center" });
+    doc.text("Thank you for shopping with us!", 50, finalY + 5, { align: "center" });
     // Terms and Conditions
-    doc.text("1. Returns or replacements must be made within 15 days with the receipt.", 5, finalY + 30);
-    doc.text("2. Nylon and PU items are non-returnable.", 5, finalY + 35);
+    doc.text("1. Returns or replacements must be made within 15 days with the receipt.", 5, finalY + 10);
+    doc.text("2. Nylon and PU items are non-returnable.", 5, finalY + 15);
 
     // Generate the PDF as a Blob and open it automatically in a new tab
     const pdfBlob = doc.output("blob"); // Generate PDF as a Blob

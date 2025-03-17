@@ -38,8 +38,8 @@ export function generateLedgerPDF(ledgerData, startDate, endDate, closingBalance
     const tableRows = ledgerData.map((entry) => [
         format(new Date(entry.createdAt), 'dd/MM/yy'),
         entry.description,
-        entry.debit.toLocaleString() || '-',
-        entry.credit.toLocaleString() || '-',
+        entry.debit === 0 ? '-' : entry.debit.toLocaleString(),
+        entry.credit === 0 ? '-' : entry.credit.toLocaleString(),
         entry.balance.toLocaleString(),
         (accountType === 'customer' || accountType === 'other') ? (
             entry.balance > 0 ? 'DR' : 'CR'
