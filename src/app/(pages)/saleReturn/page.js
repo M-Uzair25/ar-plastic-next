@@ -17,8 +17,20 @@ const SaleReturn = () => {
     const [kgQuantity, setKgQuantity] = useState(0);
     const [bagRate, setBagRate] = useState('');
     const [perKgRate, setPerKgRate] = useState('');
-    const [isLoading, setIsLoading] = useState(false); // Add loading state
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Toast IDs
+    const toastId = {
+        error: 'error-toast',
+        success: 'success-toast',
+    };
+
+    const showToast = (type, message) => {
+        if (!toast.isActive(toastId[type])) {
+            toast[type](message, { toastId: toastId[type] });
+        }
+    };
+    
     const handleNameChange = async (selectedOption) => {
         setSelectedName(selectedOption);
     };
@@ -55,12 +67,12 @@ const SaleReturn = () => {
         const kgTotal = kgQuantity * perKgRate;
         return parseInt(bagTotal + kgTotal);
     }, [bagQuantity, kgQuantity, bagRate, perKgRate]);
-
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!selectedName || !selectedCategory || !selectedDescription || (!bagQuantity && !kgQuantity)) {
-            toast.error('Please fill in all required fields');
+            showToast('error', 'Please fill in all required fields');
             return;
         }
 
@@ -90,7 +102,7 @@ const SaleReturn = () => {
             const result = await response.json();
 
             if (response.ok) {
-                toast.success('Sale returned successfully');
+                showToast('success', 'Sale returned successfully');
                 // Reset the form
                 setSelectedName(defaultCAccountName);
                 setRemarks('');
@@ -101,12 +113,12 @@ const SaleReturn = () => {
                 setBagRate('');
                 setPerKgRate('');
             } else {
-                toast.error(`Error submitting return: ${result.message}`);
+                showToast('error', `Error submitting return: ${result.message}`);
             }
         } catch (error) {
-            toast.error(`Error submitting return: ${error.message}`);
+            showToast('error', `Error submitting return: ${error.message}`);
         } finally {
-            setIsLoading(false); // Set loading to false when request finishes
+            setIsLoading(false);
         }
     };
 

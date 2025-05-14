@@ -52,11 +52,11 @@ export async function GET(request) {
         } else if (searchParams.get('accountType')) {
             // Fetch accounts by multiple types
             const accountTypes = searchParams.get("accountType").split(",");
-            const accountData = await Account.find({ accountType: { $in: accountTypes } });
+            const accountData = await Account.find({ accountType: { $in: accountTypes } }).sort({ accountName: 1 });
             return Response.json(accountData);
         } else {
             // Fetch all accounts
-            const accounts = await Account.find().sort({ accountName: 1 });;
+            const accounts = await Account.find().sort({ accountName: 1 });
             return Response.json(accounts);
         }
     } catch (error) {

@@ -123,7 +123,7 @@ const Purchase = () => {
         setSelectedCategory(null);
         setSelectedDescription(null);
         setBagQuantity('');
-        setKgQuantity('');
+        setKgQuantity(0);
         setPoundRate('');
         setBagRate('');
         setPerKgRate('');
@@ -231,10 +231,10 @@ const Purchase = () => {
                   <Input id="bagQuantity" name="bagQuantity" type="number" min="0" value={bagQuantity} onChange={(e) => setBagQuantity(e.target.value)} />
                 </FormGroup>
               </Col>
-              <Col md={2}>
+              <Col md={2} className='mx-4'>
                 <FormGroup>
                   <Label for="kgQuantity">Kg</Label>
-                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity === 0 ? '' : kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
+                  <Input id="kgQuantity" name="kgQuantity" type="number" step="0.001" min="0" value={kgQuantity === 0 ? null : kgQuantity} onChange={(e) => setKgQuantity(e.target.value)} />
                 </FormGroup>
               </Col>
             </Row>

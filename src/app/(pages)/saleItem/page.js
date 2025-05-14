@@ -295,7 +295,7 @@ const SaleItem = () => {
       toast.error("Cart is empty. Please add items to the cart before submitting.");
       return;
     }
-    if (accountType === 'cash' && (parseInt(cashReceived) + parseInt(accountAmount) < total) && discount === 0) {
+    if (accountType === 'cash' && (parseInt(cashReceived) + parseInt(accountAmount) < (total - parseInt(discount) + parseInt(freightCharges)))) {
       toast.error('Cash received is less than the total amount. Please select an account to transfer the remaining amount');
       return;
     }
@@ -423,6 +423,8 @@ const SaleItem = () => {
       return;
     }
 
+    const customer = selectedName.value;
+
     setSubmitting(true);
 
     // Submit Sale first
@@ -431,8 +433,9 @@ const SaleItem = () => {
     const creditAmount = parseInt(accountAmount);
 
     const paymentData = {
+      customer,
       name: selectedAccount.value,
-      description: accountDescription ? accountDescription : `${cartItems[0].category} Sale Bill No: ${billNo}`,
+      description: accountDescription ? accountDescription : `${cartItems[0].category} Sale, Bill No: ${billNo}`,
       debit: 0,
       credit: creditAmount,
       balance: 0,

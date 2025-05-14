@@ -139,7 +139,8 @@ export async function POST(request) {
         await Promise.all(saleItemPromises);
 
         ledgerDescription = saleData.cartItems.map(item => {
-            return `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`;
+            let rate = item.bagQuantity ? item.bagRate : item.perKgRate;
+            return `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${rate}`;
         }).join(', ');
 
         ledgerDescription = `${ledgerDescription}, TOTAL = ${saleData.total} Rs`;

@@ -12,7 +12,7 @@ export async function GET(req = NextRequest) {
         // Conditionally build the query based on whether a description is provided
         const query = description ? { description } : {};
 
-        const categories = await Item.find(query).select('category');
+        const categories = await Item.find(query).select('category').sort({ category: 1 });
         return NextResponse.json(categories);
     } catch (error) {
         console.error('Error fetching item categories:', error.message);

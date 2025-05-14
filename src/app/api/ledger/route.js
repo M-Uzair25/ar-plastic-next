@@ -7,7 +7,7 @@ export async function POST(request) {
   try {
     await connectToDB(); // Connect to the database
 
-    const { name, description, debit, credit, balance } = await request.json(); // Get input data from request
+    const { customer, name, description, debit, credit, balance } = await request.json(); // Get input data from request
 
     // Validate input fields
     if (!name || !description || balance === undefined) {
@@ -20,6 +20,7 @@ export async function POST(request) {
     }
 
     let currentBalance = dbAccount.balance; // Start with the current balance
+    let desc = description;
 
     if (dbAccount.accountType === 'supplier') {
       currentBalance += debit;
@@ -32,12 +33,13 @@ export async function POST(request) {
     else {
       currentBalance -= debit;
       currentBalance += credit;
+      desc = `(${customer}) ${description}`;
     }
 
     // Create a new ledger entry with the received data
     const newLedgerEntry = new Ledger({
       name,
-      description,
+      description: desc,
       debit: (dbAccount.accountType === 'supplier' || dbAccount.accountType === 'customer') ? credit : debit,  // Make debit = credit for supplier
       credit: (dbAccount.accountType === 'supplier' || dbAccount.accountType === 'customer') ? debit : credit, // Make credit = 0 for supplier
       balance: currentBalance,

@@ -175,7 +175,7 @@ const Ledger = () => {
                         </Col>
                         <Col md={2}>
                             <FormGroup>
-                                <Label for="accountType">Filter by Account Type</Label>
+                                <Label for="accountType">Sort by Account Type</Label>
                                 <Input
                                     type="select"
                                     name="accountType"
@@ -280,21 +280,23 @@ const Ledger = () => {
                                             </td>
                                         </tr>
                                     ) : tableData.length > 0 ? (
-                                        tableData.map((tdata, index) => (
-                                            <tr key={index} className="border-top" style={{ cursor: 'pointer' }} onClick={() => handleRowClick(tdata)}>
-                                                <td>{index + 1}</td>
-                                                <td>
-                                                    {tdata.accountName}
-                                                    <span className="text-muted" style={{ marginLeft: '15px' }}>
-                                                        <i className="bi bi-telephone"></i> {tdata.accountNo}
-                                                    </span>
-                                                </td>
-
-                                                <td>{tdata.balance}</td>
-                                                <td>{tdata.accountType}</td>
-                                                <td>{format(new Date(tdata.updatedAt), 'dd-MMM-yyyy')}</td>
-                                            </tr>
-                                        ))
+                                        tableData.map((tdata, index) => {
+                                            const isOld = new Date() - new Date(tdata.updatedAt) > 30 * 24 * 60 * 60 * 1000; // Check if updatedAt is more than 1 month old
+                                            return (
+                                                <tr key={index} className={isOld ? 'table-danger' : 'border-top'} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(tdata)}>
+                                                    <td>{index + 1}</td>
+                                                    <td>
+                                                        {tdata.accountName}
+                                                        <span className="text-muted" style={{ marginLeft: '15px' }}>
+                                                            <i className="bi bi-telephone"></i> {tdata.accountNo}
+                                                        </span>
+                                                    </td>
+                                                    <td>{tdata.balance.toLocaleString()}</td>
+                                                    <td>{tdata.accountType}</td>
+                                                    <td>{format(new Date(tdata.updatedAt), 'dd-MMM-yyyy')}</td>
+                                                </tr>
+                                            );
+                                        })
                                     ) : (
                                         <tr>
                                             <td colSpan="5" className="text-center">No data available</td>
@@ -305,7 +307,7 @@ const Ledger = () => {
                             <div className="text-right mt-4">
                                 <h6>
                                     <strong>
-                                        Total Balance: {totalBalance.toLocaleString()}Rs | {(selectedAccountType === 'customer' || selectedAccountType === 'other') ? (
+                                        Total Balance: {totalBalance.toLocaleString()} Rs | {(selectedAccountType === 'customer' || selectedAccountType === 'other') ? (
                                             totalBalance > 0 ? 'Receivable' : 'Payable'
                                         ) : selectedAccountType === 'supplier' ? (
                                             totalBalance > 0 ? 'Payable' : 'Receivable'

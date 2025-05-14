@@ -12,7 +12,7 @@ export async function GET(req = NextRequest) {
         // Conditionally build the query based on whether a category is provided
         const query = category ? { category } : {};
 
-        const descriptions = await Item.find(query).select('description');
+        const descriptions = await Item.find(query).select('description').sort({ description: 1 });
         return NextResponse.json(descriptions);
 
     } catch (error) {

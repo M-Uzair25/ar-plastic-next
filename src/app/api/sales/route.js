@@ -142,10 +142,12 @@ export async function POST(request) {
                 kgQty = parseInt(item.kgQuantity, 10);
             }
 
-            let ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}`;
+            let rate = item.bagQuantity ? item.bagRate : item.perKgRate;
+
+            let ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${rate}`;
 
             if (saleData.remarks) {
-                ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${item.bagRate}, REMARKS: ${saleData.remarks}`;
+                ledgerDescription = `[${formatQuantity(bagQty, kgQty)}] ${item.category} ${item.description} @ ${rate}, REMARKS: ${saleData.remarks}`;
             }
 
             // Create a Ledger entry for each sale item
@@ -388,7 +390,8 @@ export async function PUT(request) {
 
         // Format the sale data into a single string
         let formattedSaleData = sale.cartItems.map(item => {
-            return `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${item.bagRate}`;
+            let rate = item.bagQuantity ? item.bagRate : item.perKgRate;
+            return `[${formatQuantity(item.bagQuantity, item.kgQuantity)}] ${item.category} ${item.description} @ ${rate}`;
         }).join(', ');
 
         // Create the reversal ledger entry
